@@ -21,29 +21,13 @@ Within the community, key users will support, document, explain and even create 
 It is the ambition to grow this framework as a de-facto standard for mission designers to use within the DCS World community.
   
   
-  
-## Please Donate ...
-
-If you appreciate this development, please support to extend the framework. The development of this framework takes a lot of time.
-A small gift would help me to buy a new small laptop that I can use to extend this framework while commuting to and from work ...
-Also, your donations will be saved and spent wisely to the advantage of the community! 
-
-If everyone helps with a small amount, it would be really great!
-
-<a class="dbox-donation-button" href="https://donorbox.org/fund-github-subscriptionfor-moose" style="background:#2d81c5 url(https://d1iczxrky3cnb2.cloudfront.net/red_logo.png) no-repeat 37px center; color: #fff;text-decoration: none;font-family: Verdana,sans-serif;display: inline-block;font-size: 16px;padding: 15px 38px 15px 75px; -webkit-border-radius: 2px; -moz-border-radius: 2px; border-radius: 2px; box-shadow: 0 1px 0 0 #1f5a89; text-shadow: 0 1px rgba(0, 0, 0, 0.3);" >Donate</a>
-
-kind regards,
-FC
-  
-  
-  
-## MOOSE Include Files
+## MOOSE Loading
 
 Moose.lua is the include file to be used within your DCS World missions, containing all the MOOSE code.
 There are two ways how you can load your missions. Dynamically or Statically.
 
 
-## 3.1) Static Loading
+### Static Loading
 
 See the folder **Moose_Include_Static**
 
@@ -59,7 +43,7 @@ Add to this cumbersome process the fact that the Mission Editor doesn't like cha
 which means you would need to close and reopen the Mission Editor for every change, 
 and this process becomes unworkable for both the tester and the contributor.
 
-## 3.2) Dynamic Loading
+### Dynamic Loading
 
 See the folder **Moose_Include_Dynamic**
 
@@ -81,15 +65,38 @@ Note that if you want to **release your missions to end users**, you will need t
 
 [Click on this link to browse to the MOOSE main web page.](http://flightcontrol-master.github.io/MOOSE_DOCS)
 Documentation on the MOOSE class hierarchy, usage guides and background information can be found here for normal users, beta testers and contributors.
-
+  
+  
+  
 ## MOOSE Missions
 
 MOOSE comes with [demonstration missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS) that you can use to understand the mechanisms how to use the classes within MOOSE.
-
+  
+  
+  
 ## MOOSE Youtube Channel
 
 MOOSE has a [broadcast and training channel on YouTube](https://www.youtube.com/channel/UCjrA9j5LQoWsG4SpS8i79Qg) with various channels that you can watch.
-
+  
+  
+  
 ## MOOSE on [Discord](https://discord.gg/yBPfxC6)
 
 MOOSE has a living (chat and video) community of users, beta testers and contributors. The gathering point is a service provided by discord.com. If you want to join this community, just click Discord and you'll be on board in no time.
+  
+  
+  
+## Please Donate ...
+
+If you appreciate this development, please support to extend the framework. The development of this framework takes a lot of time.
+A small gift would help me to buy a new small laptop that I can use to extend this framework while commuting to and from work ...
+Also, your donations will be saved and spent wisely to the advantage of the community! 
+
+If everyone helps with a small amount, it would be really great!
+
+<a class="dbox-donation-button" href="https://donorbox.org/fund-github-subscriptionfor-moose" style="background:#2d81c5 url(https://d1iczxrky3cnb2.cloudfront.net/red_logo.png) no-repeat 37px center; color: #fff;text-decoration: none;font-family: Verdana,sans-serif;display: inline-block;font-size: 16px;padding: 15px 38px 15px 75px; -webkit-border-radius: 2px; -moz-border-radius: 2px; border-radius: 2px; box-shadow: 0 1px 0 0 #1f5a89; text-shadow: 0 1px rgba(0, 0, 0, 0.3);" >Donate</a>
+
+kind regards,
+FC
+  
+  
