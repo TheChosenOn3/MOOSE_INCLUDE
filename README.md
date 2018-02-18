@@ -57,7 +57,7 @@ Now, there is still a problem left : you wouldn't want to have to copy the MOOSE
 everytime you retrieve a new version of Moose. The solution to this problem is a dynamic link!  
 Simply put, it makes sure that the folder `DCSWorld\Scripts\Moose` is always in sync with your local MOOSE repository on your disk.  
 That way, **everytime you want to update to the next Moose, you simply sync your local repository** with the remote with GitHub, **and restart your mission** !
-Note that if you want to **release your missions to end users**, you will need to make it **use the static loading process**. There is a tool to automate this task, read below.
+Note that if you want to **release your missions to end users**, you will need to make it **use the static loading process**.
   
   
   
