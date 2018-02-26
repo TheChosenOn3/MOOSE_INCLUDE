@@ -41,10 +41,10 @@ build_script:
    - ps: | 
        if( $env:appveyor_repo_branch -eq 'master' )     
        {
-         $env:path += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\bin"
-         $env:lua_path +=  ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?.lua;C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?\init.lua"
-         $env:lua_cpath += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\lib\lua\5.1\?.dll" 
-         git clone -q --depth=1 https://github.com/FlightControl-Master/MOOSE.git c:\Projects\Moose
+         $env:path += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\bin"  
+         $env:lua_path +=  ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?.lua;C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?\init.lua" 
+         $env:lua_cpath += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\lib\lua\5.1\?.dll"  
+         git clone -q --depth=1 https://github.com/FlightControl-Master/MOOSE.git c:\Projects\Moose 
          Remove-Item ".\Moose_Include_Static" -Force -Recurse
          Remove-Item ".\Moose_Include_Dynamic" -Force -Recurse
          md ".\Moose_Include_Static"  
@@ -59,7 +59,7 @@ build_script:
          git config --global user.email "sven.van.de.velde@telenet.be" 
          git config --global user.name "FlightControl-User" 
          git add .
-         git commit -m "MOOSE include files (Moose.lua) [skip ci]"
+         git commit -m "MOOSE include files (Moose.lua) [skip ci]" 
          git push origin master
          dir
        }
