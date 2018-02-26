@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 43b2f8c3ffc6520cb07765d0d78aebacba788eb5 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-02-26T21:37:04.0000000Z-28b5d2f56d8ffe5608fbb811611de15d81ab6692 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -3332,6 +3332,7 @@ return self
 end
 SETTINGS={
 ClassName="SETTINGS",
+ShowPlayerMenu=true,
 }
 do
 function SETTINGS:Set(PlayerName)
@@ -3543,7 +3544,14 @@ MENU_GROUP_COMMAND:New(MenuGroup,"3 minutes",DetailedReportsMenu,self.MenuMessag
 SettingsMenu:Remove(MenuTime)
 return self
 end
+function SETTINGS:SetPlayerMenuOn()
+self.ShowPlayerMenu=true
+end
+function SETTINGS:SetPlayerMenuOff()
+self.ShowPlayerMenu=false
+end
 function SETTINGS:SetPlayerMenu(PlayerUnit)
+if _SETTINGS.ShowPlayerMenu==true then
 local PlayerGroup=PlayerUnit:GetGroup()
 local PlayerName=PlayerUnit:GetPlayerName()
 local PlayerNames=PlayerGroup:GetPlayerNames()
@@ -3642,11 +3650,13 @@ MENU_GROUP_COMMAND:New(PlayerGroup,"30 seconds",DetailedReportsMenu,self.MenuGro
 MENU_GROUP_COMMAND:New(PlayerGroup,"1 minute",DetailedReportsMenu,self.MenuGroupMessageTimingsSystem,self,PlayerUnit,PlayerGroup,PlayerName,MESSAGE.Type.DetailedReportsMenu,60)
 MENU_GROUP_COMMAND:New(PlayerGroup,"2 minutes",DetailedReportsMenu,self.MenuGroupMessageTimingsSystem,self,PlayerUnit,PlayerGroup,PlayerName,MESSAGE.Type.DetailedReportsMenu,120)
 MENU_GROUP_COMMAND:New(PlayerGroup,"3 minutes",DetailedReportsMenu,self.MenuGroupMessageTimingsSystem,self,PlayerUnit,PlayerGroup,PlayerName,MESSAGE.Type.DetailedReportsMenu,180)
+end
 return self
 end
 function SETTINGS:RemovePlayerMenu(PlayerUnit)
 if self.PlayerMenu then
 self.PlayerMenu:Remove()
+self.PlayerMenu=nil
 end
 return self
 end
@@ -29303,5 +29313,6 @@ _EVENTDISPATCHER=EVENT:New()
 _SCHEDULEDISPATCHER=SCHEDULEDISPATCHER:New()
 _DATABASE=DATABASE:New()
 _SETTINGS=SETTINGS:Set()
+_SETTINGS:SetPlayerMenuOn()
 BASE:TraceOnOff(false)
 env.info('*** MOOSE INCLUDE END *** ')
