@@ -1,5 +1,5 @@
 version: 0.0.1.{build}
-shallow_clone: true
+shallow_clone: false
 skip_branch_with_pr: false
 skip_commits:
   message: /!nobuild/
@@ -87,24 +87,11 @@ build_script:
        }
 
 
-#   ps : >- 
-#       if( $env:appveyor_repo_branch -eq 'master' )     
-#       {  
-#         . .av\build_missions.bat
-#       }
-
-test: off
-# test_script:
-#   - cmd: luacheck "Moose Development\Moose\moose.lua" "Moose Mission Setup\moose.lua"
-
-
 artifacts:
   - path: 'Moose_Include_Static\*.lua'
     name: Static
   - path: 'Moose_Include_Dynamic\*.lua'
     name: Dynamic
-#  - path: 'MOOSE_MISSIONS-Release\*.miz'
-#    name: miz
 
 on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
