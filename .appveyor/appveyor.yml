@@ -41,6 +41,7 @@ build_script:
    - ps: | 
        if( $env:appveyor_repo_branch -eq 'master' )     
        {
+         git checkout master 2>&1
          $env:path += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\bin"  
          $env:lua_path +=  ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?.lua;C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?\init.lua" 
          $env:lua_cpath += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\lib\lua\5.1\?.dll"  
