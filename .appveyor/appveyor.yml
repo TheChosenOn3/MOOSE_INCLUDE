@@ -44,8 +44,8 @@ build_script:
          git clone -q --depth=1 https://github.com/FlightControl-Master/MOOSE.git c:\Projects\Moose
          md Moose_Include_Static
          md Moose_Include_Dynamic
-         lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "S" %APPVEYOR_REPO_COMMIT% "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Static" 
-         lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "D" %APPVEYOR_REPO_COMMIT% "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Dynamic"
+         lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "S" "%APPVEYOR_REPO_COMMIT_TIMESTAMP%-%APPVEYOR_REPO_COMMIT%" "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Static" 
+         lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "D" "%APPVEYOR_REPO_COMMIT_TIMESTAMP%-%APPVEYOR_REPO_COMMIT%" "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Dynamic"
          luasrcdiet --basic --opt-emptylines "Moose_Include_Static\Moose.lua"
          dir -Recurse
          echo "Commit the Moose.lua include files to the MOOSE_INCLUDE repository"
@@ -54,7 +54,7 @@ build_script:
          git config --global user.email "sven.van.de.velde@telenet.be" 
          git config --global user.name "FlightControl-User" 
          git add .
-         git commit -m "Commit ID $env:APPVEYOR_REPO_COMMIT [skip ci]" 2>&1 
+         git commit -m "MOOSE include files (Moose.lua) [skip ci]" 2>&1 
          git push origin master 2>&1
          dir
        }
