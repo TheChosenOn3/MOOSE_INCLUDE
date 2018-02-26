@@ -47,7 +47,7 @@ build_script:
          lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "S" %APPVEYOR_REPO_COMMIT% "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Static" 
          lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "D" %APPVEYOR_REPO_COMMIT% "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Dynamic"
          luasrcdiet --basic --opt-emptylines "Moose_Include_Static\Moose.lua"
-         dir /s
+         dir -Recurse
          #echo "Commit the Moose.lua include files to the MOOSE_INCLUDE repository"
          #git config --global credential.helper store  
          #Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token_documentation):x-oauth-basic@github.com`n" 
