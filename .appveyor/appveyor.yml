@@ -59,8 +59,8 @@ build_script:
          git config --global user.email "sven.van.de.velde@telenet.be" 
          git config --global user.name "FlightControl-User" 
          git add .
-         git commit -m "MOOSE include files (Moose.lua) [skip ci]" 2>&1 
-         git push origin master 2>&1
+         git commit -m "MOOSE include files (Moose.lua) [skip ci]"
+         git push origin master
          dir
        }
    - ps: | 
