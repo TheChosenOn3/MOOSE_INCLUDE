@@ -41,12 +41,15 @@ build_script:
    - ps: | 
        if( $env:appveyor_repo_branch -eq 'master' )     
        {
+         $env:path += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\bin"
+         $env:lua_path +=  ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?.lua;C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\share\lua\5.1\?\init.lua"
+         $env:lua_cpath += ";C:\ProgramData\chocolatey\lib\luarocks\luarocks-2.4.3-win32\systree\lib\lua\5.1\?.dll" 
          git clone -q --depth=1 https://github.com/FlightControl-Master/MOOSE.git c:\Projects\Moose
          md Moose_Include_Static
          md Moose_Include_Dynamic
-         lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "S" "%APPVEYOR_REPO_COMMIT_TIMESTAMP%-%APPVEYOR_REPO_COMMIT%" "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Static" 
-         lua5.1 "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "D" "%APPVEYOR_REPO_COMMIT_TIMESTAMP%-%APPVEYOR_REPO_COMMIT%" "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Dynamic"
-         luasrcdiet --basic --opt-emptylines "Moose_Include_Static\Moose.lua"
+         lua5.1.exe "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "S" "%APPVEYOR_REPO_COMMIT_TIMESTAMP%-%APPVEYOR_REPO_COMMIT%" "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Static" 
+         lua5.1.exe "c:\\Projects\\Moose\\Moose Setup\\Moose_Create.lua" "D" "%APPVEYOR_REPO_COMMIT_TIMESTAMP%-%APPVEYOR_REPO_COMMIT%" "c:\\Projects\\Moose\\Moose Development\\Moose" "Moose Setup" "Moose_Include_Dynamic"
+         luasrcdiet.bat --basic --opt-emptylines "Moose_Include_Static\Moose.lua"
          dir -Recurse
          echo "Commit the Moose.lua include files to the MOOSE_INCLUDE repository"
          git config --global credential.helper store  
