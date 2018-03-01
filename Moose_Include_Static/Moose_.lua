@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-02-27T16:44:01.0000000Z-c3b54122f796b8a51643f3bec413136bc0ca23aa ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-01T10:49:56.0000000Z-67e5878773613239558ce387300ee2eebaa7b6be ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -13781,6 +13781,14 @@ return self
 end
 function GROUP:InitRandomizePositions(Positions)
 self.InitRespawnRandomizePositions=Positions
+self.InitRespawnRandomizePositionsInner=nil
+self.InitRespawnRandomizePositionsOuter=nil
+return self
+end
+function GROUP:InitRandomizePositionsRadius(OuterRadius,InnerRadius)
+self.InitRespawnRandomizePositions=nil
+self.InitRespawnRandomizePositionsInner=Inner
+self.InitRespawnRandomizePositionsOuter=Outer
 return self
 end
 function GROUP:Respawn(Template)
@@ -13803,7 +13811,11 @@ if Zone then
 if self.InitRespawnRandomizePositions then
 GroupUnitVec3=Zone:GetRandomVec3()
 else
+if self.InitRespawnRandomizePositionsInner and self.InitRespawnRandomizePositionsOuter then
+GroupUnitVec3=POINT_VEC3:NewFromVec2(From):GetRandomPointVec3InRadius(self.InitRespawnRandomizePositionsOuter,self.InitRespawnRandomizePositionsInner)
+else
 GroupUnitVec3=Zone:GetVec3()
+end
 end
 end
 Template.units[UnitID].alt=self.InitRespawnHeight and self.InitRespawnHeight or GroupUnitVec3.y

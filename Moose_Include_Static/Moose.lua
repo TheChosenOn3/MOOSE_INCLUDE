@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-02-27T16:44:01.0000000Z-c3b54122f796b8a51643f3bec413136bc0ca23aa ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-01T10:49:56.0000000Z-67e5878773613239558ce387300ee2eebaa7b6be ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -28644,11 +28644,33 @@ end
 
 
 --- Randomize the unit positions for the units of the respawned group.
+-- When a Respawn happens, the units of the group will be placed at random positions within the Zone (selected).
 -- @param #GROUP self
--- @param #boolean Positions true will randomize the positions.
+-- @param #boolean Positions true will randomize the positions within the Zone.
 -- @return #GROUP self
 function GROUP:InitRandomizePositions( Positions )
+
   self.InitRespawnRandomizePositions = Positions
+  self.InitRespawnRandomizePositionsInner = nil
+  self.InitRespawnRandomizePositionsOuter = nil
+
+  return self
+end
+
+
+--- Randomize the unit positions for the units in a circle band.
+-- When a Respawn happens, the units of the group will be positioned at random places within the Outer and Inner radius.
+-- Thus, a band is created around the respawn location where the units will be placed at random positions.
+-- @param #GROUP self
+-- @param #boolean OuterRadius Outer band in meters from the center.
+-- @param #boolean InnerRadius Inner band in meters from the center.
+-- @return #GROUP self
+function GROUP:InitRandomizePositionsRadius( OuterRadius, InnerRadius )
+  
+  self.InitRespawnRandomizePositions = nil
+  self.InitRespawnRandomizePositionsInner = Inner
+  self.InitRespawnRandomizePositionsOuter = Outer
+  
   return self
 end
 
@@ -28698,7 +28720,11 @@ function GROUP:Respawn( Template )
           if self.InitRespawnRandomizePositions then
             GroupUnitVec3 = Zone:GetRandomVec3()
           else
-            GroupUnitVec3 = Zone:GetVec3()
+            if self.InitRespawnRandomizePositionsInner and self.InitRespawnRandomizePositionsOuter then
+              GroupUnitVec3 = POINT_VEC3:NewFromVec2( From ):GetRandomPointVec3InRadius( self.InitRespawnRandomizePositionsOuter, self.InitRespawnRandomizePositionsInner )
+            else
+              GroupUnitVec3 = Zone:GetVec3()
+            end
           end
         end
         
