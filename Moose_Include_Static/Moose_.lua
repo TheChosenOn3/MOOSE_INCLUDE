@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-01T10:49:56.0000000Z-67e5878773613239558ce387300ee2eebaa7b6be ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-01T16:44:56.0000000Z-e3fe64d440b1a2bfdf0019181e033cfd561cad93 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -13779,19 +13779,19 @@ function GROUP:InitZone(Zone)
 self.InitRespawnZone=Zone
 return self
 end
-function GROUP:InitRandomizePositions(Positions)
-self.InitRespawnRandomizePositions=Positions
-self.InitRespawnRandomizePositionsInner=nil
-self.InitRespawnRandomizePositionsOuter=nil
+function GROUP:InitRandomizePositionZone(PositionZone)
+self.InitRespawnRandomizePositionZone=PositionZone
+self.InitRespawnRandomizePositionInner=nil
+self.InitRespawnRandomizePositionOuter=nil
 return self
 end
-function GROUP:InitRandomizePositionsRadius(OuterRadius,InnerRadius)
-self.InitRespawnRandomizePositions=nil
-self.InitRespawnRandomizePositionsInner=Inner
-self.InitRespawnRandomizePositionsOuter=Outer
+function GROUP:InitRandomizePositionRadius(OuterRadius,InnerRadius)
+self.InitRespawnRandomizePositionZone=nil
+self.InitRespawnRandomizePositionOuter=OuterRadius
+self.InitRespawnRandomizePositionInner=InnerRadius
 return self
 end
-function GROUP:Respawn(Template)
+function GROUP:Respawn(Template,Reset)
 if not Template then
 Template=self:GetTemplate()
 end
@@ -13802,16 +13802,18 @@ local From={x=Template.x,y=Template.y}
 Template.x=Vec3.x
 Template.y=Vec3.z
 self:E(#Template.units)
+if Reset==true then
 for UnitID,UnitData in pairs(self:GetUnits())do
 local GroupUnit=UnitData
 self:E(GroupUnit:GetName())
 if GroupUnit:IsAlive()then
+self:E("Alive")
 local GroupUnitVec3=GroupUnit:GetVec3()
 if Zone then
-if self.InitRespawnRandomizePositions then
+if self.InitRespawnRandomizePositionZone then
 GroupUnitVec3=Zone:GetRandomVec3()
 else
-if self.InitRespawnRandomizePositionsInner and self.InitRespawnRandomizePositionsOuter then
+if self.InitRespawnRandomizePositionInner and self.InitRespawnRandomizePositionOuter then
 GroupUnitVec3=POINT_VEC3:NewFromVec2(From):GetRandomPointVec3InRadius(self.InitRespawnRandomizePositionsOuter,self.InitRespawnRandomizePositionsInner)
 else
 GroupUnitVec3=Zone:GetVec3()
@@ -13822,6 +13824,28 @@ Template.units[UnitID].alt=self.InitRespawnHeight and self.InitRespawnHeight or 
 Template.units[UnitID].x=(Template.units[UnitID].x-From.x)+GroupUnitVec3.x
 Template.units[UnitID].y=(Template.units[UnitID].y-From.y)+GroupUnitVec3.z
 Template.units[UnitID].heading=self.InitRespawnHeading and self.InitRespawnHeading or GroupUnit:GetHeading()
+self:E({UnitID,Template.units[UnitID],Template.units[UnitID]})
+end
+end
+else
+for UnitID,TemplateUnitData in pairs(Template.units)do
+self:E("Reset")
+local GroupUnitVec3={x=TemplateUnitData.x,y=TemplateUnitData.alt,z=TemplateUnitData.z}
+if Zone then
+if self.InitRespawnRandomizePositionZone then
+GroupUnitVec3=Zone:GetRandomVec3()
+else
+if self.InitRespawnRandomizePositionInner and self.InitRespawnRandomizePositionOuter then
+GroupUnitVec3=POINT_VEC3:NewFromVec2(From):GetRandomPointVec3InRadius(self.InitRespawnRandomizePositionsOuter,self.InitRespawnRandomizePositionsInner)
+else
+GroupUnitVec3=Zone:GetVec3()
+end
+end
+end
+Template.units[UnitID].alt=self.InitRespawnHeight and self.InitRespawnHeight or GroupUnitVec3.y
+Template.units[UnitID].x=(Template.units[UnitID].x-From.x)+GroupUnitVec3.x
+Template.units[UnitID].y=(Template.units[UnitID].y-From.y)+GroupUnitVec3.z
+Template.units[UnitID].heading=self.InitRespawnHeading and self.InitRespawnHeading or TemplateUnitData.heading
 self:E({UnitID,Template.units[UnitID],Template.units[UnitID]})
 end
 end

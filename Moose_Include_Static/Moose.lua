@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-01T10:49:56.0000000Z-67e5878773613239558ce387300ee2eebaa7b6be ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-01T16:44:56.0000000Z-e3fe64d440b1a2bfdf0019181e033cfd561cad93 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -28643,33 +28643,33 @@ function GROUP:InitZone( Zone )
 end
 
 
---- Randomize the unit positions for the units of the respawned group.
+--- Randomize the positions of the units of the respawned group within the @{Zone}.
 -- When a Respawn happens, the units of the group will be placed at random positions within the Zone (selected).
 -- @param #GROUP self
--- @param #boolean Positions true will randomize the positions within the Zone.
+-- @param #boolean PositionZone true will randomize the positions within the Zone.
 -- @return #GROUP self
-function GROUP:InitRandomizePositions( Positions )
+function GROUP:InitRandomizePositionZone( PositionZone )
 
-  self.InitRespawnRandomizePositions = Positions
-  self.InitRespawnRandomizePositionsInner = nil
-  self.InitRespawnRandomizePositionsOuter = nil
+  self.InitRespawnRandomizePositionZone = PositionZone
+  self.InitRespawnRandomizePositionInner = nil
+  self.InitRespawnRandomizePositionOuter = nil
 
   return self
 end
 
 
---- Randomize the unit positions for the units in a circle band.
+--- Randomize the positions of the units of the respawned group in a circle band.
 -- When a Respawn happens, the units of the group will be positioned at random places within the Outer and Inner radius.
 -- Thus, a band is created around the respawn location where the units will be placed at random positions.
 -- @param #GROUP self
 -- @param #boolean OuterRadius Outer band in meters from the center.
 -- @param #boolean InnerRadius Inner band in meters from the center.
 -- @return #GROUP self
-function GROUP:InitRandomizePositionsRadius( OuterRadius, InnerRadius )
+function GROUP:InitRandomizePositionRadius( OuterRadius, InnerRadius )
   
-  self.InitRespawnRandomizePositions = nil
-  self.InitRespawnRandomizePositionsInner = Inner
-  self.InitRespawnRandomizePositionsOuter = Outer
+  self.InitRespawnRandomizePositionZone = nil
+  self.InitRespawnRandomizePositionOuter = OuterRadius
+  self.InitRespawnRandomizePositionInner = InnerRadius
   
   return self
 end
@@ -28684,7 +28684,8 @@ end
 --   - @{#GROUP.InitRandomizeHeading}: Randomize the headings for the units within the respawned group.
 --   - @{#GROUP.InitZone}: Set the respawn @{Zone} for the respawned group.
 --   - @{#GROUP.InitRandomizeZones}: Randomize the respawn @{Zone} between one of the @{Zone}s given for the respawned group.
---   - @{#GROUP.InitRandomizePositions}: Randomize the unit positions for the units of the respawned group.
+--   - @{#GROUP.InitRandomizePositionZone}: Randomize the positions of the units of the respawned group within the @{Zone}.
+--   - @{#GROUP.InitRandomizePositionRadius}: Randomize the positions of the units of the respawned group in a circle band.
 --   - @{#GROUP.InitRandomizeTemplates}: Randomize the Template for the respawned group.
 -- 
 -- 
@@ -28695,7 +28696,7 @@ end
 -- 
 -- @param Wrapper.Group#GROUP self
 -- @param #table Template (optional) The template of the Group retrieved with GROUP:GetTemplate(). If the template is not provided, the template will be retrieved of the group itself.
-function GROUP:Respawn( Template )
+function GROUP:Respawn( Template, Reset )
 
   if not Template then
     Template = self:GetTemplate()
@@ -28711,16 +28712,41 @@ function GROUP:Respawn( Template )
     --Template.y = nil
     
     self:E( #Template.units )
-    for UnitID, UnitData in pairs( self:GetUnits() ) do
-      local GroupUnit = UnitData -- Wrapper.Unit#UNIT
-      self:E( GroupUnit:GetName() )
-      if GroupUnit:IsAlive() then
-        local GroupUnitVec3 = GroupUnit:GetVec3() 
+    if Reset == true then
+      for UnitID, UnitData in pairs( self:GetUnits() ) do
+        local GroupUnit = UnitData -- Wrapper.Unit#UNIT
+        self:E( GroupUnit:GetName() )
+        if GroupUnit:IsAlive() then
+          self:E( "Alive"  )
+          local GroupUnitVec3 = GroupUnit:GetVec3() 
+          if Zone then
+            if self.InitRespawnRandomizePositionZone then
+              GroupUnitVec3 = Zone:GetRandomVec3()
+            else
+              if self.InitRespawnRandomizePositionInner and self.InitRespawnRandomizePositionOuter then
+                GroupUnitVec3 = POINT_VEC3:NewFromVec2( From ):GetRandomPointVec3InRadius( self.InitRespawnRandomizePositionsOuter, self.InitRespawnRandomizePositionsInner )
+              else
+                GroupUnitVec3 = Zone:GetVec3()
+              end
+            end
+          end
+          
+          Template.units[UnitID].alt = self.InitRespawnHeight and self.InitRespawnHeight or GroupUnitVec3.y
+          Template.units[UnitID].x = ( Template.units[UnitID].x - From.x ) + GroupUnitVec3.x -- Keep the original x position of the template and translate to the new position.
+          Template.units[UnitID].y = ( Template.units[UnitID].y - From.y ) + GroupUnitVec3.z -- Keep the original z position of the template and translate to the new position.
+          Template.units[UnitID].heading = self.InitRespawnHeading and self.InitRespawnHeading or GroupUnit:GetHeading()
+          self:E( { UnitID, Template.units[UnitID], Template.units[UnitID] } )
+        end
+      end
+    else
+      for UnitID, TemplateUnitData in pairs( Template.units ) do
+        self:E( "Reset"  )
+        local GroupUnitVec3 = { x = TemplateUnitData.x, y = TemplateUnitData.alt, z = TemplateUnitData.z }
         if Zone then
-          if self.InitRespawnRandomizePositions then
+          if self.InitRespawnRandomizePositionZone then
             GroupUnitVec3 = Zone:GetRandomVec3()
           else
-            if self.InitRespawnRandomizePositionsInner and self.InitRespawnRandomizePositionsOuter then
+            if self.InitRespawnRandomizePositionInner and self.InitRespawnRandomizePositionOuter then
               GroupUnitVec3 = POINT_VEC3:NewFromVec2( From ):GetRandomPointVec3InRadius( self.InitRespawnRandomizePositionsOuter, self.InitRespawnRandomizePositionsInner )
             else
               GroupUnitVec3 = Zone:GetVec3()
@@ -28731,10 +28757,10 @@ function GROUP:Respawn( Template )
         Template.units[UnitID].alt = self.InitRespawnHeight and self.InitRespawnHeight or GroupUnitVec3.y
         Template.units[UnitID].x = ( Template.units[UnitID].x - From.x ) + GroupUnitVec3.x -- Keep the original x position of the template and translate to the new position.
         Template.units[UnitID].y = ( Template.units[UnitID].y - From.y ) + GroupUnitVec3.z -- Keep the original z position of the template and translate to the new position.
-        Template.units[UnitID].heading = self.InitRespawnHeading and self.InitRespawnHeading or GroupUnit:GetHeading()
+        Template.units[UnitID].heading = self.InitRespawnHeading and self.InitRespawnHeading or TemplateUnitData.heading
         self:E( { UnitID, Template.units[UnitID], Template.units[UnitID] } )
       end
-    end
+    end      
     
   end
   
