@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-02-27T13:47:38.0000000Z-5fc2deb3bd88a55fba13dc4714abab17ea40b7ce ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-02-27T16:44:01.0000000Z-c3b54122f796b8a51643f3bec413136bc0ca23aa ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -4697,13 +4697,19 @@ return Point
 end
 function ZONE_RADIUS:GetRandomPointVec2(inner,outer)
 self:F(self.ZoneName,inner,outer)
-local PointVec2=POINT_VEC2:NewFromVec2(self:GetRandomVec2())
+local PointVec2=POINT_VEC2:NewFromVec2(self:GetRandomVec2(inner,outer))
 self:T3({PointVec2})
 return PointVec2
 end
+function ZONE_RADIUS:GetRandomVec3(inner,outer)
+self:F(self.ZoneName,inner,outer)
+local Vec2=self:GetRandomVec2(inner,outer)
+self:T3({x=Vec2.x,y=self.y,z=Vec2.y})
+return{x=Vec2.x,y=self.y,z=Vec2.y}
+end
 function ZONE_RADIUS:GetRandomPointVec3(inner,outer)
 self:F(self.ZoneName,inner,outer)
-local PointVec3=POINT_VEC3:NewFromVec2(self:GetRandomVec2())
+local PointVec3=POINT_VEC3:NewFromVec2(self:GetRandomVec2(inner,outer))
 self:T3({PointVec3})
 return PointVec3
 end
@@ -13741,30 +13747,6 @@ end
 function GROUP:GetMaxHeight()
 self:F2()
 end
-function GROUP:Respawn(Template)
-if self:IsAlive()then
-local Vec3=self:GetVec3()
-Template.x=Vec3.x
-Template.y=Vec3.z
-self:E(#Template.units)
-for UnitID,UnitData in pairs(self:GetUnits())do
-local GroupUnit=UnitData
-self:E(GroupUnit:GetName())
-if GroupUnit:IsAlive()then
-local GroupUnitVec3=GroupUnit:GetVec3()
-local GroupUnitHeading=GroupUnit:GetHeading()
-Template.units[UnitID].alt=GroupUnitVec3.y
-Template.units[UnitID].x=GroupUnitVec3.x
-Template.units[UnitID].y=GroupUnitVec3.z
-Template.units[UnitID].heading=GroupUnitHeading
-self:E({UnitID,Template.units[UnitID],Template.units[UnitID]})
-end
-end
-end
-self:Destroy()
-_DATABASE:Spawn(Template)
-self:ResetEvents()
-end
 function GROUP:GetTemplate()
 local GroupName=self:GetName()
 return UTILS.DeepCopy(_DATABASE:GetGroupTemplate(GroupName))
@@ -13784,6 +13766,57 @@ end
 function GROUP:SetTemplateCoalition(Template,CoalitionID)
 Template.CoalitionID=CoalitionID
 return Template
+end
+function GROUP:InitHeading(Heading)
+self.InitRespawnHeading=Heading
+return self
+end
+function GROUP:InitHeight(Height)
+self.InitRespawnHeight=Height
+return self
+end
+function GROUP:InitZone(Zone)
+self.InitRespawnZone=Zone
+return self
+end
+function GROUP:InitRandomizePositions(Positions)
+self.InitRespawnRandomizePositions=Positions
+return self
+end
+function GROUP:Respawn(Template)
+if not Template then
+Template=self:GetTemplate()
+end
+if self:IsAlive()then
+local Zone=self.InitRespawnZone
+local Vec3=Zone and Zone:GetVec3()or self:GetVec3()
+local From={x=Template.x,y=Template.y}
+Template.x=Vec3.x
+Template.y=Vec3.z
+self:E(#Template.units)
+for UnitID,UnitData in pairs(self:GetUnits())do
+local GroupUnit=UnitData
+self:E(GroupUnit:GetName())
+if GroupUnit:IsAlive()then
+local GroupUnitVec3=GroupUnit:GetVec3()
+if Zone then
+if self.InitRespawnRandomizePositions then
+GroupUnitVec3=Zone:GetRandomVec3()
+else
+GroupUnitVec3=Zone:GetVec3()
+end
+end
+Template.units[UnitID].alt=self.InitRespawnHeight and self.InitRespawnHeight or GroupUnitVec3.y
+Template.units[UnitID].x=(Template.units[UnitID].x-From.x)+GroupUnitVec3.x
+Template.units[UnitID].y=(Template.units[UnitID].y-From.y)+GroupUnitVec3.z
+Template.units[UnitID].heading=self.InitRespawnHeading and self.InitRespawnHeading or GroupUnit:GetHeading()
+self:E({UnitID,Template.units[UnitID],Template.units[UnitID]})
+end
+end
+end
+self:Destroy()
+_DATABASE:Spawn(Template)
+self:ResetEvents()
 end
 function GROUP:GetTaskMission()
 self:F2(self.GroupName)
