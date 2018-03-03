@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-01T20:19:10.0000000Z-e7aa33c7a442ff8040c1d6b38f69e6a5c8e56b9e ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-03T04:52:24.0000000Z-ec1fa3d0f0b9c58570dd74308a66638c12288183 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -8236,10 +8236,10 @@ local Altitude=self:GetAltitudeText()
 return"BRA, "..self:GetBRAText(AngleRadians,Distance,Settings)
 end
 function COORDINATE:ToStringBULLS(Coalition,Settings)
-local TargetCoordinate=COORDINATE:NewFromVec3(coalition.getMainRefPoint(Coalition))
-local DirectionVec3=self:GetDirectionVec3(TargetCoordinate)
+local BullsCoordinate=COORDINATE:NewFromVec3(coalition.getMainRefPoint(Coalition))
+local DirectionVec3=BullsCoordinate:GetDirectionVec3(self)
 local AngleRadians=self:GetAngleRadians(DirectionVec3)
-local Distance=self:Get2DDistance(TargetCoordinate)
+local Distance=self:Get2DDistance(BullsCoordinate)
 local Altitude=self:GetAltitudeText()
 return"BULLS, "..self:GetBRText(AngleRadians,Distance,Settings)
 end
