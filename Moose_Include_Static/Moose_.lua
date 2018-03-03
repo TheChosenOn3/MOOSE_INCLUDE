@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-01T19:44:47.0000000Z-6636ea6cf6f6a325c164b13c7f80c3ac3414fc2d ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-01T20:19:10.0000000Z-e7aa33c7a442ff8040c1d6b38f69e6a5c8e56b9e ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -28127,6 +28127,9 @@ ReportTypes:Add(TargetType)
 end
 end
 self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,ReportTypes:Text(", ")),10)
+self:SetInfo("QFE",string.format("%d",TargetCoordinate:GetPressure()),12)
+self:SetInfo("°C",string.format("%d",TargetCoordinate:GetTemperature()),12)
+self:SetInfo("Wind",string.format("%d",TargetCoordinate:GetWind()),12)
 else
 local DetectedItemsCount=self.TargetSetUnit:Count()
 local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
