@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-03T04:52:24.0000000Z-ec1fa3d0f0b9c58570dd74308a66638c12288183 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-03T05:59:48.0000000Z-5d122563a2a310f4cdc60546cc804e8a92d7146b ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -2759,6 +2759,10 @@ UTILS.KnotsToMps = function( knots )
   return knots * 1852 / 3600
 end
 
+UTILS.CelciusToFarenheit = function( Celcius )
+  return Celcius * 9/5 + 32 
+end
+
 
 
 --[[acc:
@@ -4368,8 +4372,8 @@ end
 -- @param #REPORT self
 -- @param #string Text
 -- @return #REPORT
-function REPORT:AddIndent( Text ) --R2.1
-  self.Report[#self.Report+1] = string.rep(" ", self.Indent ) .. Text:gsub("\n","\n"..string.rep( " ", self.Indent ) )
+function REPORT:AddIndent( Text, Separator ) --R2.1
+  self.Report[#self.Report+1] = ( ( Separator and Separator .. string.rep( " ", self.Indent - 1 ) ) or string.rep(" ", self.Indent ) ) .. Text:gsub("\n","\n"..string.rep( " ", self.Indent ) )
   return self
 end
 
@@ -15553,6 +15557,40 @@ do -- COORDINATE
     return T-273.15
   end
 
+  --- Returns a text of the temperature according the measurement system @{Settings}.
+  -- The text will reflect the temperature like this:
+  -- 
+  --   - For Russian and European aircraft using the metric system - Degrees Celcius (°C)
+  --   - For Americain aircraft we link to the imperial system - Degrees Farenheit (°F)
+  -- 
+  -- A text containing a pressure will look like this: 
+  -- 
+  --   - `Temperature: %n.d °C`  
+  --   - `Temperature: %n.d °F`
+  --   
+   -- @param #COORDINATE self
+  -- @param height (Optional) parameter specifying the height ASL.
+  -- @return #string Temperature according the measurement system @{Settings}.
+  function COORDINATE:GetTemperatureText( height, Settings )
+  
+    local DegreesCelcius = self:GetTemperature( height )
+    
+    local Settings = Settings or _SETTINGS
+
+    if DegreesCelcius then
+      if Settings:IsMetric() then
+        return string.format( " %-2.2f °C", DegreesCelcius )
+      else
+        return string.format( " %-2.2f °F", UTILS.CelciusToFarenheit( DegreesCelcius ) )
+      end
+    else
+      return " no temperature"
+    end
+    
+    return nil
+  end
+
+
   --- Returns the pressure in hPa.
   -- @param #COORDINATE self
   -- @param height (Optional) parameter specifying the height ASL. E.g. set height=0 for QNH.
@@ -15563,6 +15601,41 @@ do -- COORDINATE
     local T,P=atmosphere.getTemperatureAndPressure(point)
     -- Return Pressure in hPa.
     return P/100
+  end
+  
+  --- Returns a text of the pressure according the measurement system @{Settings}.
+  -- The text will contain always the pressure in hPa and:
+  -- 
+  --   - For Russian and European aircraft using the metric system - hPa and mmHg
+  --   - For Americain and European aircraft we link to the imperial system - hPa and inHg
+  -- 
+  -- A text containing a pressure will look like this: 
+  -- 
+  --   - `QFE: x hPa (y mmHg)`  
+  --   - `QFE: x hPa (y inHg)`
+  -- 
+  -- @param #COORDINATE self
+  -- @param height (Optional) parameter specifying the height ASL. E.g. set height=0 for QNH.
+  -- @return #string Pressure in hPa and mmHg or inHg depending on the measurement system @{Settings}.
+  function COORDINATE:GetPressureText( height, Settings )
+
+    local Pressure_hPa = self:GetPressure( height )
+    local Pressure_mmHg = Pressure_hPa * 0.0295299830714
+    local Pressure_inHg = Pressure_hPa * 0.7500615613030
+    
+    local Settings = Settings or _SETTINGS
+
+    if Pressure_hPa then
+      if Settings:IsMetric() then
+        return string.format( " %d hPa (%3.4f mmHg)", Pressure_hPa, Pressure_mmHg )
+      else
+        return string.format( " %d hPa (%3.4f inHg)", Pressure_hPa, Pressure_inHg )
+      end
+    else
+      return " no pressure"
+    end
+    
+    return nil
   end
   
   --- Returns the wind direction (from) and strength.
@@ -15590,6 +15663,39 @@ do -- COORDINATE
     return direction, strength
   end
 
+
+  --- Returns a text documenting the wind direction (from) and strength according the measurement system @{Settings}.
+  -- The text will reflect the wind like this:
+  -- 
+  --   - For Russian and European aircraft using the metric system - Wind direction in degrees (°) and wind speed in meters per second (mps).
+  --   - For Americain aircraft we link to the imperial system - Wind direction in degrees (°) and wind speed in knots per second (kps).
+  -- 
+  -- A text containing a pressure will look like this: 
+  -- 
+  --   - `Wind: %n ° at n.d mps`  
+  --   - `Wind: %n ° at n.d kps`
+  --   
+  -- @param #COORDINATE self
+  -- @param height (Optional) parameter specifying the height ASL. The minimum height will be always be the land height since the wind is zero below the ground.
+  -- @return #string Wind direction and strength according the measurement system @{Settings}.
+  function COORDINATE:GetWindText( height, Settings )
+
+    local Direction, Strength = self:GetWind( height )
+
+    local Settings = Settings or _SETTINGS
+
+    if Direction and Strength then
+      if Settings:IsMetric() then
+        return string.format( " %d ° at %3.2f mps", Direction, UTILS.MpsToKmph( Strength ) )
+      else
+        return string.format( " %d ° at %3.2f kps", Direction, UTILS.MpsToKnots( Strength ) )
+      end
+    else
+      return " no wind"
+    end
+    
+    return nil
+  end
 
   --- Return the 3D distance in meters between the target COORDINATE and the COORDINATE.
   -- @param #COORDINATE self
@@ -16402,6 +16508,54 @@ do -- COORDINATE
     
     return nil
 
+  end
+
+  --- Provides a pressure string of the point, based on a measurement system:
+  --   * Uses default settings in COORDINATE.
+  --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
+  -- @param #COORDINATE self
+  -- @param Wrapper.Controllable#CONTROLLABLE Controllable
+  -- @param Core.Settings#SETTINGS Settings
+  -- @return #string The pressure text in the configured measurement system.
+  function COORDINATE:ToStringPressure( Controllable, Settings ) -- R2.3
+  
+    self:F( { Controllable = Controllable and Controllable:GetName() } )
+
+    local Settings = Settings or ( Controllable and _DATABASE:GetPlayerSettings( Controllable:GetPlayerName() ) ) or _SETTINGS
+
+    return self:GetPressureText( nil, Settings )
+  end
+
+  --- Provides a wind string of the point, based on a measurement system:
+  --   * Uses default settings in COORDINATE.
+  --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
+  -- @param #COORDINATE self
+  -- @param Wrapper.Controllable#CONTROLLABLE Controllable
+  -- @param Core.Settings#SETTINGS Settings
+  -- @return #string The wind text in the configured measurement system.
+  function COORDINATE:ToStringWind( Controllable, Settings ) -- R2.3
+  
+    self:F( { Controllable = Controllable and Controllable:GetName() } )
+
+    local Settings = Settings or ( Controllable and _DATABASE:GetPlayerSettings( Controllable:GetPlayerName() ) ) or _SETTINGS
+
+    return self:GetWindText( nil, Settings )
+  end
+
+  --- Provides a temperature string of the point, based on a measurement system:
+  --   * Uses default settings in COORDINATE.
+  --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
+  -- @param #COORDINATE self
+  -- @param Wrapper.Controllable#CONTROLLABLE Controllable
+  -- @param Core.Settings#SETTINGS Settings
+  -- @return #string The temperature text in the configured measurement system.
+  function COORDINATE:ToStringTemperature( Controllable, Settings ) -- R2.3
+  
+    self:F( { Controllable = Controllable and Controllable:GetName() } )
+
+    local Settings = Settings or ( Controllable and _DATABASE:GetPlayerSettings( Controllable:GetPlayerName() ) ) or _SETTINGS
+
+    return self:GetTemperatureText( nil, Settings )
   end
 
 end
@@ -59819,7 +59973,7 @@ function MISSION:ReportOverview( ReportGroup, TaskStatus )
     local Task = Task -- Tasking.Task#TASK
     if Task:Is( TaskStatus ) then
       Report:Add( string.rep( "-", 140 ) )
-      Report:Add( " - " .. Task:ReportOverview( ReportGroup ) )
+      Report:Add( Task:ReportOverview( ReportGroup ) )
     end
     Tasks = Tasks + 1
     if Tasks >= 8 then
@@ -59849,6 +60003,7 @@ function MISSION:ReportDetails( ReportGroup )
   local TasksRemaining = 0
   for TaskID, Task in pairs( self:GetTasks() ) do
     local Task = Task -- Tasking.Task#TASK
+    Report:Add( string.rep( "-", 140 ) )
     Report:Add( Task:ReportDetails( ReportGroup ) )
   end
 
@@ -59954,6 +60109,7 @@ end
 -- @field Core.Fsm#FSM_PROCESS FsmTemplate
 -- @field Tasking.Mission#MISSION Mission
 -- @field Tasking.CommandCenter#COMMANDCENTER CommandCenter
+-- @field Tasking.TaskInfo#TASKINFO TaskInfo
 -- @extends Core.Fsm#FSM_TASK
 
 --- 
@@ -60167,7 +60323,7 @@ function TASK:New( Mission, SetGroupAssign, TaskName, TaskType, TaskBriefing )
   
   self.FsmTemplate = self.FsmTemplate or FSM_PROCESS:New()
   
-  self.TaskInfo = {}
+  self.TaskInfo = TASKINFO:New( self )
   
   self.TaskProgress = {}
   
@@ -60669,8 +60825,6 @@ function TASK:SetPlannedMenuForGroup( TaskGroup, MenuTime )
   local CommandCenterMenu = CommandCenter:GetMenu()
 
   local TaskType = self:GetType()
---  local TaskThreatLevel = self.TaskInfo["ThreatLevel"]
---  local TaskThreatLevelString = TaskThreatLevel and " [" .. string.rep( "■", TaskThreatLevel ) .. "]" or " []" 
   local TaskPlayerCount = self:GetPlayerCount()
   local TaskPlayerString = string.format( " (%dp)", TaskPlayerCount )
 --  local TaskText = string.format( "%s%s", self:GetName(), TaskPlayerString ) --, TaskThreatLevelString )
@@ -60711,8 +60865,6 @@ function TASK:SetAssignedMenuForGroup( TaskGroup, MenuTime )
   local CommandCenterMenu = CommandCenter:GetMenu()
 
   local TaskType = self:GetType()
---  local TaskThreatLevel = self.TaskInfo["ThreatLevel"]
---  local TaskThreatLevelString = TaskThreatLevel and " [" .. string.rep( "■", TaskThreatLevel ) .. "]" or " []" 
   local TaskPlayerCount = self:GetPlayerCount()
   local TaskPlayerString = string.format( " (%dp)", TaskPlayerCount )
   local TaskText = string.format( "%s%s", self:GetName(), TaskPlayerString ) --, TaskThreatLevelString )
@@ -60818,19 +60970,9 @@ function TASK:MenuMarkToGroup( TaskGroup )
   
   local Report = REPORT:New():SetIndent( 0 )
 
-  -- List the name of the Task.
-  local Name = self:GetName()
-  Report:Add( "Task " .. Name .. ": " .. self:GetTaskBriefing() .. "\n" )
+  self.TaskInfo:Report( Report, "M", TaskGroup )
 
-  for TaskInfoID, TaskInfo in pairs( self.TaskInfo, function( t, a, b ) return t[a].TaskInfoOrder < t[b].TaskInfoOrder end ) do
-
-    local ReportText = self:GetMarkInfo( TaskInfoID, TaskInfo )
-    if ReportText then
-      Report:Add( ReportText )
-    end
-  end
-
-  local TargetCoordinate = self:GetInfo( "Coordinate" ) -- Core.Point#COORDINATE
+  local TargetCoordinate = self.TaskInfo:Get( "Coordinate" ).Data -- Core.Point#COORDINATE
   local MarkText = Report:Text( ", " ) 
   self:F( { Coordinate = TargetCoordinate, MarkText = MarkText } )
   TargetCoordinate:MarkToGroup( MarkText, TaskGroup )
@@ -60996,30 +61138,6 @@ end
 -- @param #string TaskType
 function TASK:SetType( TaskType )
   self.TaskType = TaskType
-end
-
---- Sets the Information on the Task
--- @param #TASK self
--- @param #string TaskInfo The key and title of the task information.
--- @param #string TaskInfoText The Task info text.
--- @param #number TaskInfoOrder The ordering, a number between 0 and 99.
-function TASK:SetInfo( TaskInfo, TaskInfoText, TaskInfoOrder )
-
-  self.TaskInfo = self.TaskInfo or {}
-  self.TaskInfo[TaskInfo] = self.TaskInfo[TaskInfo] or {}
-  self.TaskInfo[TaskInfo].TaskInfoText = TaskInfoText
-  self.TaskInfo[TaskInfo].TaskInfoOrder = TaskInfoOrder
-end
-
---- Gets the Information of the Task
--- @param #TASK self
--- @param #string TaskInfo The key and title of the task information.
--- @return #string TaskInfoText The Task info text.
-function TASK:GetInfo( TaskInfo )
-
-  self.TaskInfo = self.TaskInfo or {}
-  self.TaskInfo[TaskInfo] = self.TaskInfo[TaskInfo] or {}
-  return self.TaskInfo[TaskInfo].TaskInfoText
 end
 
 --- Gets the Type of the Task
@@ -61382,11 +61500,7 @@ function TASK:ReportSummary( ReportGroup )
   -- Determine the status of the Task.
   Report:Add( "State: <" .. self:GetState() .. ">" )
   
-  if self.TaskInfo["Coordinate"] then
-    local TaskInfoIDText = string.format( "%s: ", "Coordinate" )
-    local TaskCoord = self.TaskInfo["Coordinate"].TaskInfoText -- Core.Point#COORDINATE
-    Report:Add( TaskInfoIDText .. TaskCoord:ToString( ReportGroup, nil, self ) )
-  end
+  self.TaskInfo:Report( Report, "S", ReportGroup )
   
   return Report:Text( ', ' )
 end
@@ -61402,40 +61516,8 @@ function TASK:ReportOverview( ReportGroup )
   -- List the name of the Task.
   local TaskName = self:GetName()
   local Report = REPORT:New()
-
-  local Line = 0
-  local LineReport = REPORT:New()
   
-  for TaskInfoID, TaskInfo in UTILS.spairs( self.TaskInfo, function( t, a, b ) return t[a].TaskInfoOrder < t[b].TaskInfoOrder end ) do
-
-    self:F( { TaskInfo = TaskInfo } )
-
-    if Line < math.floor( TaskInfo.TaskInfoOrder / 10 ) then
-      if Line ~= 0 then
-        Report:AddIndent( LineReport:Text( ", " ) )
-      else
-        Report:Add( "Task " .. TaskName .. ", " .. LineReport:Text( ", " ) )
-      end
-      LineReport = REPORT:New()
-      Line = math.floor( TaskInfo.TaskInfoOrder / 10 )
-    end
-
-    local TaskInfoIDText = string.format( "%s: ", TaskInfoID )
-    
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      LineReport:Add( TaskInfoIDText .. TaskInfo.TaskInfoText )
-    elseif type(TaskInfo) == "table" then
-      if TaskInfoID == "Coordinate" then
-        local ToCoordinate = TaskInfo.TaskInfoText -- Core.Point#COORDINATE
-        --Report:Add( TaskInfoIDText )
-        LineReport:Add( TaskInfoIDText .. ToCoordinate:ToString( ReportGroup, nil, self ) )
-        --Report:AddIndent( ToCoordinate:ToStringBULLS( ReportGroup:GetCoalition() ) )
-      else
-      end
-    end
-  end
-
-  Report:AddIndent( LineReport:Text( ", " ) )
+  self.TaskInfo:Report( Report, "O", ReportGroup )
   
   return Report:Text()
 end
@@ -61511,19 +61593,12 @@ function TASK:ReportDetails( ReportGroup )
   local Players = PlayerReport:Text()
   
   if Players ~= "" then
-    Report:Add( " - Players assigned:" )
+    Report:AddIndent( "Players assigned:", "-" )
     Report:AddIndent( Players )
   end
   
-  for TaskInfoID, TaskInfo in pairs( self.TaskInfo, function( t, a, b ) return t[a].TaskInfoOrder < t[b].TaskInfoOrder end ) do
-    
-    local ReportText = self:GetReportDetail( ReportGroup, TaskInfoID, TaskInfo )
-    if ReportText then
-      Report:Add( ReportText )
-    end
-    
-  end
-
+  self.TaskInfo:Report( Report, "D", ReportGroup )
+  
   return Report:Text()
 end
 
@@ -61607,6 +61682,262 @@ do -- Additional Task Scoring and Task Progress
     
     return self
   end
+
+end
+--- **Tasking** -- Controls the information of a Task.
+-- 
+-- ====
+-- 
+-- ### Author: **Sven Van de Velde (FlightControl)**
+-- 
+-- ### Contributions: 
+-- 
+-- ====
+-- 
+-- @module TaskInfo
+
+--- @type TASKINFO
+-- @extends Core.Set#SET_BASE
+
+--- 
+-- # TASKINFO class, extends @{Set#SET}
+-- 
+-- ## The TASKINFO class implements the methods to contain information and display information of a task. 
+-- 
+-- @field #TASKINFO
+TASKINFO = {
+  ClassName = "TASKINFO",
+}
+
+--- @type #TASKINFO.Detail #string A string that flags to document which level of detail needs to be shown in the report.
+-- 
+--   - "M" for Markings on the Map (F10).
+--   - "S" for Summary Reports.
+--   - "O" for Overview Reports.
+--   - "D" for Detailed Reports.
+TASKINFO.Detail = ""
+
+--- Instantiates a new TASKINFO. 
+-- @param #TASKINFO self
+-- @param Tasking.Task#TASK Task The task owning the information.
+-- @return #TASKINFO self
+function TASKINFO:New( Task )
+
+  local self = BASE:Inherit( self, SET_BASE:New() ) -- Core.Set#SET
+  
+  self.Task = Task
+  
+  return self
+end
+
+
+--- Add taskinfo. 
+-- @param #TASKINFO self
+-- @param #string The info key.
+-- @param Data The data of the info.
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddInfo( Key, Data, Order, Detail )
+  self:Add( Key, { Data = Data, Order = Order, Detail = Detail } )
+  return self
+end
+
+
+--- Get taskinfo. 
+-- @param #TASKINFO self
+-- @param #string The info key.
+-- @return Data The data of the info.
+-- @return #number Order The display order, which is a number from 0 to 100.
+-- @return #TASKINFO.Detail Detail The detail Level.
+function TASKINFO:GetInfo( Key )
+  local Object = self:Get( Key )
+  return Object.Data, Object.Order, Object.Detail
+end
+
+
+--- Get data. 
+-- @param #TASKINFO self
+-- @param #string The info key.
+-- @return Data The data of the info.
+function TASKINFO:GetData( Key )
+  local Object = self:Get( Key )
+  return Object.Data
+end
+
+
+--- Add Text. 
+-- @param #TASKINFO self
+-- @param #string Key The key.
+-- @param #string Text The text.
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddText( Key, Text, Order, Detail )
+  self:AddInfo( Key, Text, Order, Detail )
+  return self
+end
+
+
+--- Add the task name. 
+-- @param #TASKINFO self
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddTaskName( Order, Detail )
+  self:AddInfo( "TaskName", self.Task:GetName(), Order, Detail )
+  return self
+end
+
+
+
+
+--- Add a Coordinate. 
+-- @param #TASKINFO self
+-- @param Core.Point#COORDINATE Coordinate
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddCoordinate( Coordinate, Order, Detail )
+  self:AddInfo( "Coordinate", Coordinate, Order, Detail )
+  return self
+end
+
+
+--- Add Threat. 
+-- @param #TASKINFO self
+-- @param #string ThreatText The text of the Threat.
+-- @param #string ThreatLevel The level of the Threat.
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddThreat( ThreatText, ThreatLevel, Order, Detail )
+  self:AddInfo( "Threat", ThreatText .. " [" .. string.rep(  "■", ThreatLevel ) .. string.rep(  "□", 10 - ThreatLevel ) .. "]", Order, Detail )
+  return self
+end
+
+
+--- Add the Target count. 
+-- @param #TASKINFO self
+-- @param #number TargetCount The amount of targets.
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddTargetCount( TargetCount, Order, Detail )
+  self:AddInfo( "Counting", string.format( "%d", TargetCount ), Order, Detail )
+  return self
+end
+
+--- Add the Targets. 
+-- @param #TASKINFO self
+-- @param #number TargetCount The amount of targets.
+-- @param #string TargetTypes The text containing the target types.
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddTargets( TargetCount, TargetTypes, Order, Detail )
+  self:AddInfo( "Targets", string.format( "%d of %s", TargetCount, TargetTypes ), Order, Detail )
+  return self
+end
+
+--- Add the QFE at a Coordinate. 
+-- @param #TASKINFO self
+-- @param Core.Point#COORDINATE Coordinate
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddQFEAtCoordinate( Coordinate, Order, Detail )
+  self:AddInfo( "QFE", Coordinate, Order, Detail )
+  return self
+end
+
+--- Add the Temperature at a Coordinate. 
+-- @param #TASKINFO self
+-- @param Core.Point#COORDINATE Coordinate
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddTemperatureAtCoordinate( Coordinate, Order, Detail )
+  self:AddInfo( "Temperature", Coordinate, Order, Detail )
+  return self
+end
+
+--- Add the Wind at a Coordinate. 
+-- @param #TASKINFO self
+-- @param Core.Point#COORDINATE Coordinate
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @return #TASKINFO self
+function TASKINFO:AddWindAtCoordinate( Coordinate, Order, Detail )
+  self:AddInfo( "Wind", Coordinate, Order, Detail )
+  return self
+end
+
+
+--- Create the taskinfo Report
+-- @param #TASKINFO self
+-- @param Core.Report#REPORT Report
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @param Wrapper.Group#GROUP ReportGroup
+-- @return #TASKINFO self
+function TASKINFO:Report( Report, Detail, ReportGroup )
+
+  local Line = 0
+  local LineReport = REPORT:New()
+
+  for Key, Data in UTILS.spairs( self.Set, function( t, a, b ) return t[a].Order < t[b].Order end ) do
+
+    self:E( { Key = Key, Detail = Detail, Data = Data } )
+    
+    if Data.Detail:find( Detail ) then
+      local Text = ""
+      if Key == "TaskName" then
+        Key = nil
+        Text = Data.Data
+      end
+      if Key == "Coordinate" then
+        local Coordinate = Data.Data -- Core.Point#COORDINATE
+        Text = Coordinate:ToString( ReportGroup:GetUnit(1), nil, self )
+      end
+      if Key == "Threat" then
+        local DataText = Data.Data -- #string
+        Text = DataText
+      end
+      if Key == "Counting" then
+        local DataText = Data.Data -- #string
+        Text = DataText
+      end
+      if Key == "Targets" then
+        local DataText = Data.Data -- #string
+        Text = DataText
+      end
+      if Key == "QFE" then
+        local Coordinate = Data.Data -- Core.Point#COORDINATE
+        Text = Coordinate:ToStringPressure( ReportGroup:GetUnit(1), nil, self )
+      end
+      if Key == "Temperature" then
+        local Coordinate = Data.Data -- Core.Point#COORDINATE
+        Text = Coordinate:ToStringTemperature( ReportGroup:GetUnit(1), nil, self )
+      end
+      if Key == "Wind" then
+        local Coordinate = Data.Data -- Core.Point#COORDINATE
+        Text = Coordinate:ToStringWind( ReportGroup:GetUnit(1), nil, self )
+      end
+
+      if Line < math.floor( Data.Order / 10 ) then
+        if Line == 0 then
+          Report:AddIndent( LineReport:Text( ", " ), "-" )
+        else
+          Report:AddIndent( LineReport:Text( ", " ) )
+        end
+        LineReport = REPORT:New()
+        Line = math.floor( Data.Order / 10 )
+      end
+
+      LineReport:Add( ( Key and ( Key .. ":" ) or "" ) .. Text )
+    end
+  end
+  Report:AddIndent( LineReport:Text( ", " ) )
 
 end
 --- This module contains the DETECTION_MANAGER class and derived classes.
@@ -62570,41 +62901,10 @@ do -- TASK_A2G
     return self.GoalTotal
   end
   
-  function TASK_A2G:GetMarkInfo( TaskInfoID, TaskInfo )
-
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      if TaskInfoID == "Targets" then
-      else
-        return string.format( "%s: %s", TaskInfoID, TaskInfo.TaskInfoText )
-      end
-    elseif type( TaskInfo ) == "table" then
-      if TaskInfoID == "Coordinate" then
-      end
-    end
-  
-    return nil
-  end
-  
-
-  function TASK_A2G:GetReportDetail( ReportGroup, TaskInfoID, TaskInfo )
-  
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      return string.format( "%s: %s", TaskInfoID, TaskInfo.TaskInfoText )
-    elseif type(TaskInfo) == "table" then
-      if TaskInfoID == "Coordinate" then
-        local FromCoordinate = ReportGroup:GetUnit(1):GetCoordinate()
-        local ToCoordinate = TaskInfo.TaskInfoText -- Core.Point#COORDINATE
-        return string.format( " - %s: %s", TaskInfoID, ToCoordinate:ToString( ReportGroup:GetUnit(1), nil, self ) )
-      else
-      end
-    end
-  end
-
-
   --- Return the relative distance to the target vicinity from the player, in order to sort the targets in the reports per distance from the threats.
   -- @param #TASK_A2G self
   function TASK_A2G:ReportOrder( ReportGroup ) 
-    local Coordinate = self:GetInfo( "Coordinate" )
+    local Coordinate = self:GetData( "Coordinate" )
     local Distance = ReportGroup:GetCoordinate():Get2DDistance( Coordinate )
     
     return Distance
@@ -62623,13 +62923,13 @@ do -- TASK_A2G
     self:__Goal( -10 )
   end
 
-
   --- @param #TASK_A2G self
   function TASK_A2G:UpdateTaskInfo()
   
     if self:IsStatePlanned() or self:IsStateAssigned() then
       local TargetCoordinate = self.Detection and self.Detection:GetDetectedItemCoordinate( self.DetectedItemIndex ) or self.TargetSetUnit:GetFirst():GetCoordinate() 
-      self:SetInfo( "Coordinate", TargetCoordinate, 0 )
+      self.TaskInfo:AddTaskName( 0, "MSOD" )
+      self.TaskInfo:AddCoordinate( TargetCoordinate, 1, "SOD" )
       
       local ThreatLevel, ThreatText
       if self.Detection then
@@ -62637,7 +62937,7 @@ do -- TASK_A2G
       else
         ThreatLevel, ThreatText = self.TargetSetUnit:CalculateThreatLevelA2G()
       end
-      self:SetInfo( "Threat", ThreatText .. " [" .. string.rep(  "■", ThreatLevel ) .. string.rep(  "□", 10 - ThreatLevel ) .. "]", 11 )
+      self.TaskInfo:AddThreat( ThreatText, ThreatLevel, 10, "MOD", true )
   
       if self.Detection then
         local DetectedItemsCount = self.TargetSetUnit:Count()
@@ -62650,28 +62950,19 @@ do -- TASK_A2G
             ReportTypes:Add( TargetType )
           end
         end
-        self:SetInfo( "Targets", string.format( "%d of %s", DetectedItemsCount, ReportTypes:Text( ", " ) ), 10 ) 
-        self:SetInfo( "QFE", string.format( "%d", TargetCoordinate:GetPressure() ), 12 )
-        self:SetInfo( "°C", string.format( "%d", TargetCoordinate:GetTemperature() ), 12 )
-        self:SetInfo( "Wind", string.format( "%d", TargetCoordinate:GetWind() ), 12 )
+        self.TaskInfo:AddTargetCount( DetectedItemsCount, 11, "O", true )
+        self.TaskInfo:AddTargets( DetectedItemsCount, ReportTypes:Text( ", " ), 20, "D", true ) 
+        self.TaskInfo:AddQFEAtCoordinate( TargetCoordinate, 30, "MOD" )
+        self.TaskInfo:AddTemperatureAtCoordinate( TargetCoordinate, 31, "MD" )
+        self.TaskInfo:AddWindAtCoordinate( TargetCoordinate, 32, "MD" )
       else
         local DetectedItemsCount = self.TargetSetUnit:Count()
         local DetectedItemsTypes = self.TargetSetUnit:GetTypeNames()
-        self:SetInfo( "Targets", string.format( "%d of %s", DetectedItemsCount, DetectedItemsTypes ), 10 ) 
+        self.TaskInfo:AddTargetCount( DetectedItemsCount, 11, "O", true )
+        self.TaskInfo:AddTargets( string.format( "%d of %s", DetectedItemsCount, DetectedItemsTypes ), 20, "D", true ) 
       end
     end
     
-    --- Keep Threat and Targets of a task is planned for later use when the task is completed.
-    if self:IsStatePlanned() then
-      self.InitialThreat = self:GetInfo( "Threat" )
-      self.InitialTargets = self:GetInfo( "Targets" )
-    end
-    
-    if not self:IsStatePlanned() and not self:IsStateAssigned() then
-      self:SetInfo( "Targets", self.InitialTargets, 10 ) 
-      self:SetInfo( "Threat", self.InitialThreat, 10 )
-    end
-
   end
 
 end 
@@ -63838,37 +64129,6 @@ do -- TASK_A2A
     return self.GoalTotal
   end
 
-  function TASK_A2A:GetMarkInfo( TaskInfoID, TaskInfo )
-
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      if TaskInfoID == "Targets" then
-      else
-        return string.format( "%s: %s", TaskInfoID, TaskInfo.TaskInfoText )
-      end
-    elseif type( TaskInfo ) == "table" then
-      if TaskInfoID == "Coordinate" then
-      end
-    end
-  
-    return nil
-  end
-  
-  function TASK_A2A:GetReportDetail( ReportGroup, TaskInfoID, TaskInfo )
-  
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      return string.format( "%s: %s", TaskInfoID, TaskInfo.TaskInfoText )
-    elseif type(TaskInfo) == "table" then
-      if TaskInfoID == "Coordinate" then
-        local FromCoordinate = ReportGroup:GetUnit(1):GetCoordinate()
-        local ToCoordinate = TaskInfo.TaskInfoText -- Core.Point#COORDINATE
-        return string.format( " - %s: %s", TaskInfoID, ToCoordinate:ToString( ReportGroup:GetUnit(1), nil, self ) )
-      else
-      end
-    end
-  end
-
-
-  
 end 
 
 
@@ -65466,33 +65726,6 @@ do -- TASK_ZONE_GOAL
     return self.GoalTotal
   end
 
-  function TASK_ZONE_GOAL:GetMarkInfo( TaskInfoID, TaskInfo )
-
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      return string.format( "%s: %s", TaskInfoID, TaskInfo.TaskInfoText )
-    elseif type( TaskInfo ) == "table" then
-      if TaskInfoID == "Coordinate" then
-      end
-    end
-  
-    return nil
-  end
-
-  function TASK_ZONE_GOAL:GetReportDetail( ReportGroup, TaskInfoID, TaskInfo )
-  
-    if type( TaskInfo.TaskInfoText ) == "string" then
-      return string.format( " - %s: %s", TaskInfoID, TaskInfo.TaskInfoText )
-    elseif type(TaskInfo) == "table" then
-      if TaskInfoID == "Coordinate" then
-        local FromCoordinate = ReportGroup:GetUnit(1):GetCoordinate()
-        local ToCoordinate = TaskInfo.TaskInfoText -- Core.Point#COORDINATE
-        return string.format( " - %s: %s", TaskInfoID, ToCoordinate:ToString( ReportGroup:GetUnit( 1 ), nil, self ) )
-      else
-      end
-    end
-  end
-
-
 end 
 
 
@@ -65554,14 +65787,14 @@ do -- TASK_ZONE_CAPTURE
 
 
     local ZoneCoordinate = self.ZoneGoal:GetZone():GetCoordinate() 
-    self:SetInfo( "Coordinate", ZoneCoordinate, 0 )
-    self:SetInfo( "Zone Name", self.ZoneGoal:GetZoneName(), 10 )
-    self:SetInfo( "Zone Coalition", self.ZoneGoal:GetCoalitionName(), 11 )
+    self.TaskInfo:AddCoordinate( ZoneCoordinate, 0, "SOD" )
+    self.TaskInfo:AddText( "Zone Name", self.ZoneGoal:GetZoneName(), 10, "MOD" )
+    self.TaskInfo:AddText( "Zone Coalition", self.ZoneGoal:GetCoalitionName(), 11, "MOD" )
   end
     
 
   function TASK_ZONE_CAPTURE:ReportOrder( ReportGroup ) 
-    local Coordinate = self:GetInfo( "Coordinate" )
+    local Coordinate = self:GetData( "Coordinate" )
     --local Coordinate = self.TaskInfo.Coordinates.TaskInfoText
     local Distance = ReportGroup:GetCoordinate():Get2DDistance( Coordinate )
     
