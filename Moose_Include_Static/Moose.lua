@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-03T05:59:48.0000000Z-5d122563a2a310f4cdc60546cc804e8a92d7146b ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-04T12:17:30.0000000Z-ab0f98f723c61ca2ef7bb148ef31d935bca00fa2 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -10928,7 +10928,7 @@ end
 -- @param Core.Base#BASE Object
 -- @return Core.Base#BASE The added BASE Object.
 function SET_BASE:Add( ObjectName, Object )
-  self:F( ObjectName )
+  self:F3( { ObjectName = ObjectName, Object = Object } )
 
   -- Ensure that the existing element is removed from the Set before a new one is inserted to the Set
   if self.Set[ObjectName] then
@@ -58677,8 +58677,11 @@ function COMMANDCENTER:New( CommandCenterPositionable, CommandCenterName )
     function( self, EventData )
       if EventData.IniObjectCategory == 1 then
         local EventGroup = GROUP:Find( EventData.IniDCSGroup )
+        self:E( { CommandCenter = self:GetName(), EventGroup = EventGroup, HasGroup = self:HasGroup( EventGroup ), EventData = EventData } )
+        self:E( { GROUPS = _DATABASE.GROUPS } )
         if EventGroup and self:HasGroup( EventGroup ) then
-          local MenuReporting = MENU_GROUP:New( EventGroup, "Missions Reports", self.CommandCenterMenu )
+          local CommandCenterMenu = MENU_GROUP:New( EventGroup, "Command Center (" .. self:GetName() .. ")" )
+          local MenuReporting = MENU_GROUP:New( EventGroup, "Missions Reports", CommandCenterMenu )
           local MenuMissionsSummary = MENU_GROUP_COMMAND:New( EventGroup, "Missions Status Report", MenuReporting, self.ReportMissionsStatus, self, EventGroup )
           local MenuMissionsDetails = MENU_GROUP_COMMAND:New( EventGroup, "Missions Players Report", MenuReporting, self.ReportMissionsPlayers, self, EventGroup )
           self:ReportSummary( EventGroup )
@@ -58689,7 +58692,6 @@ function COMMANDCENTER:New( CommandCenterPositionable, CommandCenterName )
             Mission:JoinUnit( PlayerUnit, PlayerGroup )
           end
           self:SetMenu()
-         _DATABASE:PlayerSettingsMenu( PlayerUnit ) 
         end
       end
       
@@ -58979,16 +58981,18 @@ end
 --- Report the status of all MISSIONs to a GROUP.
 -- Each Mission is listed, with an indication how many Tasks are still to be completed.
 -- @param #COMMANDCENTER self
-function COMMANDCENTER:ReportMissionsStatus( ReportGroup )
+function COMMANDCENTER:ReportSummary( ReportGroup )
   self:E( ReportGroup )
 
   local Report = REPORT:New()
 
-  Report:Add( "Status report of all missions." )
+  -- List the name of the mission.
+  local Name = self:GetName()
+  Report:Add( string.format( '%s - Report Summary Missions', Name ) )
   
   for MissionID, Mission in pairs( self.Missions ) do
     local Mission = Mission -- Tasking.Mission#MISSION
-    Report:Add( " - " .. Mission:ReportStatus() )
+    Report:Add( " - " .. Mission:ReportSummary() )
   end
   
   self:MessageToGroup( Report:Text(), ReportGroup )
@@ -59320,7 +59324,7 @@ end
 -- @param Wrapper.Group#GROUP PlayerGroup The GROUP of the player joining the Mission.
 -- @return #boolean true if Unit is part of a Task in the Mission.
 function MISSION:JoinUnit( PlayerUnit, PlayerGroup )
-  self:F( { PlayerUnit = PlayerUnit, PlayerGroup = PlayerGroup } )
+  self:E( { Mission = self:GetName(), PlayerUnit = PlayerUnit, PlayerGroup = PlayerGroup } )
   
   local PlayerUnitAdded = false
   
@@ -59769,7 +59773,7 @@ end
 -- 
 -- @param #MISSION self
 -- @return #string
-function MISSION:ReportStatus()
+function MISSION:ReportSummary()
 
   local Report = REPORT:New()
 
@@ -60658,7 +60662,7 @@ end
 function TASK:HasGroup( FindGroup )
 
   local SetAttackGroup = self:GetGroups()
-  return SetAttackGroup:FindGroup(FindGroup)
+  return SetAttackGroup:FindGroup( FindGroup:GetName() )
 
 end
 
@@ -62959,7 +62963,7 @@ do -- TASK_A2G
         local DetectedItemsCount = self.TargetSetUnit:Count()
         local DetectedItemsTypes = self.TargetSetUnit:GetTypeNames()
         self.TaskInfo:AddTargetCount( DetectedItemsCount, 11, "O", true )
-        self.TaskInfo:AddTargets( string.format( "%d of %s", DetectedItemsCount, DetectedItemsTypes ), 20, "D", true ) 
+        self.TaskInfo:AddTargets( DetectedItemsCount, DetectedItemsTypes, 20, "D", true ) 
       end
     end
     
