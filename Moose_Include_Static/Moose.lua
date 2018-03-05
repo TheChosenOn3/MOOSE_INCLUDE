@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-04T12:17:30.0000000Z-ab0f98f723c61ca2ef7bb148ef31d935bca00fa2 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-05T10:57:28.0000000Z-77a118080eb5fef32af076979387f5e6aec54e24 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -62956,15 +62956,15 @@ do -- TASK_A2G
         end
         self.TaskInfo:AddTargetCount( DetectedItemsCount, 11, "O", true )
         self.TaskInfo:AddTargets( DetectedItemsCount, ReportTypes:Text( ", " ), 20, "D", true ) 
-        self.TaskInfo:AddQFEAtCoordinate( TargetCoordinate, 30, "MOD" )
-        self.TaskInfo:AddTemperatureAtCoordinate( TargetCoordinate, 31, "MD" )
-        self.TaskInfo:AddWindAtCoordinate( TargetCoordinate, 32, "MD" )
       else
         local DetectedItemsCount = self.TargetSetUnit:Count()
         local DetectedItemsTypes = self.TargetSetUnit:GetTypeNames()
         self.TaskInfo:AddTargetCount( DetectedItemsCount, 11, "O", true )
         self.TaskInfo:AddTargets( DetectedItemsCount, DetectedItemsTypes, 20, "D", true ) 
       end
+      self.TaskInfo:AddQFEAtCoordinate( TargetCoordinate, 30, "MOD" )
+      self.TaskInfo:AddTemperatureAtCoordinate( TargetCoordinate, 31, "MD" )
+      self.TaskInfo:AddWindAtCoordinate( TargetCoordinate, 32, "MD" )
     end
     
   end
