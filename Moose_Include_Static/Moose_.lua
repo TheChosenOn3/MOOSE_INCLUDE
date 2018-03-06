@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-05T10:57:28.0000000Z-77a118080eb5fef32af076979387f5e6aec54e24 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-05T20:07:27.0000000Z-e94362ea199e4a68b5c9706ab2fc17f88d797474 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -3947,7 +3947,7 @@ if MissionMenu==self then
 self:RemoveSubMenus()
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Text=self.MenuText,Path=self.MenuPath})
+self:F({Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItem(self.MenuPath)
 end
@@ -3995,7 +3995,7 @@ local MissionMenu=MENU_INDEX:HasMissionMenu(Path)
 if MissionMenu==self then
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Text=self.MenuText,Path=self.MenuPath})
+self:F({Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItem(self.MenuPath)
 end
@@ -4049,7 +4049,7 @@ if CoalitionMenu==self then
 self:RemoveSubMenus()
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Coalition=self.Coalition,Text=self.MenuText,Path=self.MenuPath})
+self:F({Coalition=self.Coalition,Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItemForCoalition(self.Coalition,self.MenuPath)
 end
@@ -4098,7 +4098,7 @@ local CoalitionMenu=MENU_INDEX:HasCoalitionMenu(self.Coalition,Path)
 if CoalitionMenu==self then
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Coalition=self.Coalition,Text=self.MenuText,Path=self.MenuPath})
+self:F({Coalition=self.Coalition,Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItemForCoalition(self.Coalition,self.MenuPath)
 end
@@ -4157,7 +4157,7 @@ if GroupMenu==self then
 self:RemoveSubMenus(MenuTime,MenuTag)
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
+self:F({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
 end
@@ -4206,7 +4206,7 @@ local GroupMenu=MENU_INDEX:HasGroupMenu(self.Group,Path)
 if GroupMenu==self then
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
+self:F({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
 end
@@ -4280,7 +4280,7 @@ if GroupMenu==self then
 self:RemoveSubMenus(MenuTime,MenuTag)
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
+self:F({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
 end
@@ -4342,7 +4342,7 @@ local GroupMenu=MENU_INDEX:HasGroupMenu(self.Group,Path)
 if GroupMenu==self then
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-self:E({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
+self:F({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
 if self.MenuPath~=nil then
 missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
 end
@@ -6418,11 +6418,11 @@ local ThreatLevel=Unit:GetThreatLevel()
 ThreatLevelSet[ThreatLevel]=ThreatLevelSet[ThreatLevel]or{}
 ThreatLevelSet[ThreatLevel].Set=ThreatLevelSet[ThreatLevel].Set or{}
 ThreatLevelSet[ThreatLevel].Set[UnitName]=UnitObject
-self:E({ThreatLevel=ThreatLevel,ThreatLevelSet=ThreatLevelSet[ThreatLevel].Set})
+self:F({ThreatLevel=ThreatLevel,ThreatLevelSet=ThreatLevelSet[ThreatLevel].Set})
 end
 local ThreatLevelIncrement=FromThreatLevel<=ToThreatLevel and 1 or-1
 for ThreatLevel=FromThreatLevel,ToThreatLevel,ThreatLevelIncrement do
-self:E({ThreatLevel=ThreatLevel})
+self:F({ThreatLevel=ThreatLevel})
 local ThreatLevelItem=ThreatLevelSet[ThreatLevel]
 if ThreatLevelItem then
 self:ForEach(IteratorFunction,arg,ThreatLevelItem.Set)
@@ -19908,7 +19908,8 @@ self:AddTransition("Lasing","Lasing","Lasing")
 self:AddTransition("*","LaseOff","Designate")
 self:AddTransition("*","Smoke","*")
 self:AddTransition("*","Illuminate","*")
-self:AddTransition("*","Done","*")
+self:AddTransition("*","DoneSmoking","*")
+self:AddTransition("*","DoneIlluminating","*")
 self:AddTransition("*","Status","*")
 self.CC=CC
 self.Detection=Detection
@@ -20104,8 +20105,7 @@ end
 end
 return self
 end
-function DESIGNATE:SendStatus(MenuAttackGroup,Duration)
-Duration=Duration or 10
+function DESIGNATE:SendStatus(MenuAttackGroup)
 self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 if self.FlashStatusMenu[AttackGroup]or(MenuAttackGroup and(AttackGroup:GetName()==MenuAttackGroup:GetName()))then
@@ -20117,11 +20117,20 @@ if DetectedItem then
 local Report=self.Detection:DetectedItemReportSummary(DesignateIndex,AttackGroup):Text(", ")
 DetectedReport:Add(string.rep("-",140))
 DetectedReport:Add(" - "..Report)
+if string.find(Designating,"L")then
+DetectedReport:Add(" - ".."Lasing Targets")
+end
+if string.find(Designating,"S")then
+DetectedReport:Add(" - ".."Smoking Targets")
+end
+if string.find(Designating,"I")then
+DetectedReport:Add(" - ".."Illuminating Area")
+end
 end
 end
 local CC=self.CC:GetPositionable()
-CC:MessageToGroup(DetectedReport:Text("\n"),Duration,AttackGroup,self.DesignateName)
-local DesignationReport=REPORT:New("Marking Targets:\n")
+CC:MessageTypeToGroup(DetectedReport:Text("\n"),MESSAGE.Type.Information,AttackGroup,self.DesignateName)
+local DesignationReport=REPORT:New("Marking Targets:")
 self.RecceSet:ForEachGroupAlive(
 function(RecceGroup)
 local RecceUnits=RecceGroup:GetUnits()
@@ -20133,7 +20142,7 @@ end
 end
 end
 )
-CC:MessageToGroup(DesignationReport:Text(),Duration,AttackGroup,self.DesignateName)
+CC:MessageTypeToGroup(DesignationReport:Text(),MESSAGE.Type.Information,AttackGroup,self.DesignateName)
 end
 end
 )
@@ -20157,9 +20166,7 @@ else
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Auto Lase On",MenuDesignate,self.MenuAutoLase,self,true):SetTime(MenuTime):SetTag(self.DesignateName)
 end
 local StatusMenu=MENU_GROUP_DELAYED:New(AttackGroup,"Status",MenuDesignate):SetTime(MenuTime):SetTag(self.DesignateName)
-MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Report Status 15s",StatusMenu,self.MenuStatus,self,AttackGroup,15):SetTime(MenuTime):SetTag(self.DesignateName)
-MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Report Status 30s",StatusMenu,self.MenuStatus,self,AttackGroup,30):SetTime(MenuTime):SetTag(self.DesignateName)
-MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Report Status 60s",StatusMenu,self.MenuStatus,self,AttackGroup,60):SetTime(MenuTime):SetTag(self.DesignateName)
+MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Report Status",StatusMenu,self.MenuStatus,self,AttackGroup):SetTime(MenuTime):SetTag(self.DesignateName)
 if self.FlashStatusMenu[AttackGroup]then
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Flash Status Report Off",StatusMenu,self.MenuFlashStatus,self,AttackGroup,false):SetTime(MenuTime):SetTag(self.DesignateName)
 else
@@ -20171,33 +20178,26 @@ if DetectedItem then
 local Coord=self.Detection:GetDetectedItemCoordinate(DesignateIndex)
 local ID=self.Detection:GetDetectedItemID(DesignateIndex)
 local MenuText=ID
-if Designating==""then
-MenuText="(-) "..MenuText
+MenuText=string.format("(%3s) %s",Designating,MenuText)
 local DetectedMenu=MENU_GROUP_DELAYED:New(AttackGroup,MenuText,MenuDesignate):SetTime(MenuTime):SetTag(self.DesignateName)
+if string.find(Designating,"L",1,true)==nil then
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Search other target",DetectedMenu,self.MenuForget,self,DesignateIndex):SetTime(MenuTime):SetTag(self.DesignateName)
 for LaserCode,MenuText in pairs(self.MenuLaserCodes)do
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,string.format(MenuText,LaserCode),DetectedMenu,self.MenuLaseCode,self,DesignateIndex,60,LaserCode):SetTime(MenuTime):SetTag(self.DesignateName)
 end
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Lase with random laser code(s)",DetectedMenu,self.MenuLaseOn,self,DesignateIndex,60):SetTime(MenuTime):SetTag(self.DesignateName)
+else
+MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Stop lasing",DetectedMenu,self.MenuLaseOff,self,DesignateIndex):SetTime(MenuTime):SetTag(self.DesignateName)
+end
+if string.find(Designating,"S",1,true)==nil then
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Smoke red",DetectedMenu,self.MenuSmoke,self,DesignateIndex,SMOKECOLOR.Red):SetTime(MenuTime):SetTag(self.DesignateName)
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Smoke blue",DetectedMenu,self.MenuSmoke,self,DesignateIndex,SMOKECOLOR.Blue):SetTime(MenuTime):SetTag(self.DesignateName)
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Smoke green",DetectedMenu,self.MenuSmoke,self,DesignateIndex,SMOKECOLOR.Green):SetTime(MenuTime):SetTag(self.DesignateName)
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Smoke white",DetectedMenu,self.MenuSmoke,self,DesignateIndex,SMOKECOLOR.White):SetTime(MenuTime):SetTag(self.DesignateName)
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Smoke orange",DetectedMenu,self.MenuSmoke,self,DesignateIndex,SMOKECOLOR.Orange):SetTime(MenuTime):SetTag(self.DesignateName)
+end
+if string.find(Designating,"I",1,true)==nil then
 MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Illuminate",DetectedMenu,self.MenuIlluminate,self,DesignateIndex):SetTime(MenuTime):SetTag(self.DesignateName)
-else
-if Designating=="Laser"then
-MenuText="(L) "..MenuText
-elseif Designating=="Smoke"then
-MenuText="(S) "..MenuText
-elseif Designating=="Illuminate"then
-MenuText="(I) "..MenuText
-end
-local DetectedMenu=MENU_GROUP_DELAYED:New(AttackGroup,MenuText,MenuDesignate):SetTime(MenuTime):SetTag(self.DesignateName)
-if Designating=="Laser"then
-MENU_GROUP_COMMAND_DELAYED:New(AttackGroup,"Stop lasing",DetectedMenu,self.MenuLaseOff,self,DesignateIndex):SetTime(MenuTime):SetTag(self.DesignateName)
-else
-end
 end
 end
 end
@@ -20207,9 +20207,9 @@ end
 )
 return self
 end
-function DESIGNATE:MenuStatus(AttackGroup,Duration)
+function DESIGNATE:MenuStatus(AttackGroup)
 self:E("Status")
-self:SendStatus(AttackGroup,Duration)
+self:SendStatus(AttackGroup)
 end
 function DESIGNATE:MenuFlashStatus(AttackGroup,Flash)
 self:E("Flash Status")
@@ -20218,7 +20218,7 @@ self:SetDesignateMenu()
 end
 function DESIGNATE:MenuForget(Index)
 self:E("Forget")
-self.Designating[Index]=nil
+self.Designating[Index]=""
 self:SetDesignateMenu()
 end
 function DESIGNATE:MenuAutoLase(AutoLase)
@@ -20227,13 +20227,19 @@ self:SetAutoLase(AutoLase,true)
 end
 function DESIGNATE:MenuSmoke(Index,Color)
 self:E("Designate through Smoke")
-self.Designating[Index]="Smoke"
+if string.find(self.Designating[Index],"S")==nil then
+self.Designating[Index]=self.Designating[Index].."S"
+end
 self:Smoke(Index,Color)
+self:SetDesignateMenu()
 end
 function DESIGNATE:MenuIlluminate(Index)
 self:E("Designate through Illumination")
-self.Designating[Index]="Illuminate"
+if string.find(self.Designating[Index],"I",1,true)==nil then
+self.Designating[Index]=self.Designating[Index].."I"
+end
 self:__Illuminate(1,Index)
+self:SetDesignateMenu()
 end
 function DESIGNATE:MenuLaseOn(Index,Duration)
 self:E("Designate through Lase")
@@ -20247,15 +20253,17 @@ self:SetDesignateMenu()
 end
 function DESIGNATE:MenuLaseOff(Index,Duration)
 self:E("Lasing off")
-self.Designating[Index]=""
+self.Designating[Index]=string.gsub(self.Designating[Index],"L","")
 self:__LaseOff(1,Index)
 self:SetDesignateMenu()
 end
 function DESIGNATE:onafterLaseOn(From,Event,To,Index,Duration,LaserCode)
-self.Designating[Index]="Laser"
+if string.find(self.Designating[Index],"L",1,true)==nil then
+self.Designating[Index]=self.Designating[Index].."L"
+end
 self.LaseStart=timer.getTime()
 self.LaseDuration=Duration
-self:__Lasing(-1,Index,Duration,LaserCode)
+self:Lasing(Index,Duration,LaserCode)
 end
 function DESIGNATE:onafterLasing(From,Event,To,Index,Duration,LaserCodeRequested)
 local TargetSetUnit=self.Detection:GetDetectedSet(Index)
@@ -20320,8 +20328,6 @@ self.Recce:MessageToSetGroup("Target "..TargetUnit:GetTypeName().." destroyed. "
 5,AttackSet,self.DesignateName)
 end
 self.Recces[TargetUnit]=RecceUnit
-RecceUnit:MessageToSetGroup("Marking "..TargetUnit:GetTypeName().." with laser "..RecceUnit:GetSpot().LaserCode.." for "..Duration.."s.",
-5,self.AttackSet,DesignateName)
 MarkingCount=MarkingCount+1
 local TargetUnitType=TargetUnit:GetTypeName()
 if not MarkedTypes[TargetUnitType]then
@@ -20341,7 +20347,6 @@ Recce:LaseOff()
 Recce:MessageToSetGroup("Target "..TargetUnit:GetTypeName()"out of LOS. Cancelling lase!",5,self.AttackSet,self.DesignateName)
 end
 else
-MarkingCount=MarkingCount+1
 local TargetUnitType=TargetUnit:GetTypeName()
 if not MarkedTypes[TargetUnitType]then
 MarkedTypes[TargetUnitType]=true
@@ -20367,13 +20372,11 @@ end
 )
 local MarkedTypesText=ReportTypes:Text(', ')
 local MarkedLaserCodesText=ReportLaserCodes:Text(', ')
-for MarkedType,MarketCount in pairs(MarkedTypes)do
-self.CC:GetPositionable():MessageToSetGroup("Marking "..MarkingCount.." x "..MarkedTypesText.." with lasers "..MarkedLaserCodesText..".",5,self.AttackSet,self.DesignateName)
-end
+self.CC:GetPositionable():MessageToSetGroup("Marking "..MarkingCount.." x "..MarkedTypesText..", code "..MarkedLaserCodesText..".",5,self.AttackSet,self.DesignateName)
 self:__Lasing(-30,Index,Duration,LaserCodeRequested)
 self:SetDesignateMenu()
 else
-self:__LaseOff(1)
+self:LaseOff(Index)
 end
 end
 function DESIGNATE:onafterLaseOff(From,Event,To,Index)
@@ -20391,6 +20394,7 @@ end
 Recces=nil
 self.Recces={}
 self.LaserCodesUsed={}
+self.Designating[Index]=string.gsub(self.Designating[Index],"L","")
 self:SetDesignateMenu()
 end
 function DESIGNATE:onafterSmoke(From,Event,To,Index,Color)
@@ -20406,13 +20410,13 @@ local RecceGroup=self.RecceSet:FindNearestGroupFromPointVec2(SmokeUnit:GetPointV
 local RecceUnit=RecceGroup:GetUnit(1)
 if RecceUnit then
 RecceUnit:MessageToSetGroup("Smoking "..SmokeUnit:GetTypeName()..".",5,self.AttackSet,self.DesignateName)
-self.MarkScheduler:Schedule(self,
-function()
 if SmokeUnit:IsAlive()then
 SmokeUnit:Smoke(Color,50,2)
 end
-self:Done(Index)
-end,{},math.random(5,20)
+self.MarkScheduler:Schedule(self,
+function()
+self:DoneSmoking(Index)
+end,{},math.random(180,240)
 )
 end
 end
@@ -20427,19 +20431,24 @@ local RecceGroup=self.RecceSet:FindNearestGroupFromPointVec2(TargetUnit:GetPoint
 local RecceUnit=RecceGroup:GetUnit(1)
 if RecceUnit then
 RecceUnit:MessageToSetGroup("Illuminating "..TargetUnit:GetTypeName()..".",5,self.AttackSet,self.DesignateName)
+if TargetUnit:IsAlive()then
+TargetUnit:GetPointVec3():AddY(math.random(350,500)):AddX(math.random(-50,50)):AddZ(math.random(-50,50)):IlluminationBomb()
+TargetUnit:GetPointVec3():AddY(math.random(350,500)):AddX(math.random(-50,50)):AddZ(math.random(-50,50)):IlluminationBomb()
+end
 self.MarkScheduler:Schedule(self,
 function()
-if TargetUnit:IsAlive()then
-TargetUnit:GetPointVec3():AddY(300):IlluminationBomb()
-end
-self:Done(Index)
-end,{},math.random(5,20)
+self:DoneIlluminating(Index)
+end,{},math.random(60,90)
 )
 end
 end
 end
-function DESIGNATE:onafterDone(From,Event,To,Index)
-self.Designating[Index]=nil
+function DESIGNATE:onafterDoneSmoking(From,Event,To,Index)
+self.Designating[Index]=string.gsub(self.Designating[Index],"S","")
+self:SetDesignateMenu()
+end
+function DESIGNATE:onafterDoneIlluminating(From,Event,To,Index)
+self.Designating[Index]=string.gsub(self.Designating[Index],"I","")
 self:SetDesignateMenu()
 end
 end
