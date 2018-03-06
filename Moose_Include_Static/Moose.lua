@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-06T11:39:58.0000000Z-0d7daee7fbaef3deec7590305870d2c504bc2470 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-06T14:18:56.0000000Z-f512a2a250375b23965a1d79530e97c8f4f0cee6 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -2824,8 +2824,8 @@ UTILS.tostringLL = function( lat, lon, acc, DMS)
 --      secFrmtStr = '%0' .. width .. '.' .. acc .. 'f'
 --    end
 
-    return string.format('%02d', latDeg) .. ' ' .. string.format('%02d', latMin) .. '\' ' .. string.format(secFrmtStr, latSec) .. '"' .. latHemi .. '   '
-           .. string.format('%02d', lonDeg) .. ' ' .. string.format('%02d', lonMin) .. '\' ' .. string.format(secFrmtStr, lonSec) .. '"' .. lonHemi
+    return string.format('%03d', latDeg) .. ' ' .. string.format('%02d', latMin) .. '\' ' .. string.format(secFrmtStr, latSec) .. '"' .. latHemi .. '   '
+           .. string.format('%03d', lonDeg) .. ' ' .. string.format('%02d', lonMin) .. '\' ' .. string.format(secFrmtStr, lonSec) .. '"' .. lonHemi
 
   else  -- degrees, decimal minutes.
     latMin = UTILS.Round(latMin, acc)
@@ -2849,8 +2849,8 @@ UTILS.tostringLL = function( lat, lon, acc, DMS)
       minFrmtStr = '%0' .. width .. '.' .. acc .. 'f'
     end
 
-    return string.format('%02d', latDeg) .. ' ' .. string.format(minFrmtStr, latMin) .. '\'' .. latHemi .. '   '
-     .. string.format('%02d', lonDeg) .. ' ' .. string.format(minFrmtStr, lonMin) .. '\'' .. lonHemi
+    return string.format('%03d', latDeg) .. ' ' .. string.format(minFrmtStr, latMin) .. '\'' .. latHemi .. '   '
+     .. string.format('%03d', lonDeg) .. ' ' .. string.format(minFrmtStr, lonMin) .. '\'' .. lonHemi
 
   end
 end

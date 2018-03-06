@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-06T11:39:58.0000000Z-0d7daee7fbaef3deec7590305870d2c504bc2470 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-06T14:18:56.0000000Z-f512a2a250375b23965a1d79530e97c8f4f0cee6 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -1984,8 +1984,8 @@ lonMin=lonMin+1
 end
 local secFrmtStr
 secFrmtStr='%02d'
-return string.format('%02d',latDeg)..' '..string.format('%02d',latMin)..'\' '..string.format(secFrmtStr,latSec)..'"'..latHemi..'   '
-..string.format('%02d',lonDeg)..' '..string.format('%02d',lonMin)..'\' '..string.format(secFrmtStr,lonSec)..'"'..lonHemi
+return string.format('%03d',latDeg)..' '..string.format('%02d',latMin)..'\' '..string.format(secFrmtStr,latSec)..'"'..latHemi..'   '
+..string.format('%03d',lonDeg)..' '..string.format('%02d',lonMin)..'\' '..string.format(secFrmtStr,lonSec)..'"'..lonHemi
 else
 latMin=UTILS.Round(latMin,acc)
 lonMin=UTILS.Round(lonMin,acc)
@@ -2004,8 +2004,8 @@ else
 local width=3+acc
 minFrmtStr='%0'..width..'.'..acc..'f'
 end
-return string.format('%02d',latDeg)..' '..string.format(minFrmtStr,latMin)..'\''..latHemi..'   '
-..string.format('%02d',lonDeg)..' '..string.format(minFrmtStr,lonMin)..'\''..lonHemi
+return string.format('%03d',latDeg)..' '..string.format(minFrmtStr,latMin)..'\''..latHemi..'   '
+..string.format('%03d',lonDeg)..' '..string.format(minFrmtStr,lonMin)..'\''..lonHemi
 end
 end
 UTILS.tostringMGRS=function(MGRS,acc)
