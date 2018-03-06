@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-05T20:07:27.0000000Z-e94362ea199e4a68b5c9706ab2fc17f88d797474 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-06T11:39:58.0000000Z-0d7daee7fbaef3deec7590305870d2c504bc2470 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -7986,14 +7986,14 @@ return P/100
 end
 function COORDINATE:GetPressureText(height,Settings)
 local Pressure_hPa=self:GetPressure(height)
-local Pressure_mmHg=Pressure_hPa*0.0295299830714
-local Pressure_inHg=Pressure_hPa*0.7500615613030
+local Pressure_mmHg=Pressure_hPa*0.7500615613030
+local Pressure_inHg=Pressure_hPa*0.0295299830714
 local Settings=Settings or _SETTINGS
 if Pressure_hPa then
 if Settings:IsMetric()then
-return string.format(" %d hPa (%3.4f mmHg)",Pressure_hPa,Pressure_mmHg)
+return string.format(" %4.1f hPa (%3.1f mmHg)",Pressure_hPa,Pressure_mmHg)
 else
-return string.format(" %d hPa (%3.4f inHg)",Pressure_hPa,Pressure_inHg)
+return string.format(" %4.1f hPa (%3.2f inHg)",Pressure_hPa,Pressure_inHg)
 end
 else
 return" no pressure"
