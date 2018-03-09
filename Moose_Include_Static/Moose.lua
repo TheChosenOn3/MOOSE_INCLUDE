@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-06T14:49:29.0000000Z-03fa3225844bd2a89f639ec25bcbf075c2392035 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-09T11:38:21.0000000Z-0cad5ba85ec0199489fb6e93e9d09c81b79440be ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -58755,22 +58755,22 @@ function COMMANDCENTER:New( CommandCenterPositionable, CommandCenterName )
     end
   )
 
---  -- Handle when a player leaves a slot and goes back to spectators ... 
---  -- The PlayerUnit will be UnAssigned from the Task.
---  -- When there is no Unit left running the Task, the Task goes into Abort...
---  self:HandleEvent( EVENTS.PlayerLeaveUnit,
---    --- @param #TASK self
---    -- @param Core.Event#EVENTDATA EventData
---    function( self, EventData )
---      local PlayerUnit = EventData.IniUnit
---      for MissionID, Mission in pairs( self:GetMissions() ) do
---        local Mission = Mission -- Tasking.Mission#MISSION
---        if Mission:IsENGAGED() then
---          Mission:AbortUnit( PlayerUnit )
---        end
---      end
---    end
---  )
+  -- Handle when a player leaves a slot and goes back to spectators ... 
+  -- The PlayerUnit will be UnAssigned from the Task.
+  -- When there is no Unit left running the Task, the Task goes into Abort...
+  self:HandleEvent( EVENTS.PlayerLeaveUnit,
+    --- @param #TASK self
+    -- @param Core.Event#EVENTDATA EventData
+    function( self, EventData )
+      local PlayerUnit = EventData.IniUnit
+      for MissionID, Mission in pairs( self:GetMissions() ) do
+        local Mission = Mission -- Tasking.Mission#MISSION
+        if Mission:IsENGAGED() then
+          Mission:AbortUnit( PlayerUnit )
+        end
+      end
+    end
+  )
 
   -- Handle when a player leaves a slot and goes back to spectators ... 
   -- The PlayerUnit will be UnAssigned from the Task.

@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-06T14:49:29.0000000Z-03fa3225844bd2a89f639ec25bcbf075c2392035 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-09T11:38:21.0000000Z-0cad5ba85ec0199489fb6e93e9d09c81b79440be ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -26394,6 +26394,17 @@ local PlayerUnit=EventData.IniUnit
 for MissionID,Mission in pairs(self:GetMissions())do
 local Mission=Mission
 Mission:Stop()
+end
+end
+)
+self:HandleEvent(EVENTS.PlayerLeaveUnit,
+function(self,EventData)
+local PlayerUnit=EventData.IniUnit
+for MissionID,Mission in pairs(self:GetMissions())do
+local Mission=Mission
+if Mission:IsENGAGED()then
+Mission:AbortUnit(PlayerUnit)
+end
 end
 end
 )
