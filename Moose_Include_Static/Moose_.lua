@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-09T13:37:13.0000000Z-7b50c9f6eefc943e56272092b3c9246e307351b6 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-10T06:01:38.0000000Z-92e6ad3246d0b7f410706419687ee8411a5b64cd ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -10658,6 +10658,9 @@ end
 function CARGO:IsUnLoaded()
 return self:Is("UnLoaded")
 end
+function CARGO:IsBoarding()
+return self:Is("Boarding")
+end
 function CARGO:IsAlive()
 if self:IsLoaded()then
 return self.CargoCarrier:IsAlive()
@@ -10953,7 +10956,7 @@ self:__Load(1,CargoCarrier,...)
 else
 self:__Boarding(-1,CargoCarrier,NearRadius,...)
 self.RunCount=self.RunCount+1
-if self.RunCount>=20 then
+if self.RunCount>=60 then
 self.RunCount=0
 local Speed=90
 local Angle=180
@@ -27726,6 +27729,23 @@ function TASKINFO:AddWindAtCoordinate(Coordinate,Order,Detail,Keep)
 self:AddInfo("Wind",Coordinate,Order,Detail,Keep)
 return self
 end
+function TASKINFO:AddCargo(Cargo,Order,Detail,Keep)
+self:AddInfo("Cargo",Cargo,Order,Detail,Keep)
+return self
+end
+function TASKINFO:AddCargoSet(SetCargo,Order,Detail,Keep)
+local CargoReport=REPORT:New()
+SetCargo:ForEachCargo(
+function(Cargo)
+local CargoType=Cargo:GetType()
+local CargoName=Cargo:GetName()
+local CargoCoordinate=Cargo:GetCoordinate()
+CargoReport:Add(string.format('- "%s" (%s) at %s',CargoName,CargoType,CargoCoordinate:ToStringMGRS()))
+end
+)
+self:AddInfo("CargoSet",CargoReport:Text(),Order,Detail,Keep)
+return self
+end
 function TASKINFO:Report(Report,Detail,ReportGroup)
 local Line=0
 local LineReport=REPORT:New()
@@ -27767,6 +27787,10 @@ end
 if Key=="Wind"then
 local Coordinate=Data.Data
 Text=Coordinate:ToStringWind(ReportGroup:GetUnit(1),nil,self)
+end
+if Key=="CargoSet"then
+local DataText=Data.Data
+Text=DataText
 end
 if Line<math.floor(Data.Order/10)then
 if Line==0 then
@@ -28957,7 +28981,7 @@ self.SetCargo=SetCargo
 self.TaskType=TaskType
 self.SmokeColor=SMOKECOLOR.Red
 self.CargoItemCount={}
-self.CargoLimit=2
+self.CargoLimit=6
 self.DeployZones={}
 local Fsm=self:GetUnitProcess()
 Fsm:SetStartState("Planned")
@@ -28991,8 +29015,9 @@ local CargoItemCount=TaskUnit:CargoItemCount()
 Task.SetCargo:ForEachCargo(
 function(Cargo)
 if Cargo:IsAlive()then
+self:F({CargoUnloaded=Cargo:IsUnLoaded(),CargoLoaded=Cargo:IsLoaded(),CargoItemCount=CargoItemCount})
 if Cargo:IsUnLoaded()then
-if CargoItemCount<Task.CargoLimit then
+if CargoItemCount<=Task.CargoLimit then
 if Cargo:IsInRadius(TaskUnit:GetPointVec2())then
 local NotInDeployZones=true
 for DeployZoneName,DeployZone in pairs(Task.DeployZones)do
@@ -29141,7 +29166,9 @@ if self.Cargo:IsInRadius(TaskUnit:GetPointVec2())then
 if TaskUnit:InAir()then
 else
 self.Cargo:MessageToGroup("Boarding ...",TaskUnit:GetGroup())
+if not self.Cargo:IsBoarding()then
 self.Cargo:Board(TaskUnit,20,self)
+end
 end
 else
 end
@@ -29302,6 +29329,12 @@ self.GoalTotal=self.SetCargo:Count()
 end
 function TASK_CARGO:GetGoalTotal()
 return self.GoalTotal
+end
+function TASK_CARGO:UpdateTaskInfo()
+if self:IsStatePlanned()or self:IsStateAssigned()then
+self.TaskInfo:AddTaskName(0,"MSOD")
+self.TaskInfo:AddCargoSet(self.SetCargo,10,"SOD")
+end
 end
 end
 do

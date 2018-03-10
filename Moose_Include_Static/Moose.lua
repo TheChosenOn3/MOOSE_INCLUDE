@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-09T13:37:13.0000000Z-7b50c9f6eefc943e56272092b3c9246e307351b6 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-10T06:01:38.0000000Z-92e6ad3246d0b7f410706419687ee8411a5b64cd ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -22128,6 +22128,13 @@ function CARGO:IsUnLoaded()
   return self:Is( "UnLoaded" )
 end
 
+--- Check if cargo is boarding.
+-- @param #CARGO self
+-- @return #boolean true if boarding
+function CARGO:IsBoarding()
+  return self:Is( "Boarding" )
+end
+
 --- Check if cargo is alive.
 -- @param #CARGO self
 -- @return #boolean true if unloaded
@@ -22734,7 +22741,7 @@ do -- CARGO_UNIT
         else
           self:__Boarding( -1, CargoCarrier, NearRadius, ... )
           self.RunCount = self.RunCount + 1
-          if self.RunCount >= 20 then
+          if self.RunCount >= 60 then
             self.RunCount = 0
             local Speed = 90
             local Angle = 180
@@ -61939,6 +61946,45 @@ function TASKINFO:AddWindAtCoordinate( Coordinate, Order, Detail, Keep )
   return self
 end
 
+--- Add Cargo. 
+-- @param #TASKINFO self
+-- @param Core.Cargo#CARGO Cargo
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @param #boolean Keep (optional) If true, this would indicate that the planned taskinfo would be persistent when the task is completed, so that the original planned task info is used at the completed reports.
+-- @return #TASKINFO self
+function TASKINFO:AddCargo( Cargo, Order, Detail, Keep )
+  self:AddInfo( "Cargo", Cargo, Order, Detail, Keep )
+  return self
+end
+
+
+--- Add Cargo set. 
+-- @param #TASKINFO self
+-- @param Core.Set#SET_CARGO SetCargo
+-- @param #number Order The display order, which is a number from 0 to 100.
+-- @param #TASKINFO.Detail Detail The detail Level.
+-- @param #boolean Keep (optional) If true, this would indicate that the planned taskinfo would be persistent when the task is completed, so that the original planned task info is used at the completed reports.
+-- @return #TASKINFO self
+function TASKINFO:AddCargoSet( SetCargo, Order, Detail, Keep )
+
+  local CargoReport = REPORT:New()
+  SetCargo:ForEachCargo(
+    --- @param Core.Cargo#CARGO Cargo
+    function( Cargo )
+      local CargoType = Cargo:GetType()
+      local CargoName = Cargo:GetName()
+      local CargoCoordinate = Cargo:GetCoordinate()
+      CargoReport:Add( string.format( '- "%s" (%s) at %s', CargoName, CargoType, CargoCoordinate:ToStringMGRS() ) )
+    end
+  )
+
+  self:AddInfo( "CargoSet", CargoReport:Text(), Order, Detail, Keep )
+
+  return self
+end
+
+
 
 --- Create the taskinfo Report
 -- @param #TASKINFO self
@@ -61992,6 +62038,10 @@ function TASKINFO:Report( Report, Detail, ReportGroup )
       if Key == "Wind" then
         local Coordinate = Data.Data -- Core.Point#COORDINATE
         Text = Coordinate:ToStringWind( ReportGroup:GetUnit(1), nil, self )
+      end
+      if Key == "CargoSet" then
+        local DataText = Data.Data -- #string
+        Text = DataText
       end
 
       if Line < math.floor( Data.Order / 10 ) then
@@ -64820,7 +64870,7 @@ do -- TASK_CARGO
     self.SmokeColor = SMOKECOLOR.Red
     
     self.CargoItemCount = {} -- Map of Carriers having a cargo item count to check the cargo loading limits.
-    self.CargoLimit = 2
+    self.CargoLimit = 6
     
     self.DeployZones = {} -- setmetatable( {}, { __mode = "v" } ) -- weak table on value
 
@@ -64897,10 +64947,10 @@ do -- TASK_CARGO
 --              ):SetTime(MenuTime)
 --            end
 
-
+            self:F( { CargoUnloaded = Cargo:IsUnLoaded(), CargoLoaded = Cargo:IsLoaded(), CargoItemCount = CargoItemCount } )
         
             if Cargo:IsUnLoaded() then
-              if CargoItemCount < Task.CargoLimit then 
+              if CargoItemCount <= Task.CargoLimit then 
                 if Cargo:IsInRadius( TaskUnit:GetPointVec2() ) then
                   local NotInDeployZones = true
                   for DeployZoneName, DeployZone in pairs( Task.DeployZones ) do
@@ -65136,8 +65186,10 @@ do -- TASK_CARGO
           if TaskUnit:InAir() then
             --- ABORT the boarding. Split group if any and go back to select action.
           else
-            self.Cargo:MessageToGroup( "Boarding ...", TaskUnit:GetGroup() ) 
-            self.Cargo:Board( TaskUnit, 20, self )
+            self.Cargo:MessageToGroup( "Boarding ...", TaskUnit:GetGroup() )
+            if not self.Cargo:IsBoarding() then
+              self.Cargo:Board( TaskUnit, 20, self )
+            end
           end
         else
           --self:__ArriveAtCargo( -0.1 )
@@ -65458,6 +65510,13 @@ do -- TASK_CARGO
     return self.GoalTotal
   end
   
+  function TASK_CARGO:UpdateTaskInfo()
+  
+    if self:IsStatePlanned() or self:IsStateAssigned() then
+      self.TaskInfo:AddTaskName( 0, "MSOD" )
+      self.TaskInfo:AddCargoSet( self.SetCargo, 10, "SOD" )
+    end
+  end
   
 end 
 
