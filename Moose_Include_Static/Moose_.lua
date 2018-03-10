@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-10T06:01:38.0000000Z-92e6ad3246d0b7f410706419687ee8411a5b64cd ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-10T07:13:36.0000000Z-4908ec93c36940453ed2bd4620e93ece17846678 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -11127,7 +11127,8 @@ local Dead=true
 self.CargoSet:Flush()
 for CargoID,Cargo in pairs(self.CargoSet:GetSet())do
 self:T({Cargo:GetName(),Cargo.current})
-if not Cargo:is("Loaded")then
+if not Cargo:is("Loaded")
+and(not Cargo:is("Destroyed"))then
 Boarded=false
 end
 if Cargo:is("UnLoaded")then

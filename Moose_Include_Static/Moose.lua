@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-10T06:01:38.0000000Z-92e6ad3246d0b7f410706419687ee8411a5b64cd ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-10T07:13:36.0000000Z-4908ec93c36940453ed2bd4620e93ece17846678 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -23079,7 +23079,10 @@ function CARGO_GROUP:onafterBoarding( From, Event, To, CargoCarrier, NearRadius,
   -- For each Cargo object within the CARGO_GROUP, route each object to the CargoLoadPointVec2
   for CargoID, Cargo in pairs( self.CargoSet:GetSet() ) do
     self:T( { Cargo:GetName(), Cargo.current } )
-    if not Cargo:is( "Loaded" ) then
+    
+    
+    if not Cargo:is( "Loaded" ) 
+    and (not Cargo:is( "Destroyed" )) then -- If one or more units of a group defined as CARGO_GROUP died, the CARGO_GROUP:Board() command does not trigger the CARGO_GRUOP:OnEnterLoaded() function.
       Boarded = false
     end
     
