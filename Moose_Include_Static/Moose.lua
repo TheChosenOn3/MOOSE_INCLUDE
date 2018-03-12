@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-12T09:50:13.0000000Z-5f403161a75333e85a268f8353d0d741610d7ef3 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-12T10:01:11.0000000Z-919d35c425b9d07734f76bc78701e873856d45aa ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -62802,7 +62802,7 @@ function TASKINFO:AddCargoSet( SetCargo, Order, Detail, Keep )
       local CargoType = Cargo:GetType()
       local CargoName = Cargo:GetName()
       local CargoCoordinate = Cargo:GetCoordinate()
-      CargoReport:Add( string.format( '- "%s" (%s) at %s', CargoName, CargoType, CargoCoordinate:ToStringMGRS() ) )
+      CargoReport:Add( string.format( '"%s" (%s) at %s', CargoName, CargoType, CargoCoordinate:ToStringMGRS() ) )
     end
   )
 
@@ -65708,7 +65708,7 @@ do -- TASK_CARGO
 
     Fsm:AddProcess   ( "Planned", "Accept", ACT_ASSIGN_ACCEPT:New( self.TaskBriefing ), { Assigned = "SelectAction", Rejected = "Reject" }  )
     
-    Fsm:AddTransition( { "Assigned", "WaitingForCommand", "ArrivedAtPickup", "ArrivedAtDeploy", "Boarded", "UnBoarded", "Landed", "Boarding" }, "SelectAction", "*" )
+    Fsm:AddTransition( { "Planned", "Assigned", "WaitingForCommand", "ArrivedAtPickup", "ArrivedAtDeploy", "Boarded", "UnBoarded", "Landed", "Boarding" }, "SelectAction", "*" )
 
     Fsm:AddTransition( "*", "RouteToPickup", "RoutingToPickup" )
     Fsm:AddProcess   ( "RoutingToPickup", "RouteToPickupPoint", ACT_ROUTE_POINT:New(), { Arrived = "ArriveAtPickup", Cancelled = "CancelRouteToPickup" } )
@@ -65731,6 +65731,8 @@ do -- TASK_CARGO
     Fsm:AddTransition( "AwaitUnBoarding", "UnBoard", "UnBoarding" )
     Fsm:AddTransition( "UnBoarding", "UnBoarded", "UnBoarded" )
     
+    Fsm:AddTransition( "*", "Planned", "Planned" )
+    
     
     Fsm:AddTransition( "Deployed", "Success", "Success" )
     Fsm:AddTransition( "Rejected", "Reject", "Aborted" )
@@ -65749,7 +65751,7 @@ do -- TASK_CARGO
 
       local MenuTime = timer.getTime()
             
-      TaskUnit.Menu = MENU_GROUP:New( TaskUnit:GetGroup(), Task:GetName() .. " @ " .. TaskUnit:GetName() ):SetTime( MenuTime )
+      TaskUnit.Menu = MENU_GROUP:New( TaskUnit:GetGroup(), Task:GetName() .. " @ " .. TaskUnit:GetName() )
 
       local CargoItemCount = TaskUnit:CargoItemCount()
 
@@ -65788,10 +65790,12 @@ do -- TASK_CARGO
                   if NotInDeployZones then
                     if not TaskUnit:InAir() then
                       MENU_GROUP_COMMAND:New( TaskUnit:GetGroup(), "Board cargo " .. Cargo.Name, TaskUnit.Menu, self.MenuBoardCargo, self, Cargo ):SetTime(MenuTime)
+                      TaskUnit.Menu:SetTime( MenuTime )
                     end
                   end
                 else
                   MENU_GROUP_COMMAND:New( TaskUnit:GetGroup(), "Route to Pickup cargo " .. Cargo.Name, TaskUnit.Menu, self.MenuRouteToPickup, self, Cargo ):SetTime(MenuTime)
+                  TaskUnit.Menu:SetTime( MenuTime )
                 end
               end
             end
@@ -65799,11 +65803,13 @@ do -- TASK_CARGO
             if Cargo:IsLoaded() then
               if not TaskUnit:InAir() then
                 MENU_GROUP_COMMAND:New( TaskUnit:GetGroup(), "Unboard cargo " .. Cargo.Name, TaskUnit.Menu, self.MenuUnBoardCargo, self, Cargo ):SetTime(MenuTime)
+                TaskUnit.Menu:SetTime( MenuTime )
               end
               -- Deployzones are optional zones that can be selected to request routing information.
               for DeployZoneName, DeployZone in pairs( Task.DeployZones ) do
                 if not Cargo:IsInZone( DeployZone ) then
                   MENU_GROUP_COMMAND:New( TaskUnit:GetGroup(), "Route to Deploy cargo at " .. DeployZoneName, TaskUnit.Menu, self.MenuRouteToDeploy, self, DeployZone ):SetTime(MenuTime)
+                  TaskUnit.Menu:SetTime( MenuTime )
                 end
               end
             end
@@ -66138,6 +66144,7 @@ do -- TASK_CARGO
         end
       end
       
+      self:Planned()
       self:__SelectAction( 1 )
     end
 
@@ -66337,12 +66344,18 @@ do -- TASK_CARGO
     return self.GoalTotal
   end
   
+  --- @param #TASK_CARGO self
   function TASK_CARGO:UpdateTaskInfo()
   
     if self:IsStatePlanned() or self:IsStateAssigned() then
       self.TaskInfo:AddTaskName( 0, "MSOD" )
-      self.TaskInfo:AddCargoSet( self.SetCargo, 10, "SOD" )
+      self.TaskInfo:AddCargoSet( self.SetCargo, 10, "SOD", true )
     end
+  end
+
+  function TASK_CARGO:ReportOrder( ReportGroup ) 
+    
+    return 0
   end
   
 end 
@@ -66472,7 +66485,7 @@ do -- TASK_CARGO_TRANSPORT
 
   function TASK_CARGO_TRANSPORT:ReportOrder( ReportGroup ) 
     
-    return true
+    return 0
   end
 
   
@@ -66491,23 +66504,27 @@ do -- TASK_CARGO_TRANSPORT
     -- Loop the CargoSet (so evaluate each Cargo in the SET_CARGO ).
     for CargoID, CargoData in pairs( Set ) do
       local Cargo = CargoData -- Core.Cargo#CARGO
+      
+      self:F( { Cargo = Cargo:GetName(), CargoDeployed = Cargo:IsDeployed() } )
 
       if Cargo:IsDeployed() then
       
-        -- Loop the DeployZones set for the TASK_CARGO_TRANSPORT.
-        for DeployZoneID, DeployZone in pairs( DeployZones ) do
-        
-          -- If there is a Cargo not in one of DeployZones, then not all Cargo is deployed.
-          self:T( { Cargo.CargoObject } )
-          if Cargo:IsInZone( DeployZone ) == false then
-            CargoDeployed = false
-          end
-        end
+--        -- Loop the DeployZones set for the TASK_CARGO_TRANSPORT.
+--        for DeployZoneID, DeployZone in pairs( DeployZones ) do
+--        
+--          -- If all cargo is in one of the deploy zones, then all is good.
+--          self:T( { Cargo.CargoObject } )
+--          if Cargo:IsInZone( DeployZone ) == false then
+--            CargoDeployed = false
+--          end
+--        end
       else
         CargoDeployed = false
       end
     end
 
+    self:F( { CargoDeployed = CargoDeployed } )
+    
     return CargoDeployed
   end
   
