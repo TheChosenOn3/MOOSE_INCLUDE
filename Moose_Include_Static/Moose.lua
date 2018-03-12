@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-11T18:26:39.0000000Z-a34952cb248478b69c671c21774a8991302c3f30 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-12T09:50:13.0000000Z-5f403161a75333e85a268f8353d0d741610d7ef3 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -41162,7 +41162,7 @@ do -- DESIGNATE
   -- 
   -- ### 0.4. Illuminating Targets
   -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia8.JPG)
+  -- ![Banner Image](..\Presentations\DESIGNATE\Dia9.JPG)
   -- 
   -- Illumination bombs are fired between 500 and 700 meters altitude and will burn about 2 minutes, while slowly decending.
   -- Each available recce within range will fire an illumination bomb.
@@ -41171,7 +41171,7 @@ do -- DESIGNATE
   -- 
   -- ### 0.5. Smoking Targets
   -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia9.JPG)
+  -- ![Banner Image](..\Presentations\DESIGNATE\Dia10.JPG)
   -- 
   -- Smoke will fire for 5 minutes.
   -- Each available recce within range will smoke a target.
