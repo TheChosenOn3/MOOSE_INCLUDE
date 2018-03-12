@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-12T13:23:18.0000000Z-52e1047e13c98b59778955da440bd8e882e553b4 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-12T15:46:34.0000000Z-5502c14eb15bc8aaa5550e2b3f14e4682391ad3e ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -18975,23 +18975,12 @@ self.FriendlyPrefixes[Prefix]=Prefix
 end
 return self
 end
-function DETECTION_BASE:FilterFriendlyCategories(FriendlyCategories)
-self.FriendlyCategories=self.FriendlyCategories or{}
-if type(FriendlyCategories)~="table"then
-FriendlyCategories={FriendlyCategories}
-end
-for ID,FriendlyCategory in pairs(FriendlyCategories)do
-self:F({FriendlyCategory=FriendlyCategory})
-self.FriendlyCategories[FriendlyCategory]=FriendlyCategory
-end
-return self
-end
-function DETECTION_BASE:IsFriendliesNearBy(DetectedItem)
+function DETECTION_BASE:IsFriendliesNearBy(DetectedItem,Category)
 self:F({"FriendliesNearBy Test",DetectedItem.FriendliesNearBy})
-return DetectedItem.FriendliesNearBy~=nil or false
+return(DetectedItem.FriendliesNearBy and DetectedItem.FriendliesNearBy[Category]~=nil)or false
 end
-function DETECTION_BASE:GetFriendliesNearBy(DetectedItem)
-return DetectedItem.FriendliesNearBy
+function DETECTION_BASE:GetFriendliesNearBy(DetectedItem,Category)
+return DetectedItem.FriendliesNearBy[Category]
 end
 function DETECTION_BASE:IsFriendliesNearIntercept(DetectedItem)
 return DetectedItem.FriendliesNearIntercept~=nil or false
@@ -19047,23 +19036,14 @@ break
 end
 end
 end
-local FoundUnitOfOtherCategory=false
-if FoundUnitOfOtherCategory==false then
-for ID,FriendlyCategory in pairs(self.FriendlyCategories or{})do
-self:F({"Friendly Category:",FriendlyCategory=FriendlyCategory,FoundUnitCategory=FoundUnitCategory})
-if FriendlyCategory~=FoundUnitCategory then
-FoundUnitOfOtherCategory=true
-break
-end
-end
-end
 self:F({"Friendlies near Target:",FoundUnitName,FoundUnitCoalition,EnemyUnitName,EnemyCoalition,FoundUnitInReportSetGroup})
-if FoundUnitCoalition~=EnemyCoalition and FoundUnitInReportSetGroup==false and FoundUnitOfOtherCategory==false then
+if FoundUnitCoalition~=EnemyCoalition and FoundUnitInReportSetGroup==false then
 local FriendlyUnit=UNIT:Find(FoundDCSUnit)
 local FriendlyUnitName=FriendlyUnit:GetName()
 local FriendlyUnitCategory=FriendlyUnit:GetDesc().category
 DetectedItem.FriendliesNearBy=DetectedItem.FriendliesNearBy or{}
-DetectedItem.FriendliesNearBy[FriendlyUnitName]=FriendlyUnit
+DetectedItem.FriendliesNearBy[FoundUnitCategory]=DetectedItem.FriendliesNearBy[FoundUnitCategory]or{}
+DetectedItem.FriendliesNearBy[FoundUnitCategory][FriendlyUnitName]=FriendlyUnit
 local Distance=DetectedUnitCoord:Get2DDistance(FriendlyUnit:GetCoordinate())
 DetectedItem.FriendliesDistance=DetectedItem.FriendliesDistance or{}
 DetectedItem.FriendliesDistance[Distance]=FriendlyUnit
@@ -19081,12 +19061,12 @@ local PlayerUnit=UNIT:FindByName(PlayerUnitName)
 if PlayerUnit and PlayerUnit:IsInZone(DetectionZone)then
 local PlayerUnitCategory=PlayerUnit:GetDesc().category
 if(not self.FriendliesCategory)or(self.FriendliesCategory and(self.FriendliesCategory==PlayerUnitCategory))then
-DetectedItem.FriendliesNearBy=DetectedItem.FriendliesNearBy or{}
 local PlayerUnitName=PlayerUnit:GetName()
 DetectedItem.PlayersNearBy=DetectedItem.PlayersNearBy or{}
 DetectedItem.PlayersNearBy[PlayerUnitName]=PlayerUnit
 DetectedItem.FriendliesNearBy=DetectedItem.FriendliesNearBy or{}
-DetectedItem.FriendliesNearBy[PlayerUnitName]=PlayerUnit
+DetectedItem.FriendliesNearBy[PlayerUnitCategory]=DetectedItem.FriendliesNearBy[PlayerUnitCategory]or{}
+DetectedItem.FriendliesNearBy[PlayerUnitCategory][PlayerUnitName]=PlayerUnit
 local Distance=DetectedUnitCoord:Get2DDistance(PlayerUnit:GetCoordinate())
 DetectedItem.FriendliesDistance=DetectedItem.FriendliesDistance or{}
 DetectedItem.FriendliesDistance[Distance]=PlayerUnit
@@ -19862,10 +19842,10 @@ local DetectedZone=DetectedItem.Zone
 local DetectedZoneCoord=DetectedZone:GetCoordinate()
 self:SetDetectedItemCoordinate(DetectedItem,DetectedZoneCoord,DetectedFirstUnit)
 self:CalculateIntercept(DetectedItem)
-local OldFriendliesNearby=self:IsFriendliesNearBy(DetectedItem)
+local OldFriendliesNearbyGround=self:IsFriendliesNearBy(DetectedItem,Unit.Category.GROUND_UNIT)
 self:ReportFriendliesNearBy({DetectedItem=DetectedItem,ReportSetGroup=self.DetectionSetGroup})
-local NewFriendliesNearby=self:IsFriendliesNearBy(DetectedItem)
-if OldFriendliesNearby~=NewFriendliesNearby then
+local NewFriendliesNearbyGround=self:IsFriendliesNearBy(DetectedItem,Unit.Category.GROUND_UNIT)
+if OldFriendliesNearbyGround~=NewFriendliesNearbyGround then
 DetectedItem.Changed=true
 end
 self:SetDetectedItemThreatLevel(DetectedItem)
@@ -28254,8 +28234,7 @@ function TASK_A2G_DISPATCHER:New(Mission,SetGroup,Detection)
 local self=BASE:Inherit(self,DETECTION_MANAGER:New(SetGroup,Detection))
 self.Detection=Detection
 self.Mission=Mission
-self.Detection:FilterCategories({Unit.Category.GROUND_UNIT,Unit.Category.SHIP})
-self.Detection:FilterFriendlyCategories({Unit.Category.GROUND_UNIT})
+self.Detection:FilterCategories({Unit.Category.GROUND_UNIT})
 self:AddTransition("Started","Assign","Started")
 self:__Start(5)
 return self
@@ -28279,7 +28258,7 @@ self:F({DetectedItem.ItemID})
 local DetectedSet=DetectedItem.Set
 local DetectedZone=DetectedItem.Zone
 local GroundUnitCount=DetectedSet:HasGroundUnits()
-local FriendliesNearBy=self.Detection:IsFriendliesNearBy(DetectedItem)
+local FriendliesNearBy=self.Detection:IsFriendliesNearBy(DetectedItem,Unit.Category.GROUND_UNIT)
 local RadarCount=DetectedSet:HasSEAD()
 if RadarCount==0 and GroundUnitCount>0 and FriendliesNearBy==true then
 local TargetSetUnit=SET_UNIT:New()
@@ -28294,7 +28273,7 @@ self:F({DetectedItem.ItemID})
 local DetectedSet=DetectedItem.Set
 local DetectedZone=DetectedItem.Zone
 local GroundUnitCount=DetectedSet:HasGroundUnits()
-local FriendliesNearBy=self.Detection:IsFriendliesNearBy(DetectedItem)
+local FriendliesNearBy=self.Detection:IsFriendliesNearBy(DetectedItem,Unit.Category.GROUND_UNIT)
 local RadarCount=DetectedSet:HasSEAD()
 if RadarCount==0 and GroundUnitCount>0 and FriendliesNearBy==false then
 local TargetSetUnit=SET_UNIT:New()

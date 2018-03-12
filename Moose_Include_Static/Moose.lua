@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-12T13:23:18.0000000Z-52e1047e13c98b59778955da440bd8e882e553b4 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-12T15:46:34.0000000Z-5502c14eb15bc8aaa5550e2b3f14e4682391ad3e ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -39329,34 +39329,26 @@ do -- DETECTION_BASE
     -- @usage
     --    -- Only allow Ships and Vehicles to be part of the friendly team.
     --    Detection:SetFriendlyCategories( { Unit.Category.SHIP, Unit.Category.GROUND_UNIT } )
-    function DETECTION_BASE:FilterFriendlyCategories( FriendlyCategories )
-
-      self.FriendlyCategories = self.FriendlyCategories or {}
-      if type( FriendlyCategories ) ~= "table" then
-        FriendlyCategories = { FriendlyCategories }
-      end
-      for ID, FriendlyCategory in pairs( FriendlyCategories ) do
-        self:F( { FriendlyCategory = FriendlyCategory } )
-        self.FriendlyCategories[FriendlyCategory] = FriendlyCategory
-      end
-      return self    
-    end
   
     --- Returns if there are friendlies nearby the FAC units ...
     -- @param #DETECTION_BASE self
+    -- @param DetectedItem
+    -- @param Dcs.DCSUnit#Unit.Category Category The category of the unit.
     -- @return #boolean true if there are friendlies nearby 
-    function DETECTION_BASE:IsFriendliesNearBy( DetectedItem )
+    function DETECTION_BASE:IsFriendliesNearBy( DetectedItem, Category )
       
       self:F( { "FriendliesNearBy Test", DetectedItem.FriendliesNearBy } )
-      return DetectedItem.FriendliesNearBy ~= nil or false
+      return ( DetectedItem.FriendliesNearBy and DetectedItem.FriendliesNearBy[Category] ~= nil ) or false
     end
   
     --- Returns friendly units nearby the FAC units ...
     -- @param #DETECTION_BASE self
+    -- @param DetectedItem
+    -- @param Dcs.DCSUnit#Unit.Category Category The category of the unit.
     -- @return #map<#string,Wrapper.Unit#UNIT> The map of Friendly UNITs. 
-    function DETECTION_BASE:GetFriendliesNearBy( DetectedItem )
+    function DETECTION_BASE:GetFriendliesNearBy( DetectedItem, Category )
       
-      return DetectedItem.FriendliesNearBy
+      return DetectedItem.FriendliesNearBy[Category]
     end
     
     --- Returns if there are friendlies nearby the intercept ...
@@ -39463,28 +39455,18 @@ do -- DETECTION_BASE
             end
           end
           
-          local FoundUnitOfOtherCategory = false
-          
-          if FoundUnitOfOtherCategory == false then
-            -- Now we check if the found unit is one of the allowed friendly categories.
-            for ID, FriendlyCategory in pairs( self.FriendlyCategories or {} ) do
-              self:F( { "Friendly Category:", FriendlyCategory = FriendlyCategory, FoundUnitCategory = FoundUnitCategory } )
-              if FriendlyCategory ~= FoundUnitCategory then
-                FoundUnitOfOtherCategory = true
-                break
-              end
-            end
-          end
-
           self:F( { "Friendlies near Target:", FoundUnitName, FoundUnitCoalition, EnemyUnitName, EnemyCoalition, FoundUnitInReportSetGroup } )
           
-          if FoundUnitCoalition ~= EnemyCoalition and FoundUnitInReportSetGroup == false and FoundUnitOfOtherCategory == false then
+          if FoundUnitCoalition ~= EnemyCoalition and FoundUnitInReportSetGroup == false then
             local FriendlyUnit = UNIT:Find( FoundDCSUnit )
             local FriendlyUnitName = FriendlyUnit:GetName()
             local FriendlyUnitCategory = FriendlyUnit:GetDesc().category
-            
+
+            -- Friendlies are sorted per unit category.            
             DetectedItem.FriendliesNearBy = DetectedItem.FriendliesNearBy or {}
-            DetectedItem.FriendliesNearBy[FriendlyUnitName] = FriendlyUnit
+            DetectedItem.FriendliesNearBy[FoundUnitCategory] = DetectedItem.FriendliesNearBy[FoundUnitCategory] or {}
+            DetectedItem.FriendliesNearBy[FoundUnitCategory][FriendlyUnitName] = FriendlyUnit
+
             local Distance = DetectedUnitCoord:Get2DDistance( FriendlyUnit:GetCoordinate() )
             DetectedItem.FriendliesDistance = DetectedItem.FriendliesDistance or {}
             DetectedItem.FriendliesDistance[Distance] = FriendlyUnit
@@ -39511,14 +39493,15 @@ do -- DETECTION_BASE
     
               if ( not self.FriendliesCategory ) or ( self.FriendliesCategory and ( self.FriendliesCategory == PlayerUnitCategory ) ) then
 
-                DetectedItem.FriendliesNearBy = DetectedItem.FriendliesNearBy or {}
                 local PlayerUnitName = PlayerUnit:GetName()
       
                 DetectedItem.PlayersNearBy = DetectedItem.PlayersNearBy or {}
                 DetectedItem.PlayersNearBy[PlayerUnitName] = PlayerUnit
       
+                -- Friendlies are sorted per unit category.            
                 DetectedItem.FriendliesNearBy = DetectedItem.FriendliesNearBy or {}
-                DetectedItem.FriendliesNearBy[PlayerUnitName] = PlayerUnit
+                DetectedItem.FriendliesNearBy[PlayerUnitCategory] = DetectedItem.FriendliesNearBy[PlayerUnitCategory] or {}
+                DetectedItem.FriendliesNearBy[PlayerUnitCategory][PlayerUnitName] = PlayerUnit
       
                 local Distance = DetectedUnitCoord:Get2DDistance( PlayerUnit:GetCoordinate() )
                 DetectedItem.FriendliesDistance = DetectedItem.FriendliesDistance or {}
@@ -40949,10 +40932,10 @@ do -- DETECTION_AREAS
       -- If there weren't any friendlies nearby, and now there are friendlies nearby, we flag the area as "changed".
       -- If there were friendlies nearby, and now there aren't any friendlies nearby, we flag the area as "changed".
       -- This is for the A2G dispatcher to detect if there is a change in the tactical situation.
-      local OldFriendliesNearby = self:IsFriendliesNearBy( DetectedItem )
+      local OldFriendliesNearbyGround = self:IsFriendliesNearBy( DetectedItem, Unit.Category.GROUND_UNIT )
       self:ReportFriendliesNearBy( { DetectedItem = DetectedItem, ReportSetGroup = self.DetectionSetGroup } ) -- Fill the Friendlies table
-      local NewFriendliesNearby = self:IsFriendliesNearBy( DetectedItem )
-      if OldFriendliesNearby ~= NewFriendliesNearby then
+      local NewFriendliesNearbyGround = self:IsFriendliesNearBy( DetectedItem, Unit.Category.GROUND_UNIT  )
+      if OldFriendliesNearbyGround ~= NewFriendliesNearbyGround then
         DetectedItem.Changed = true
       end
 
@@ -63219,8 +63202,7 @@ do -- TASK_A2G_DISPATCHER
     self.Detection = Detection
     self.Mission = Mission
     
-    self.Detection:FilterCategories( { Unit.Category.GROUND_UNIT, Unit.Category.SHIP } )
-    self.Detection:FilterFriendlyCategories( { Unit.Category.GROUND_UNIT } )
+    self.Detection:FilterCategories( { Unit.Category.GROUND_UNIT } )
     
     self:AddTransition( "Started", "Assign", "Started" )
     
@@ -63280,9 +63262,11 @@ do -- TASK_A2G_DISPATCHER
     local DetectedZone = DetectedItem.Zone
 
 
-    -- Determine if the set has radar targets. If it does, construct a SEAD task.
+    -- Determine if the set has ground units.
+    -- There should be ground unit friendlies nearby. Airborne units are valid friendlies types.
+    -- And there shouldn't be any radar.
     local GroundUnitCount = DetectedSet:HasGroundUnits()
-    local FriendliesNearBy = self.Detection:IsFriendliesNearBy( DetectedItem )
+    local FriendliesNearBy = self.Detection:IsFriendliesNearBy( DetectedItem, Unit.Category.GROUND_UNIT ) -- Are there friendlies nearby of type GROUND_UNIT?
     local RadarCount = DetectedSet:HasSEAD()
 
     if RadarCount == 0 and GroundUnitCount > 0 and FriendliesNearBy == true then
@@ -63310,9 +63294,11 @@ do -- TASK_A2G_DISPATCHER
     local DetectedZone = DetectedItem.Zone
 
 
-    -- Determine if the set has radar targets. If it does, construct a SEAD task.
+    -- Determine if the set has ground units.
+    -- There shouldn't be any ground unit friendlies nearby.
+    -- And there shouldn't be any radar.
     local GroundUnitCount = DetectedSet:HasGroundUnits()
-    local FriendliesNearBy = self.Detection:IsFriendliesNearBy( DetectedItem )
+    local FriendliesNearBy = self.Detection:IsFriendliesNearBy( DetectedItem, Unit.Category.GROUND_UNIT ) -- Are there friendlies nearby of type GROUND_UNIT?
     local RadarCount = DetectedSet:HasSEAD()
 
     if RadarCount == 0 and GroundUnitCount > 0 and FriendliesNearBy == false then
