@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-13T11:19:07.0000000Z-6bdbe7efb66a2e150d94bae5071b679fd0a3b7f6 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-13T13:44:55.0000000Z-08395792cce7daf5530791b795c72d83c7a6c2cc ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -66210,9 +66210,9 @@ do -- TASK_CARGO
     return ActRouteTarget:GetZone()
   end
 
-  --- Set a score when a target in scope of the A2G attack, has been destroyed .
+  --- Set a score when progress is made.
   -- @param #TASK_CARGO self
-  -- @param #string Text The text to display to the player, when the target has been destroyed.
+  -- @param #string Text The text to display to the player, when there is progress on the task goals.
   -- @param #number Score The score in points.
   -- @param Wrapper.Unit#UNIT TaskUnit
   -- @return #TASK_CARGO
@@ -66226,9 +66226,9 @@ do -- TASK_CARGO
     return self
   end
 
-  --- Set a score when all the targets in scope of the A2G attack, have been destroyed.
+  --- Set a score when success is achieved.
   -- @param #TASK_CARGO self
-  -- @param #string Text The text to display to the player, when all targets hav been destroyed.
+  -- @param #string Text The text to display to the player, when the task goals have been achieved.
   -- @param #number Score The score in points.
   -- @param Wrapper.Unit#UNIT TaskUnit
   -- @return #TASK_CARGO
@@ -66242,9 +66242,9 @@ do -- TASK_CARGO
     return self
   end
 
-  --- Set a penalty when the A2G attack has failed.
+  --- Set a penalty when the task goals have failed..
   -- @param #TASK_CARGO self
-  -- @param #string Text The text to display to the player, when the A2G attack has failed.
+  -- @param #string Text The text to display to the player, when the task goals has failed.
   -- @param #number Penalty The penalty in points.
   -- @param Wrapper.Unit#UNIT TaskUnit
   -- @return #TASK_CARGO
