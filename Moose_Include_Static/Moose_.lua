@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-12T15:46:34.0000000Z-5502c14eb15bc8aaa5550e2b3f14e4682391ad3e ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-12T19:09:48.0000000Z-ae39b5905d33380f5a8869a07c2b656b681143b9 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -27662,7 +27662,7 @@ self:F()
 self:UpdateTaskInfo()
 local Report=REPORT:New():SetIndent(0)
 self.TaskInfo:Report(Report,"M",TaskGroup)
-local TargetCoordinate=self.TaskInfo:Get("Coordinate").Data
+local TargetCoordinate=self.TaskInfo:GetData("Coordinate")
 local MarkText=Report:Text(", ")
 self:F({Coordinate=TargetCoordinate,MarkText=MarkText})
 TargetCoordinate:MarkToGroup(MarkText,TaskGroup)
@@ -28123,16 +28123,30 @@ if Key=="CargoSet"then
 local DataText=Data.Data
 Text=DataText
 end
+if Key=="Friendlies"then
+local DataText=Data.Data
+Text=DataText
+end
+if Key=="Players"then
+local DataText=Data.Data
+Text=DataText
+end
 if Line<math.floor(Data.Order/10)then
 if Line==0 then
+if Text~=""then
 Report:AddIndent(LineReport:Text(", "),"-")
+end
 else
+if Text~=""then
 Report:AddIndent(LineReport:Text(", "))
+end
 end
 LineReport=REPORT:New()
 Line=math.floor(Data.Order/10)
 end
+if Text~=""then
 LineReport:Add((Key and(Key..":")or"")..Text)
+end
 end
 end
 Report:AddIndent(LineReport:Text(", "))
@@ -28515,7 +28529,7 @@ else
 local TargetUnit=Task.TargetSetUnit:GetFirst()
 if TargetUnit then
 local Coordinate=TargetUnit:GetPointVec3()
-self:T({TargetCoordinate=Coordinate,Coordinate:GetX(),Coordinate:GetY(),Coordinate:GetZ()})
+self:T({TargetCoordinate=Coordinate,Coordinate:GetX(),Coordinate:GetAlt(),Coordinate:GetZ()})
 Task:SetTargetCoordinate(Coordinate,TaskUnit)
 end
 self:__RouteToTargetPoint(0.1)
@@ -28832,7 +28846,7 @@ return Task
 end
 function TASK_A2A_DISPATCHER:GetFriendliesNearBy(DetectedItem)
 local DetectedSet=DetectedItem.Set
-local FriendlyUnitsNearBy=self.Detection:GetFriendliesNearBy(DetectedItem)
+local FriendlyUnitsNearBy=self.Detection:GetFriendliesNearBy(DetectedItem,Unit.Category.AIRPLANE)
 local FriendlyTypes={}
 local FriendliesCount=0
 if FriendlyUnitsNearBy then
@@ -28953,10 +28967,10 @@ self:E("This should not happen")
 end
 end
 if Task then
-local FriendliesCount,FriendliesReport=self:GetFriendliesNearBy(DetectedItem)
-Task:SetInfo("Friendlies",string.format("%d ( %s )",FriendliesCount,FriendliesReport:Text(",")),30)
+local FriendliesCount,FriendliesReport=self:GetFriendliesNearBy(DetectedItem,Unit.Category.AIRPLANE)
+Task.TaskInfo:AddText("Friendlies",string.format("%d ( %s )",FriendliesCount,FriendliesReport:Text(",")),40,"MOD")
 local PlayersCount,PlayersReport=self:GetPlayerFriendliesNearBy(DetectedItem)
-Task:SetInfo("Players",string.format("%d ( %s )",PlayersCount,PlayersReport:Text(",")),31)
+Task.TaskInfo:AddText("Players",string.format("%d ( %s )",PlayersCount,PlayersReport:Text(",")),40,"MOD")
 end
 Detection:AcceptChanges(DetectedItem)
 end
@@ -29024,9 +29038,9 @@ self:__RouteToTargetZone(0.1)
 else
 local TargetUnit=Task.TargetSetUnit:GetFirst()
 if TargetUnit then
-local Coordinate=TargetUnit:GetCoordinate()
+local Coordinate=TargetUnit:GetPointVec3()
 self:T({TargetCoordinate=Coordinate,Coordinate:GetX(),Coordinate:GetAlt(),Coordinate:GetZ()})
-Task:SetTargetCoordinate(TargetUnit:GetCoordinate(),TaskUnit)
+Task:SetTargetCoordinate(Coordinate,TaskUnit)
 end
 self:__RouteToTargetPoint(0.1)
 end
@@ -29040,6 +29054,9 @@ end
 self:__RouteToTargets(-10)
 end
 return self
+end
+function TASK_A2A:SetTargetSetUnit(TargetSetUnit)
+self.TargetSetUnit=TargetSetUnit
 end
 function TASK_A2A:GetPlannedMenuText()
 return self:GetStateString().." - "..self:GetTaskName().." ( "..self.TargetSetUnit:GetUnitTypesText().." )"
@@ -29091,6 +29108,51 @@ end
 function TASK_A2A:GetGoalTotal()
 return self.GoalTotal
 end
+function TASK_A2A:ReportOrder(ReportGroup)
+local Coordinate=self.TaskInfo:GetData("Coordinate")
+local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
+return Distance
+end
+function TASK_A2A:onafterGoal(TaskUnit,From,Event,To)
+local TargetSetUnit=self.TargetSetUnit
+if TargetSetUnit:Count()==0 then
+self:Success()
+end
+self:__Goal(-10)
+end
+function TASK_A2A:UpdateTaskInfo()
+if self:IsStatePlanned()or self:IsStateAssigned()then
+local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
+self.TaskInfo:AddTaskName(0,"MSOD")
+self.TaskInfo:AddCoordinate(TargetCoordinate,1,"SOD")
+local ThreatLevel,ThreatText
+if self.Detection then
+ThreatLevel,ThreatText=self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)
+else
+ThreatLevel,ThreatText=self.TargetSetUnit:CalculateThreatLevelA2G()
+end
+self.TaskInfo:AddThreat(ThreatText,ThreatLevel,10,"MOD",true)
+if self.Detection then
+local DetectedItemsCount=self.TargetSetUnit:Count()
+local ReportTypes=REPORT:New()
+local TargetTypes={}
+for TargetUnitName,TargetUnit in pairs(self.TargetSetUnit:GetSet())do
+local TargetType=self.Detection:GetDetectedUnitTypeName(TargetUnit)
+if not TargetTypes[TargetType]then
+TargetTypes[TargetType]=TargetType
+ReportTypes:Add(TargetType)
+end
+end
+self.TaskInfo:AddTargetCount(DetectedItemsCount,11,"O",true)
+self.TaskInfo:AddTargets(DetectedItemsCount,ReportTypes:Text(", "),20,"D",true)
+else
+local DetectedItemsCount=self.TargetSetUnit:Count()
+local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
+self.TaskInfo:AddTargetCount(DetectedItemsCount,11,"O",true)
+self.TaskInfo:AddTargets(DetectedItemsCount,DetectedItemsTypes,20,"D",true)
+end
+end
+end
 end
 do
 TASK_A2A_INTERCEPT={
@@ -29104,44 +29166,7 @@ self:SetBriefing(
 TaskBriefing or
 "Intercept incoming intruders.\n"
 )
-self:UpdateTaskInfo()
 return self
-end
-function TASK_A2A_INTERCEPT:UpdateTaskInfo()
-local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
-self:SetInfo("Coordinate",TargetCoordinate,0)
-local ThreatLevel=self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()
-self:SetInfo("Threat","["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
-if self.Detection then
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local ReportTypes=REPORT:New()
-local TargetTypes={}
-for TargetUnitName,TargetUnit in pairs(self.TargetSetUnit:GetSet())do
-local TargetType=self.Detection:GetDetectedUnitTypeName(TargetUnit)
-if not TargetTypes[TargetType]then
-TargetTypes[TargetType]=TargetType
-ReportTypes:Add(TargetType)
-end
-end
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,ReportTypes:Text(", ")),10)
-else
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,DetectedItemsTypes),10)
-end
-end
-function TASK_A2A_INTERCEPT:ReportOrder(ReportGroup)
-self:F({TaskInfo=self.TaskInfo})
-local Coordinate=self.TaskInfo.Coordinates.TaskInfoText
-local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
-return Distance
-end
-function TASK_A2A_INTERCEPT:onafterGoal(TaskUnit,From,Event,To)
-local TargetSetUnit=self.TargetSetUnit
-if TargetSetUnit:Count()==0 then
-self:Success()
-end
-self:__Goal(-10)
 end
 function TASK_A2A_INTERCEPT:SetScoreOnProgress(PlayerName,Score,TaskUnit)
 self:F({PlayerName,Score,TaskUnit})
@@ -29174,36 +29199,7 @@ self:SetBriefing(
 TaskBriefing or
 "Perform a fighter sweep. Incoming intruders were detected and could be hiding at the location.\n"
 )
-self:UpdateTaskInfo()
 return self
-end
-function TASK_A2A_SWEEP:UpdateTaskInfo()
-local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
-self:SetInfo("Coordinate",TargetCoordinate,0)
-local ThreatLevel=self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()
-self:SetInfo("Assumed Threat","["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
-if self.Detection then
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local ReportTypes=REPORT:New()
-local TargetTypes={}
-for TargetUnitName,TargetUnit in pairs(self.TargetSetUnit:GetSet())do
-local TargetType=self.Detection:GetDetectedUnitTypeName(TargetUnit)
-if not TargetTypes[TargetType]then
-TargetTypes[TargetType]=TargetType
-ReportTypes:Add(TargetType)
-end
-end
-self:SetInfo("Lost Targets",string.format("%d of %s",DetectedItemsCount,ReportTypes:Text(", ")),10)
-else
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
-self:SetInfo("Lost Targets",string.format("%d of %s",DetectedItemsCount,DetectedItemsTypes),10)
-end
-end
-function TASK_A2A_SWEEP:ReportOrder(ReportGroup)
-local Coordinate=self.TaskInfo.Coordinates.TaskInfoText
-local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
-return Distance
 end
 function TASK_A2A_SWEEP:onafterGoal(TaskUnit,From,Event,To)
 local TargetSetUnit=self.TargetSetUnit
@@ -29243,43 +29239,7 @@ self:SetBriefing(
 TaskBriefing or
 "Bogeys are nearby! Players close by are ordered to ENGAGE the intruders!\n"
 )
-self:UpdateTaskInfo()
 return self
-end
-function TASK_A2A_ENGAGE:UpdateTaskInfo()
-local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
-self:SetInfo("Coordinate",TargetCoordinate,0)
-local ThreatLevel=self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()
-self:SetInfo("Threat","["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
-if self.Detection then
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local ReportTypes=REPORT:New()
-local TargetTypes={}
-for TargetUnitName,TargetUnit in pairs(self.TargetSetUnit:GetSet())do
-local TargetType=self.Detection:GetDetectedUnitTypeName(TargetUnit)
-if not TargetTypes[TargetType]then
-TargetTypes[TargetType]=TargetType
-ReportTypes:Add(TargetType)
-end
-end
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,ReportTypes:Text(", ")),10)
-else
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,DetectedItemsTypes),10)
-end
-end
-function TASK_A2A_ENGAGE:ReportOrder(ReportGroup)
-local Coordinate=self.TaskInfo.Coordinates.TaskInfoText
-local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
-return Distance
-end
-function TASK_A2A_ENGAGE:onafterGoal(TaskUnit,From,Event,To)
-local TargetSetUnit=self.TargetSetUnit
-if TargetSetUnit:Count()==0 then
-self:Success()
-end
-self:__Goal(-10)
 end
 function TASK_A2A_ENGAGE:SetScoreOnProgress(PlayerName,Score,TaskUnit)
 self:F({PlayerName,Score,TaskUnit})
