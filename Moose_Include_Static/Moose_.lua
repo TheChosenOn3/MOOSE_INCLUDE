@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-12T19:09:48.0000000Z-ae39b5905d33380f5a8869a07c2b656b681143b9 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-13T11:19:07.0000000Z-6bdbe7efb66a2e150d94bae5071b679fd0a3b7f6 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -18980,7 +18980,7 @@ self:F({"FriendliesNearBy Test",DetectedItem.FriendliesNearBy})
 return(DetectedItem.FriendliesNearBy and DetectedItem.FriendliesNearBy[Category]~=nil)or false
 end
 function DETECTION_BASE:GetFriendliesNearBy(DetectedItem,Category)
-return DetectedItem.FriendliesNearBy[Category]
+return DetectedItem.FriendliesNearBy and DetectedItem.FriendliesNearBy[Category]
 end
 function DETECTION_BASE:IsFriendliesNearIntercept(DetectedItem)
 return DetectedItem.FriendliesNearIntercept~=nil or false
@@ -29271,7 +29271,7 @@ self.SetCargo=SetCargo
 self.TaskType=TaskType
 self.SmokeColor=SMOKECOLOR.Red
 self.CargoItemCount={}
-self.CargoLimit=6
+self.CargoLimit=10
 self.DeployZones={}
 local Fsm=self:GetUnitProcess()
 Fsm:SetStartState("Planned")
