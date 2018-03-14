@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-13T13:44:55.0000000Z-08395792cce7daf5530791b795c72d83c7a6c2cc ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-13T20:02:27.0000000Z-3402ebec3f2d5ee9d14d8b5f2233dd3cbd80fbaf ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -18792,9 +18792,9 @@ end
 end
 do
 function DETECTION_BASE:CleanDetectionItem(DetectedItem,DetectedItemID)
-self:F2()
 local DetectedSet=DetectedItem.Set
 if DetectedSet:Count()==0 then
+self:F3({DetectedItemID=DetectedItemID})
 self:RemoveDetectedItem(DetectedItemID)
 end
 return self
@@ -19268,6 +19268,26 @@ function DETECTION_BASE:GetDetectionSetGroup()
 local DetectionSetGroup=self.DetectionSetGroup
 return DetectionSetGroup
 end
+function DETECTION_BASE:NearestRecce(DetectedItem)
+local NearestRecce=nil
+local DistanceRecce=1000000000
+for RecceGroupName,RecceGroup in pairs(self.DetectionSetGroup:GetSet())do
+if RecceGroup and RecceGroup:IsAlive()then
+for RecceUnit,RecceUnit in pairs(RecceGroup:GetUnits())do
+if RecceUnit:IsActive()then
+local RecceUnitCoord=RecceUnit:GetCoordinate()
+local Distance=RecceUnitCoord:Get2DDistance(self:GetDetectedItemCoordinate(DetectedItem.Index))
+if Distance<DistanceRecce then
+DistanceRecce=Distance
+NearestRecce=RecceUnit
+end
+end
+end
+end
+end
+DetectedItem.NearestFAC=NearestRecce
+DetectedItem.DistanceRecce=DistanceRecce
+end
 function DETECTION_BASE:Schedule(DelayTime,RepeatInterval)
 self:F2()
 self.ScheduleDelayTime=DelayTime
@@ -19376,6 +19396,7 @@ local DetectedFirstUnit=DetectedSet:GetFirst()
 local DetectedFirstUnitCoord=DetectedFirstUnit:GetCoordinate()
 self:SetDetectedItemCoordinate(DetectedItem,DetectedFirstUnitCoord,DetectedFirstUnit)
 self:ReportFriendliesNearBy({DetectedItem=DetectedItem,ReportSetGroup=self.DetectionSetGroup})
+self:NearestRecce(DetectedItem)
 end
 end
 function DETECTION_UNITS:DetectedItemMenu(Index,AttackGroup)
@@ -19533,6 +19554,7 @@ local DetectedFirstUnit=DetectedSet:GetFirst()
 local DetectedUnitCoord=DetectedFirstUnit:GetCoordinate()
 self:SetDetectedItemCoordinate(DetectedItem,DetectedUnitCoord,DetectedFirstUnit)
 self:ReportFriendliesNearBy({DetectedItem=DetectedItem,ReportSetGroup=self.DetectionSetGroup})
+self:NearestRecce(DetectedItem)
 end
 end
 function DETECTION_TYPES:DetectedItemMenu(DetectedTypeName,AttackGroup)
@@ -19662,26 +19684,6 @@ DetectedItem.InterceptCoord=InterceptCoord
 else
 DetectedItem.InterceptCoord=DetectedCoord
 end
-end
-function DETECTION_AREAS:NearestFAC(DetectedItem)
-local NearestRecce=nil
-local DistanceRecce=1000000000
-for RecceGroupName,RecceGroup in pairs(self.DetectionSetGroup:GetSet())do
-if RecceGroup and RecceGroup:IsAlive()then
-for RecceUnit,RecceUnit in pairs(RecceGroup:GetUnits())do
-if RecceUnit:IsActive()then
-local RecceUnitCoord=RecceUnit:GetCoordinate()
-local Distance=RecceUnitCoord:Get2DDistance(self:GetDetectedItemCoordinate(DetectedItem.Index))
-if Distance<DistanceRecce then
-DistanceRecce=Distance
-NearestRecce=RecceUnit
-end
-end
-end
-end
-end
-DetectedItem.NearestFAC=NearestRecce
-DetectedItem.DistanceRecce=DistanceRecce
 end
 function DETECTION_AREAS:SmokeDetectedUnits()
 self:F2()
@@ -19849,7 +19851,7 @@ if OldFriendliesNearbyGround~=NewFriendliesNearbyGround then
 DetectedItem.Changed=true
 end
 self:SetDetectedItemThreatLevel(DetectedItem)
-self:NearestFAC(DetectedItem)
+self:NearestRecce(DetectedItem)
 if DETECTION_AREAS._SmokeDetectedUnits or self._SmokeDetectedUnits then
 DetectedZone.ZoneUNIT:SmokeRed()
 end

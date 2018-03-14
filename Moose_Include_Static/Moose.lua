@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-13T13:44:55.0000000Z-08395792cce7daf5530791b795c72d83c7a6c2cc ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-13T20:02:27.0000000Z-3402ebec3f2d5ee9d14d8b5f2233dd3cbd80fbaf ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -19974,7 +19974,13 @@ end
 -- @usage
 -- -- RU Su-34 - AI Ship Attack
 -- -- Re-SPAWN the Group(s) after each landing and Engine Shut-Down automatically. 
--- SpawnRU_SU34 = SPAWN:New( 'TF1 RU Su-34 Krymsk@AI - Attack Ships' ):Schedule( 2, 3, 1800, 0.4 ):SpawnUncontrolled():InitRandomizeRoute( 1, 1, 3000 ):RepeatOnEngineShutDown()
+-- SpawnRU_SU34 = SPAWN
+--   :New( 'Su-34' )
+--   :Schedule( 2, 3, 1800, 0.4 )
+--   :SpawnUncontrolled()
+--   :InitRandomizeRoute( 1, 1, 3000 )
+--   :InitRepeatOnEngineShutDown()
+--   
 function SPAWN:InitRepeat()
 	self:F( { self.SpawnTemplatePrefix, self.SpawnIndex } )
 
@@ -19988,6 +19994,16 @@ end
 --- Respawn group after landing.
 -- @param #SPAWN self
 -- @return #SPAWN self
+-- @usage
+-- -- RU Su-34 - AI Ship Attack
+-- -- Re-SPAWN the Group(s) after each landing and Engine Shut-Down automatically. 
+-- SpawnRU_SU34 = SPAWN
+--   :New( 'Su-34' )
+--   :Schedule( 2, 3, 1800, 0.4 )
+--   :SpawnUncontrolled()
+--   :InitRandomizeRoute( 1, 1, 3000 )
+--   :InitRepeatOnLanding()
+--   
 function SPAWN:InitRepeatOnLanding()
 	self:F( { self.SpawnTemplatePrefix } )
 
@@ -20002,6 +20018,16 @@ end
 --- Respawn after landing when its engines have shut down.
 -- @param #SPAWN self
 -- @return #SPAWN self
+-- @usage
+-- -- RU Su-34 - AI Ship Attack
+-- -- Re-SPAWN the Group(s) after each landing and Engine Shut-Down automatically. 
+-- SpawnRU_SU34 = SPAWN
+--   :New( 'Su-34' )
+--   :Schedule( 2, 3, 1800, 0.4 )
+--   :SpawnUncontrolled()
+--   :InitRandomizeRoute( 1, 1, 3000 )
+--   :InitRepeatOnEngineShutDown()
+--   
 function SPAWN:InitRepeatOnEngineShutDown()
 	self:F( { self.SpawnTemplatePrefix } )
 
@@ -20018,7 +20044,8 @@ end
 -- @param #SPAWN self
 -- @param #string SpawnCleanUpInterval The interval to check for inactive groups within seconds.
 -- @return #SPAWN self
--- @usage Spawn_Helicopter:CleanUp( 20 )  -- CleanUp the spawning of the helicopters every 20 seconds when they become inactive.
+-- @usage 
+-- Spawn_Helicopter:InitCleanUp( 20 )  -- CleanUp the spawning of the helicopters every 20 seconds when they become inactive.
 function SPAWN:InitCleanUp( SpawnCleanUpInterval )
 	self:F( { self.SpawnTemplatePrefix, SpawnCleanUpInterval } )
 
@@ -20045,7 +20072,11 @@ end
 -- @return #SPAWN self
 -- @usage
 -- -- Define an array of Groups.
--- Spawn_BE_Ground = SPAWN:New( 'BE Ground' ):InitLimit( 2, 24 ):InitArray( 90, "Diamond", 10, 100, 50 )
+-- Spawn_BE_Ground = SPAWN
+--   :New( 'BE Ground' )
+--   :InitLimit( 2, 24 )
+--   :InitArray( 90, 10, 100, 50 )
+--   
 function SPAWN:InitArray( SpawnAngle, SpawnWidth, SpawnDeltaX, SpawnDeltaY )
 	self:F( { self.SpawnTemplatePrefix, SpawnAngle, SpawnWidth, SpawnDeltaX, SpawnDeltaY } )
 
@@ -38916,7 +38947,6 @@ do -- DETECTION_BASE
     -- @param #DETECTION_BASE self
     -- @return #DETECTION_BASE
     function DETECTION_BASE:CleanDetectionItem( DetectedItem, DetectedItemID )
-      self:F2()
     
       -- We clean all DetectedItems.
       -- if there are any remaining DetectedItems with no Set Objects then the Item in the DetectedItems must be deleted.
@@ -38924,6 +38954,7 @@ do -- DETECTION_BASE
       local DetectedSet = DetectedItem.Set
       
       if DetectedSet:Count() == 0 then
+        self:F3( { DetectedItemID = DetectedItemID } )
         self:RemoveDetectedItem( DetectedItemID )
       end
 
@@ -39906,6 +39937,36 @@ do -- DETECTION_BASE
     return DetectionSetGroup
   end
   
+    --- Find the nearest Recce of the DetectedItem.
+  -- @param #DETECTION_BASE self
+  -- @param #DETECTION_BASE.DetectedItem DetectedItem
+  -- @return Wrapper.Unit#UNIT The nearest FAC unit
+  function DETECTION_BASE:NearestRecce( DetectedItem )
+    
+    local NearestRecce = nil
+    local DistanceRecce = 1000000000 -- Units are not further than 1000000 km away from an area :-)
+    
+    for RecceGroupName, RecceGroup in pairs( self.DetectionSetGroup:GetSet() ) do
+      if RecceGroup and RecceGroup:IsAlive() then
+        for RecceUnit, RecceUnit in pairs( RecceGroup:GetUnits() ) do
+          if RecceUnit:IsActive() then
+            local RecceUnitCoord = RecceUnit:GetCoordinate()
+            local Distance = RecceUnitCoord:Get2DDistance( self:GetDetectedItemCoordinate( DetectedItem.Index ) )
+            if Distance < DistanceRecce then
+              DistanceRecce = Distance
+              NearestRecce = RecceUnit
+            end
+          end
+        end
+      end
+    end
+  
+    DetectedItem.NearestFAC = NearestRecce
+    DetectedItem.DistanceRecce = DistanceRecce
+    
+  end
+  
+  
   
   --- Schedule the DETECTION construction.
   -- @param #DETECTION_BASE self
@@ -40086,7 +40147,7 @@ do -- DETECTION_UNITS
       self:SetDetectedItemCoordinate( DetectedItem, DetectedFirstUnitCoord, DetectedFirstUnit )
 
       self:ReportFriendliesNearBy( { DetectedItem = DetectedItem, ReportSetGroup = self.DetectionSetGroup } ) -- Fill the Friendlies table
-      --self:NearestFAC( DetectedItem )
+      self:NearestRecce( DetectedItem )
       
     end
     
@@ -40344,7 +40405,7 @@ do -- DETECTION_TYPES
       self:SetDetectedItemCoordinate( DetectedItem, DetectedUnitCoord, DetectedFirstUnit )
 
       self:ReportFriendliesNearBy( { DetectedItem = DetectedItem, ReportSetGroup = self.DetectionSetGroup } ) -- Fill the Friendlies table
-      --self:NearestFAC( DetectedItem )
+      self:NearestRecce( DetectedItem )
     end
     
     
@@ -40608,34 +40669,6 @@ do -- DETECTION_AREAS
   end
   
   
-  --- Find the nearest FAC of the DetectedItem.
-  -- @param #DETECTION_AREAS self
-  -- @param #DETECTION_BASE.DetectedItem DetectedItem
-  -- @return Wrapper.Unit#UNIT The nearest FAC unit
-  function DETECTION_AREAS:NearestFAC( DetectedItem )
-    
-    local NearestRecce = nil
-    local DistanceRecce = 1000000000 -- Units are not further than 1000000 km away from an area :-)
-    
-    for RecceGroupName, RecceGroup in pairs( self.DetectionSetGroup:GetSet() ) do
-      if RecceGroup and RecceGroup:IsAlive() then
-        for RecceUnit, RecceUnit in pairs( RecceGroup:GetUnits() ) do
-          if RecceUnit:IsActive() then
-            local RecceUnitCoord = RecceUnit:GetCoordinate()
-            local Distance = RecceUnitCoord:Get2DDistance( self:GetDetectedItemCoordinate( DetectedItem.Index ) )
-            if Distance < DistanceRecce then
-              DistanceRecce = Distance
-              NearestRecce = RecceUnit
-            end
-          end
-        end
-      end
-    end
-  
-    DetectedItem.NearestFAC = NearestRecce
-    DetectedItem.DistanceRecce = DistanceRecce
-    
-  end
 
   --- Smoke the detected units
   -- @param #DETECTION_AREAS self
@@ -40940,7 +40973,7 @@ do -- DETECTION_AREAS
       end
 
       self:SetDetectedItemThreatLevel( DetectedItem )  -- Calculate A2G threat level
-      self:NearestFAC( DetectedItem )
+      self:NearestRecce( DetectedItem )
 
       
       if DETECTION_AREAS._SmokeDetectedUnits or self._SmokeDetectedUnits then
@@ -41783,6 +41816,10 @@ do -- DESIGNATE
                 end
               )
               self.Designating[DesignateIndex] = ""
+              
+              -- When we found an item for designation, we stop the loop.
+              -- So each iteration over the detected items, a new detected item will be selected to be designated.
+              -- Until all detected items were found or until there are about 5 designations allocated.
               break
             end
           end
