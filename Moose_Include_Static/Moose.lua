@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-15T10:43:37.0000000Z-3d09ce153209d02050b15e8ac7d1124837dedaaf ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-15T11:45:16.0000000Z-dae5d1ecfb7c1924d1516d247f3d41d6a759521d ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -63291,8 +63291,6 @@ do -- TASK_A2G_DISPATCHER
   -- CC |Gori| is controlling Mission "Alpha", "Beta", "Gamma".  
   -- CC |Gudauta| is controlling Missions "Overlord" and "Desert Storm".
   --
-  -- ![](..\Presentations\TASK_A2G_DISPATCHER\Dia1.JPG)
-  -- 
   -- ## 1.1. Mission Menu (Under the Command Center Menu)
   -- 
   -- The Mission Menu controls the information of the mission, including the:
