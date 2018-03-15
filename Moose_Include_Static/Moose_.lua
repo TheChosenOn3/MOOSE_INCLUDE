@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-15T11:56:31.0000000Z-5915505aca8828badeead82fbcedb54fe07cf36b ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-15T20:38:41.0000000Z-559947f509519f008c2aae85dabae1a726af42f1 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -19911,7 +19911,7 @@ self:SetLaserCodes({1688,1130,4785,6547,1465,4578})
 self:SetAutoLase(false,false)
 self:SetThreatLevelPrioritization(false)
 self:SetMaximumDesignations(5)
-self:SetMaximumDistanceDesignations(12000)
+self:SetMaximumDistanceDesignations(8000)
 self:SetMaximumMarkings(2)
 self:SetDesignateMenu()
 self.LaserCodesUsed={}
