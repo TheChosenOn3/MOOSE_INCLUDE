@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-13T20:02:27.0000000Z-3402ebec3f2d5ee9d14d8b5f2233dd3cbd80fbaf ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-14T05:59:51.0000000Z-283a028d71fe0a287461ded55bab818a9230e92c ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -27019,7 +27019,7 @@ self.MissionMenu=MENU_GROUP:New(TaskGroup,self:GetName(),CommandCenterMenu)
 GroupMenu.BriefingMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Mission Briefing",self.MissionMenu,self.MenuReportBriefing,self,TaskGroup)
 GroupMenu.MarkTasks=MENU_GROUP_COMMAND:New(TaskGroup,"Mark Task Locations on Map",self.MissionMenu,self.MarkTargetLocations,self,TaskGroup)
 GroupMenu.TaskReportsMenu=MENU_GROUP:New(TaskGroup,"Task Reports",self.MissionMenu)
-GroupMenu.ReportTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksSummary,self,TaskGroup)
+GroupMenu.ReportTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Tasks Summary",GroupMenu.TaskReportsMenu,self.MenuReportTasksSummary,self,TaskGroup)
 GroupMenu.ReportPlannedTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Planned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Planned")
 GroupMenu.ReportAssignedTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Assigned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Assigned")
 GroupMenu.ReportSuccessTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Successful Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Success")
@@ -27590,11 +27590,11 @@ self.MenuPlanned=self.MenuPlanned or{}
 self.MenuPlanned[TaskGroup]=MENU_GROUP_DELAYED:New(TaskGroup,"Join Planned Task",MissionMenu,Mission.MenuReportTasksPerStatus,Mission,TaskGroup,"Planned"):SetTime(MenuTime):SetTag("Tasking")
 local TaskTypeMenu=MENU_GROUP_DELAYED:New(TaskGroup,TaskType,self.MenuPlanned[TaskGroup]):SetTime(MenuTime):SetTag("Tasking")
 local TaskTypeMenu=MENU_GROUP_DELAYED:New(TaskGroup,TaskText,TaskTypeMenu):SetTime(MenuTime):SetTag("Tasking")
-local ReportTaskMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Report Task Status"),TaskTypeMenu,self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 if not Mission:IsGroupAssigned(TaskGroup)then
 local JoinTaskMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Join Task"),TaskTypeMenu,self.MenuAssignToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 local MarkTaskMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Mark Task Location on Map"),TaskTypeMenu,self.MenuMarkToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 end
+local ReportTaskMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Report Task Details"),TaskTypeMenu,self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 return self
 end
 function TASK:SetAssignedMenuForGroup(TaskGroup,MenuTime)
@@ -27611,9 +27611,9 @@ local TaskName=string.format("%s",self:GetName())
 local MissionMenu=Mission:GetMenu(TaskGroup)
 self.MenuAssigned=self.MenuAssigned or{}
 self.MenuAssigned[TaskGroup]=MENU_GROUP_DELAYED:New(TaskGroup,string.format("Assigned Task %s",TaskName),MissionMenu):SetTime(MenuTime):SetTag("Tasking")
-local TaskTypeMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Report Task Status"),self.MenuAssigned[TaskGroup],self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 local TaskMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Abort Task"),self.MenuAssigned[TaskGroup],self.MenuTaskAbort,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 local MarkMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Mark Task Location on Map"),self.MenuAssigned[TaskGroup],self.MenuMarkToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
+local TaskTypeMenu=MENU_GROUP_COMMAND_DELAYED:New(TaskGroup,string.format("Report Task Details"),self.MenuAssigned[TaskGroup],self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 return self
 end
 function TASK:RemoveMenu(MenuTime)
