@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-15T20:38:41.0000000Z-559947f509519f008c2aae85dabae1a726af42f1 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-15T11:56:31.0000000Z-5915505aca8828badeead82fbcedb54fe07cf36b ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -41491,7 +41491,7 @@ do -- DESIGNATE
     
     self:SetThreatLevelPrioritization( false ) -- self.ThreatLevelPrioritization, default is threat level priorization off
     self:SetMaximumDesignations( 5 ) -- Sets the maximum designations. The default is 5 designations.
-    self:SetMaximumDistanceDesignations( 8000 )  -- Sets the maximum distance on which designations can be accepted. The default is 8000 meters.
+    self:SetMaximumDistanceDesignations( 12000 )  -- Sets the maximum distance on which designations can be accepted. The default is 8000 meters.
     self:SetMaximumMarkings( 2 ) -- Per target group, a maximum of 2 markings will be made by default.
 
     self:SetDesignateMenu()
