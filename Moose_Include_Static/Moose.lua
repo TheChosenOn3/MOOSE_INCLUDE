@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-17T08:26:41.0000000Z-1d1975cfdddb536a26915ce1331d3a9a0a1b8059 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-18T10:25:04.0000000Z-69fee46d4caaea3abab29bb4699d0e1a5a3eb7e9 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -65050,7 +65050,7 @@ end
 
 do -- TASK_A2G_DISPATCHER
 
-  --- TASK_A2G_DISPATCHER class.
+  --- TASK\_A2G\_DISPATCHER class.
   -- @type TASK_A2G_DISPATCHER
   -- @field Set#SET_GROUP SetGroup The groups to which the FAC will report to.
   -- @field Functional.Detection#DETECTION_BASE Detection The DETECTION_BASE object that is used to report the detected objects.
@@ -65405,20 +65405,20 @@ do -- TASK_A2G_DISPATCHER
   --   - Overview reports, which are providing the essential information. It provides an overview of a greater thing, and may take a bit of time to read.
   --   - Detailed reports, which provide with very detailed information. It takes a bit longer to read those reports, so the display of those could be a bit longer.
   -- 
-  -- # 2. TASK_A2G_DISPATCHER constructor
+  -- # 2. TASK\_A2G\_DISPATCHER constructor
   -- 
-  -- The @{#TASK_A2G_DISPATCHER.New}() method creates a new TASK_A2G_DISPATCHER instance.
+  -- The @{#TASK_A2G_DISPATCHER.New}() method creates a new TASK\_A2G\_DISPATCHER instance.
   --
   -- # 3. Usage
   --
   -- To use the TASK\_A2G\_DISPATCHER class, you need:
   -- 
-  --   - A @{CommandCenter} object.
-  --   - A @{Mission} object.
-  --   - A @{Detection} object.
-  --   - A @{Task_A2G_Dispatcher} object.
-  --   - A @{Set} of @{Group} objects that will detect the emeny.
-  --   - A @{Set} ob @{Group} objects that will attack the enemy.
+  --   - A @{CommandCenter} object. The master communication channel.
+  --   - A @{Mission} object. Each task belongs to a Mission.
+  --   - A @{Detection} object. There are several detection grouping methods to choose from.
+  --   - A @{Task_A2G_Dispatcher} object. The master A2G task dispatcher.
+  --   - A @{Set} of @{Group} objects that will detect the emeny, the RecceSet. This is attached to the @{Detection} object.
+  --   - A @{Set} ob @{Group} objects that will attack the enemy, the AttackSet. This is attached to the @{Task_A2G_Dispatcher} object.
   -- 
   -- Below an example mission declaration that is defines a Task A2G Dispatcher object.   
   --
