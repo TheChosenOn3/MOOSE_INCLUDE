@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-18T22:06:15.0000000Z-1a08a6fa10bd8d422bb7cd270c1134954af748fb ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T04:16:24.0000000Z-5fcfd120bf954d062b3a6ec80125a69e112da5a2 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -2982,10 +2982,10 @@ end--- **Core** -- BASE forms **the basis of the MOOSE framework**. Each class w
 -- 
 -- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Base
 
@@ -4095,15 +4095,15 @@ end
 --  
 --end--- **Core (WIP)** -- Manage user flags.
 --
--- ====
+-- ===
 -- 
 -- Management of DCS User Flags.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
--- ====
+-- ===
 -- 
 -- @module UserFlag
 
@@ -4189,15 +4189,15 @@ do -- UserFlag
 
 end--- **Core (WIP)** -- Manage user sound.
 --
--- ====
+-- ===
 -- 
 -- Management of DCS User Sound.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
--- ====
+-- ===
 -- 
 -- @module UserSound
 
@@ -4424,13 +4424,13 @@ end
 --
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
 -- ### [SCHEDULER YouTube Channel (none)]()
 -- 
--- ====
+-- ===
 --
 -- ### Contributions: 
 -- 
@@ -5111,10 +5111,10 @@ end
 -- 
 -- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --
 -- @module Event
 
@@ -5999,7 +5999,7 @@ end
 --
 -- ![Banner Image](..\Presentations\SETTINGS\Dia1.JPG)
 --
--- ====
+-- ===
 -- 
 -- The documentation of the SETTINGS class can be found further in this document.
 -- 
@@ -6861,10 +6861,10 @@ end
 -- 
 -- ===
 --- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --   
 -- @module Menu
 
@@ -8102,7 +8102,7 @@ end
 -- 
 -- ![Banner Image](..\Presentations\ZONE\Dia1.JPG)
 -- 
--- ====
+-- ===
 -- 
 -- There are essentially two core functions that zones accomodate:
 -- 
@@ -8127,12 +8127,12 @@ end
 --   * @{#ZONE_GROUP}: The ZONE_GROUP class defines by a zone around a @{Group#GROUP} with a radius.
 --   * @{#ZONE_POLYGON}: The ZONE_POLYGON class defines by a sequence of @{Group#GROUP} waypoints within the Mission Editor, forming a polygon.
 --
--- ==== 
+-- === 
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Zone
 
@@ -9551,12 +9551,12 @@ end
 
 --- **Core** -- DATABASE manages the database of mission objects. 
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Database
 
@@ -10776,12 +10776,12 @@ end
 --   * Validate the presence of objects in the SET.
 --   * Trigger events when objects in the SET change a zone presence.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Set
 
@@ -15123,7 +15123,7 @@ end
 --
 -- ![Banner Image](..\Presentations\POINT\Dia1.JPG)
 --
--- ====
+-- ===
 --
 -- # Demo Missions
 --
@@ -15133,7 +15133,7 @@ end
 --
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 --
--- ====
+-- ===
 --
 -- # YouTube Channel
 --
@@ -17007,10 +17007,10 @@ end
 -- 
 -- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Velocity
 
@@ -17227,12 +17227,12 @@ end--- **Core** -- MESSAGE class takes are of the **real-time notifications** an
 --   * To all players using @{Message#MESSAGE.ToAllIf}().
 --   * To a coalition using @{Message#MESSAGE.ToCoalitionIf}().
 -- 
--- ====
+-- ===
 --  
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @field #MESSAGE
 MESSAGE = {
@@ -17572,13 +17572,13 @@ end
 --   * @{#FSM_SET}: Models Finite State Machines for @{Set}s. Note that these FSMs control multiple objects!!! So State concerns here
 --     for multiple objects or the position of the state machine in the process.
 -- 
--- ====
+-- ===
 -- 
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --
 -- @module Fsm
 
@@ -19327,42 +19327,26 @@ end--- **Core** -- SPAWN class dynamically spawns new groups of units in your mi
 --  
 -- ![Banner Image](..\Presentations\SPAWN\SPAWN.JPG)
 -- 
--- ====
+-- ===
 -- 
 -- The documentation of the SPAWN class can be found further in this document.
 -- 
--- ====
+-- ===
 -- 
--- # Demo Missions
--- 
--- ### [SPAWN Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/SPA%20-%20Spawning)
--- 
--- ### [SPAWN Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/SPA%20-%20Spawning)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
--- 
--- ====
--- 
--- # YouTube Channel
--- 
--- ### [SPAWN YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl1jirWIo4t4YxqN-HxjqRkL)
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/SPA%20-%20Spawning)
 -- 
 -- ===
 -- 
--- # **AUTHORS and CONTRIBUTIONS**
+-- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl1jirWIo4t4YxqN-HxjqRkL)
 -- 
--- ### Contributions: 
+-- ===
 -- 
---   * **Aaron**: Posed the idea for Group position randomization at SpawnInZone and make the Unit randomization separate from the Group randomization.
---   * [**Entropy**](https://forums.eagle.ru/member.php?u=111471), **Afinegan**: Came up with the requirement for AIOnOff().
+-- ### Author: **FlightControl**
+-- ### Contributions: A lot of people within this community!
 -- 
--- ### Authors: 
--- 
---   * **FlightControl**: Design & Programming
+-- ===
 -- 
 -- @module Spawn
-
-----BASE:TraceClass("SPAWN")
 
 
 --- SPAWN Class
@@ -21482,11 +21466,11 @@ end
 --  
 -- ![Banner Image](..\Presentations\SPAWNSTATIC\Dia1.JPG)
 -- 
--- ====
+-- ===
 -- 
 -- SPAWNSTATIC spawns static structures in your missions dynamically. See below the SPAWNSTATIC class documentation.
 -- 
--- ====
+-- ===
 -- 
 -- # Demo Missions
 -- 
@@ -21496,18 +21480,18 @@ end
 --
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
 -- ### [SPAWNSTATIC YouTube Channel]()
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module SpawnStatic
 
@@ -21675,15 +21659,15 @@ end
 
 --- **Core (WIP)** -- Base class to allow the modeling of processes to achieve Goals.
 --
--- ====
+-- ===
 -- 
 -- GOAL models processes that have an objective with a defined achievement. Derived classes implement the ways how the achievements can be realized.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
--- ====
+-- ===
 -- 
 -- @module Goal
 
@@ -21831,7 +21815,7 @@ end--- **Core** -- Management of CARGO logistics, that can be transported from a
 --   
 -- This module is still under construction, but is described above works already, and will keep working ...
 -- 
--- ====
+-- ===
 -- 
 -- # Demo Missions
 -- 
@@ -21841,18 +21825,18 @@ end--- **Core** -- Management of CARGO logistics, that can be transported from a
 --
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
 -- ### [CARGO YouTube Channel](https://www.youtube.com/watch?v=tM00lTlkpYs&list=PL7ZUrU4zZUl2zUTuKrLW5RsO9zLMqUtbf)
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Cargo
 
@@ -23499,7 +23483,7 @@ end
 --
 -- ![Banner Image](..\Presentations\SPOT\Dia1.JPG)
 --
--- ====
+-- ===
 -- 
 -- SPOT implements the DCS Spot class functionality, but adds additional luxury to be able to:
 -- 
@@ -23508,7 +23492,7 @@ end
 --   * Provide a @{Unit} as a target, instead of a point.
 --   * Implement a status machine, LaseOn, LaseOff.
 --
--- ====
+-- ===
 -- 
 -- # Demo Missions
 -- 
@@ -23518,22 +23502,22 @@ end
 --
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
 -- ### [SPOT YouTube Channel]()
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
 --   * [**Ciribob**](https://forums.eagle.ru/member.php?u=112175): Showing the way how to lase targets + how laser codes work!!! Explained the autolase script.
 --   * [**EasyEB**](https://forums.eagle.ru/member.php?u=112055): Ideas and Beta Testing
 --   * [**Wingthor**](https://forums.eagle.ru/member.php?u=123698): Beta Testing
 -- 
--- ====
+-- ===
 -- 
 -- @module Spot
 
@@ -23787,9 +23771,9 @@ do
   
 end--- **Wrapper** -- OBJECT wraps the DCS Object derived objects.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
@@ -23880,13 +23864,13 @@ end
 
 --- **Wrapper** -- IDENTIFIABLE is an intermediate class wrapping DCS Object class derived Objects.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Identifiable
 
@@ -24123,13 +24107,13 @@ function IDENTIFIABLE:GetThreatLevel()
 end
 --- **Wrapper** -- POSITIONABLE wraps DCS classes that are "positionable".
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Positionable
 
@@ -25046,9 +25030,9 @@ end
 
 --- **Wrapper** -- CONTROLLABLE is an intermediate class wrapping Group and Unit classes "controllers".
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
@@ -27854,15 +27838,15 @@ end
 --
 -- See the detailed documentation on the GROUP class.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
 --   * [**Entropy**](https://forums.eagle.ru/member.php?u=111471), **Afinegan**: Came up with the requirement for AIOnOff().
 -- 
--- ====
+-- ===
 -- 
 -- @module Group
 
@@ -29318,13 +29302,13 @@ end
 --  * Handle local Unit Controller.
 --  * Manage the "state" of the DCS Unit.
 --  
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Unit
 
@@ -30295,9 +30279,9 @@ do -- Detection
 
 end--- **Wrapper** -- CLIENT wraps DCS Unit objects acting as a __Client__ or __Player__ within a mission.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
@@ -30782,13 +30766,13 @@ function CLIENT:Message( Message, MessageDuration, MessageCategory, MessageInter
 end
 --- **Wrapper** -- STATIC wraps the DCS StaticObject class.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Static
 
@@ -30890,9 +30874,9 @@ end
 
 --- **Wrapper** -- AIRBASE is a wrapper class to handle the DCS Airbase objects.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
@@ -31169,13 +31153,13 @@ end
 
 --- **Wrapper** -- SCENERY models scenery within the DCS simulator.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Scenery
 
@@ -31215,8 +31199,9 @@ function SCENERY:GetThreatLevel()
 
   return 0, "Scenery"
 end
---- **Functional** -- **Administer the SCORING of player achievements, 
--- and create a CSV file logging the scoring events for use at team or squadron websites.**
+--- **Functional** -- (R2.0) - Administer the scoring of player achievements, and create a CSV file logging the scoring events for use at team or squadron websites.
+-- 
+-- ===
 -- 
 -- ![Banner Image](..\Presentations\SCORING\Dia1.JPG)
 --  
@@ -31395,7 +31380,7 @@ end
 --   * @{#SCORING.SetMessagesToCoalition}(): Configure to send messages to only those players within the same coalition as the player.
 -- 
 --   
--- ====
+-- ===
 --
 -- # **API CHANGE HISTORY**
 --
@@ -33103,10 +33088,10 @@ end
 -- 
 -- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module CleanUp
 
@@ -33507,7 +33492,7 @@ end
 
 --- **Functional** -- Limit the MOVEMENT of simulaneous moving ground vehicles.
 -- 
--- ====
+-- ===
 --  
 -- Limit the simultaneous movement of Groups within a running Mission.
 -- This module is defined to improve the performance in missions, and to bring additional realism for GROUND vehicles.
@@ -33642,7 +33627,7 @@ function MOVEMENT:_Scheduler()
 end
 --- **Functional** -- Provides defensive behaviour to a set of SAM sites within a running Mission.
 -- 
--- ====
+-- ===
 -- 
 -- @module Sead
 
@@ -33775,10 +33760,10 @@ function SEAD:OnEventShot( EventData )
 end
 --- **Functional** -- Taking the lead of AI escorting your flight.
 -- 
--- ====
+-- ===
 -- 
 -- @{#ESCORT} class
--- ================
+-- ===
 -- The @{#ESCORT} class allows you to interact with escorting AI on your flight and take the lead.
 -- Each escorting group can be commanded with a whole set of radio commands (radio menu in your flight, and then F10).
 --
@@ -33786,7 +33771,7 @@ end
 -- Ships and Ground troops will have a more limited set, but they can provide support through the bombing of targets designated by the other escorts.
 --
 -- RADIO MENUs that can be created:
--- ================================
+-- ===
 -- Find a summary below of the current available commands:
 --
 -- Navigation ...:
@@ -33854,13 +33839,13 @@ end
 -- Note that this is really fantastic, as you now have the dynamic of taking control of the escort groups, and allowing them to resume their path or mission.
 --
 -- ESCORT construction methods.
--- ============================
+-- ===
 -- Create a new SPAWN object with the @{#ESCORT.New} method:
 --
 --  * @{#ESCORT.New}: Creates a new ESCORT object from a @{Group#GROUP} for a @{Client#CLIENT}, with an optional briefing text.
 --
 -- ESCORT initialization methods.
--- ==============================
+-- ===
 -- The following menus are created within the RADIO MENU (F10) of an active unit hosted by a player:
 --
 -- * @{#ESCORT.MenuFollowAt}: Creates a menu to make the escort follow the client.
@@ -35168,7 +35153,7 @@ end
 -- ===
 --
 -- 1) @{MissileTrainer#MISSILETRAINER} class, extends @{Base#BASE}
--- ===============================================================
+-- ===
 -- The @{#MISSILETRAINER} class uses the DCS world messaging system to be alerted of any missiles fired, and when a missile would hit your aircraft,
 -- the class will destroy the missile within a certain range, to avoid damage to your aircraft.
 -- It suports the following functionality:
@@ -35236,7 +35221,7 @@ end
 -- ===
 -- 
 -- CREDITS
--- =======
+-- ===
 -- **Stuka (Danny)** Who you can search on the Eagle Dynamics Forums.
 -- Working together with Danny has resulted in the MISSILETRAINER class. 
 -- Danny has shared his ideas and together we made a design. 
@@ -38194,7 +38179,7 @@ end
 -- 
 -- Find the DETECTION classes documentation further in this document in the globals section.
 -- 
--- ====
+-- ===
 -- 
 -- # Demo Missions
 -- 
@@ -38204,13 +38189,13 @@ end
 --
 -- ### [ALL Demo Missions pack of the Latest Release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
 -- ### [DETECTION YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl3Cf5jpI6BS0sBOVWK__tji)
 -- 
--- ====
+-- ===
 -- 
 -- ### Contributions: 
 -- 
@@ -42310,11 +42295,13 @@ end
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---- **Functional** - Create random airtraffic in your missions.
---  
+--- **Functional** - (R2.2) - Create random airtraffic in your missions.
+-- 
+-- ===
+-- 
 -- ![Banner Image](..\Presentations\RAT\RAT.png)
 -- 
--- ====
+-- ===
 -- 
 -- The aim of the RAT class is to fill the empty DCS world with randomized air traffic and bring more life to your airports.
 -- 
@@ -42347,14 +42334,14 @@ end
 -- 
 -- More of the documentation include some simple examples can be found further down this page.
 -- 
--- ====
+-- ===
 -- 
 -- # Demo Missions
 --
 -- ### [RAT Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/Release/RAT%20-%20Random%20Air%20Traffic)
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
@@ -42367,7 +42354,7 @@ end
 -- 
 -- ### Contributions: **Sven van de Velde ([FlightControl](https://forums.eagle.ru/member.php?u=89536))**
 -- 
--- ====
+-- ===
 -- @module Rat
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -47365,11 +47352,13 @@ function RATMANAGER:_RollDice(nrat,ntot,min,alive)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---- **Functional** - Range Practice.
+--- **Functional** - (R2.3) - Range Practice.
 --  
+-- ===
+-- 
 -- ![Banner Image](..\Presentations\RANGE\RANGE_Main.png)
 -- 
--- ====
+-- ===
 -- 
 -- The RANGE class enables easy set up of bombing and strafing ranges within DCS World.
 -- 
@@ -47390,13 +47379,13 @@ end
 -- 
 -- More information and examples can be found below.
 -- 
--- ====
+-- ===
 -- 
 -- # Demo Missions
 --
 -- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
 -- 
--- ====
+-- ===
 -- 
 -- # YouTube Channel
 -- 
@@ -47408,7 +47397,7 @@ end
 -- 
 -- ### Contributions: [FlightControl](https://forums.eagle.ru/member.php?u=89536), [Ciribob](https://forums.eagle.ru/member.php?u=112175)
 -- 
--- ====
+-- ===
 -- @module Range
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49273,16 +49262,16 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --- **Functional (WIP)** -- Base class that models processes to achieve goals involving a Zone.
 --
--- ====
+-- ===
 -- 
 -- ZONE_GOAL models processes that have a Goal with a defined achievement involving a Zone. 
 -- Derived classes implement the ways how the achievements can be realized.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
--- ====
+-- ===
 -- 
 -- @module ZoneGoal
 
@@ -49450,16 +49439,16 @@ do -- Zone
 end
 --- **Functional (WIP)** -- Base class that models processes to achieve goals involving a Zone for a Coalition.
 --
--- ====
+-- ===
 -- 
 -- ZONE_GOAL_COALITION models processes that have a Goal with a defined achievement involving a Zone for a Coalition.  
 -- Derived classes implement the ways how the achievements can be realized.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
--- ====
+-- ===
 -- 
 -- @module ZoneGoalCoalition
 
@@ -49561,18 +49550,28 @@ do -- ZoneGoal
   
 end
 
---- **Functional** -- (WIP R2.3) Models the process to capture a Zone for a Coalition, which is guarded by another Coalition.
+--- **Functional** -- (R2.3) Models the process to zone guarding and capturing.
 --
--- ====
+-- ===
 -- 
 -- ![Banner Image](..\Presentations\ZONE_CAPTURE_COALITION\Dia1.JPG)
 -- 
 -- ===
 -- 
--- ### Contributions: **Millertime**: Concept
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/CAZ%20-%20Capture Zones)
 -- 
--- ====
+--   - CAZ-000 - Capture Zone: Demonstrates the basic concept of capturing a zone.
+-- 
+-- ===
+-- 
+-- ### [YouTube Playlist](https://www.youtube.com/watch?v=0m6K6Yxa-os&list=PL7ZUrU4zZUl0qqJsfa8DPvZWDY-OyDumE)
+-- 
+-- ===
+-- 
+-- ### Author: **FlightControl**
+-- ### Contributions: **Millertime** - Concept
+-- 
+-- ===
 -- 
 -- @module ZoneCaptureCoalition
 
@@ -50314,36 +50313,28 @@ do -- ZONE_CAPTURE_COALITION
   
 end
 
---- **AI** -- **AI Balancing will replace in multi player missions 
--- non-occupied human slots with AI groups, in order to provide an engaging simulation environment, 
--- even when there are hardly any players in the mission.**
+--- **AI** -- (2.1) - Balance player slots with AI to create an engaging simulation environment, independent of the amount of players. 
+-- 
+-- ===
 -- 
 -- ![Banner Image](..\Presentations\AI_Balancer\Dia1.JPG)
---  
--- ====
 -- 
--- # Demo Missions
+-- ===
 -- 
--- ### [AI_BALANCER Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/AIB%20-%20AI%20Balancing)
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/AIB%20-%20AI%20Balancing)
 -- 
--- ### [AI_BALANCER Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/AIB%20-%20AI%20Balancing)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
+-- ===
 -- 
--- ====
+-- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl2CJVIrL1TdAumuVS8n64B7)
 -- 
--- # YouTube Channel
+-- ===
 -- 
--- ### [AI_BALANCER YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl2CJVIrL1TdAumuVS8n64B7)
--- 
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
 --   * **[Dutch_Baron](https://forums.eagle.ru/member.php?u=112075)**: Working together with James has resulted in the creation of the AI_BALANCER class. James has shared his ideas on balancing AI with air units, and together we made a first design which you can use now :-)
 -- 
--- ====
+-- ===
 -- 
 -- @module AI_Balancer
 
@@ -50620,17 +50611,15 @@ end
 
 
 
---- **AI** -- **AI A2A Air Patrolling or Staging.**
+--- **AI** -- (R2.2) - Models the process of air operations for airplanes.
 -- 
--- ====
+-- This is a class used in the @{AI_A2A_Dispatcher}.
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- ### Contributions: 
+-- ===
 -- 
---   * **[Dutch_Baron](https://forums.eagle.ru/member.php?u=112075)**: Working together with James has resulted in the creation of the AI_BALANCER class. James has shared his ideas on balancing AI with air units, and together we made a first design which you can use now :-)
---   * **[Pikey](https://forums.eagle.ru/member.php?u=62835)**: Testing and API concept review.
+-- ### Author: **FlightControl**
 -- 
--- ====
+-- ===
 -- 
 -- @module AI_A2A
 
@@ -51359,43 +51348,15 @@ function AI_A2A:OnPilotDead( EventData )
     self:__PilotDead( 1, EventData )
   end
 end
---- **AI** -- **Air Patrolling or Staging.**
+--- **AI** -- (R2.2) - Models the process of air patrol of airplanes.
 -- 
--- ![Banner Image](..\Presentations\AI_PATROL\Dia1.JPG)
+-- This is a class used in the @{AI_A2A_Dispatcher}.
 -- 
 -- ===
 -- 
--- AI PATROL classes makes AI Groups execute an Patrol.
+-- ### Author: **FlightControl**
 -- 
--- There are the following types of PATROL classes defined:
--- 
---   * @{#AI_A2A_PATROL}: Perform a PATROL in a zone.
---   
--- ====
--- 
--- # Demo Missions
--- 
--- ### [AI_PATROL Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/PAT%20-%20Patrolling)
--- 
--- ### [AI_PATROL Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/PAT%20-%20Patrolling)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
--- 
--- ====
--- 
--- # YouTube Channel
--- 
--- ### [AI_PATROL YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl35HvYZKA6G22WMt7iI3zky)
--- 
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- ### Contributions: 
--- 
---   * **[Dutch_Baron](https://forums.eagle.ru/member.php?u=112075)**: Working together with James has resulted in the creation of the AI_BALANCER class. James has shared his ideas on balancing AI with air units, and together we made a first design which you can use now :-)
---   * **[Pikey](https://forums.eagle.ru/member.php?u=62835)**: Testing and API concept review.
--- 
--- ====
+-- ===
 -- 
 -- @module AI_A2A_Patrol
 
@@ -51753,31 +51714,15 @@ function AI_A2A_PATROL.Resume( AIPatrol )
   end
   
 end
---- **AI** -- **Execute Combat Air Patrol (CAP).**
+--- **AI** -- (R2.2) - Models the process of Combat Air Patrol (CAP) for airplanes.
 --
--- ![Banner Image](..\Presentations\AI_CAP\Dia1.JPG)
--- 
+-- This is a class used in the @{AI_A2A_Dispatcher}.
+--
 -- ===
 -- 
--- AI CAP classes makes AI Groups execute a Combat Air Patrol.
+-- ### Author: **FlightControl**
 -- 
--- There are the following types of CAP classes defined:
--- 
---   * @{#AI_A2A_CAP}: Perform a CAP in a zone.
---   
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- 
--- ### Contributions: 
---
---   * **[Quax](https://forums.eagle.ru/member.php?u=90530)**: Concept, Advice & Testing.
---   * **[Pikey](https://forums.eagle.ru/member.php?u=62835)**: Concept, Advice & Testing.
---   * **[Gunterlund](http://forums.eagle.ru:8080/member.php?u=75036)**: Test case revision.
---   * **[Whisper](http://forums.eagle.ru/member.php?u=3829): Testing.
---   * **[Delta99](https://forums.eagle.ru/member.php?u=125166): Testing. 
--- 
--- ====       
+-- ===       
 --
 -- @module AI_A2A_Cap
 
@@ -52261,30 +52206,18 @@ function AI_A2A_CAP.Resume( AICap )
   end
   
 end
---- **AI** -- **Execute Ground Controlled Interception (GCI).**
+--- **AI** -- (R2.2) - Models the process of Ground Controlled Interception (GCI) for airplanes.
 --
--- ![Banner Image](..\Presentations\AI_GCI\Dia1.JPG)
+-- This is a class used in the @{AI_A2A_Dispatcher}.
 -- 
 -- ===
 -- 
--- AI A2A_INTEREPT class makes AI Groups execute an Intercept.
+-- ### Author: **FlightControl**
 -- 
--- There are the following types of GCI classes defined:
--- 
---   * @{#AI_A2A_GCI}: Perform a GCI in a zone.
---   
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- 
--- ### Contributions: 
--- 
--- ====       
+-- ===       
 --
 -- @module AI_A2A_GCI
 
-
---BASE:TraceClass("AI_A2A_GCI")
 
 
 --- @type AI_A2A_GCI
@@ -52735,11 +52668,13 @@ function AI_A2A_GCI:OnEventDead( EventData )
     end
   end  
 end
---- **AI** - The AI_A2A_DISPATCHER creates an automatic A2A defense system based on an EWR network targets and coordinating CAP and GCI.
+--- **AI** - (R2.2) - Manages the process of an automatic A2A defense system based on an EWR network targets and coordinating CAP and GCI.
+-- 
+-- ===
 -- 
 -- ![Banner Image](..\Presentations\AI_A2A_DISPATCHER\Dia1.JPG)
 -- 
--- ====
+-- ===
 --
 -- # QUICK START GUIDE
 -- 
@@ -52887,7 +52822,7 @@ end
 -- 
 -- ===
 -- 
--- ### Authors: **Sven Van de Velde (FlightControl)** rework of GCICAP + introduction of new concepts (squadrons).
+-- ### Authors: **FlightControl** rework of GCICAP + introduction of new concepts (squadrons).
 -- ### Authors: **Stonehouse**, **SNAFU** in terms of the advice, documentation, and the original GCICAP script.
 -- 
 -- @module AI_A2A_Dispatcher
@@ -52906,13 +52841,13 @@ do -- AI_A2A_DISPATCHER
   -- 
   -- The @{#AI_A2A_DISPATCHER} class is designed to create an automatic air defence system for a coalition. 
   -- 
-  -- ====
+  -- ===
   -- 
   -- # Demo Missions
   -- 
   -- ### [AI\_A2A\_DISPATCHER Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/release-2-2-pre/AID%20-%20AI%20Dispatching)
   -- 
-  -- ====
+  -- ===
   -- 
   -- # YouTube Channel
   -- 
@@ -55915,7 +55850,7 @@ do
   -- The AI_A2A_GCICAP class is designed to create an automatic air defence system for a coalition setting up GCI and CAP air defenses. 
   -- The class derives from @{AI#AI_A2A_DISPATCHER} and thus, all the methods that are defined in the @{AI#AI_A2A_DISPATCHER} class, can be used also in AI\_A2A\_GCICAP.
   -- 
-  -- ====
+  -- ===
   -- 
   -- # Demo Missions
   -- 
@@ -55925,7 +55860,7 @@ do
   -- 
   -- ### [AI\_A2A\_GCICAP for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/AID%20-%20AI%20Dispatching)
   --
-  -- ====
+  -- ===
   -- 
   -- # YouTube Channel
   -- 
@@ -55955,7 +55890,7 @@ do
   -- 
   -- In short it is a plug in very flexible and configurable air defence module for DCS World.
   -- 
-  -- ====
+  -- ===
   -- 
   -- # The following actions need to be followed when using AI\_A2A\_GCICAP in your mission:
   -- 
@@ -56482,7 +56417,9 @@ do
 
 end
 
---- **AI** -- **Air Patrolling or Staging.**
+--- **AI** -- (R2.1) - Manages the independent process of Air Patrol for airplanes.
+-- 
+-- ===
 -- 
 -- ![Banner Image](..\Presentations\AI_PATROL\Dia1.JPG)
 -- 
@@ -56494,31 +56431,23 @@ end
 -- 
 --   * @{#AI_PATROL_ZONE}: Perform a PATROL in a zone.
 --   
--- ====
+-- ===
 -- 
--- # Demo Missions
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/PAT%20-%20Patrolling)
 -- 
--- ### [AI_PATROL Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/PAT%20-%20Patrolling)
+-- ===
 -- 
--- ### [AI_PATROL Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/PAT%20-%20Patrolling)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
+-- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl35HvYZKA6G22WMt7iI3zky)
 -- 
--- ====
+-- ===
 -- 
--- # YouTube Channel
--- 
--- ### [AI_PATROL YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl35HvYZKA6G22WMt7iI3zky)
--- 
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
 --   * **[Dutch_Baron](https://forums.eagle.ru/member.php?u=112075)**: Working together with James has resulted in the creation of the AI_BALANCER class. James has shared his ideas on balancing AI with air units, and together we made a first design which you can use now :-)
 --   * **[Pikey](https://forums.eagle.ru/member.php?u=62835)**: Testing and API concept review.
 -- 
--- ====
+-- ===
 -- 
 -- @module AI_Patrol
 
@@ -57415,38 +57344,23 @@ function AI_PATROL_ZONE:OnPilotDead( EventData )
     self:__PilotDead( 1, EventData )
   end
 end
---- **AI** -- **Execute Combat Air Patrol (CAP).**
+--- **AI** -- (R2.1) - Manages the independent process of Combat Air Patrol (CAP) for airplanes.
+--
+-- ===
 --
 -- ![Banner Image](..\Presentations\AI_CAP\Dia1.JPG)
 -- 
 -- ===
 -- 
--- AI CAP classes makes AI Controllables execute a Combat Air Patrol.
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/CAP%20-%20Combat%20Air%20Patrol)
 -- 
--- There are the following types of CAP classes defined:
+-- ===
 -- 
---   * @{#AI_CAP_ZONE}: Perform a CAP in a zone.
---   
--- ====
+-- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl1YCyPxJgoZn-CfhwyeW65L)
 -- 
--- # Demo Missions
+-- ===
 -- 
--- ### [AI_CAP Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/CAP%20-%20Combat%20Air%20Patrol)
--- 
--- ### [AI_CAP Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/CAP%20-%20Combat%20Air%20Patrol)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
--- 
--- ====
--- 
--- # YouTube Channel
--- 
--- ### [AI_CAP YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl1YCyPxJgoZn-CfhwyeW65L)
--- 
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- 
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 --
 --   * **[Quax](https://forums.eagle.ru/member.php?u=90530)**: Concept, Advice & Testing.
@@ -57455,7 +57369,7 @@ end
 --   * **[Whisper](http://forums.eagle.ru/member.php?u=3829): Testing.
 --   * **[Delta99](https://forums.eagle.ru/member.php?u=125166): Testing. 
 -- 
--- ====       
+-- ===       
 --
 -- @module AI_Cap
 
@@ -57976,46 +57890,30 @@ function AI_CAP_ZONE:OnEventDead( EventData )
     end
   end
 end
---- **AI** -- **Provide Close Air Support to friendly ground troops.**
+--- **AI** -- (R2.1) - Manages the independent process of Close Air Support for airplanes.
+--
+-- ===
 --
 -- ![Banner Image](..\Presentations\AI_CAS\Dia1.JPG)
 -- 
 -- ===
 -- 
--- AI CAS classes makes AI Controllables execute a Close Air Support.
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/CAS%20-%20Close%20Air%20Support)
 -- 
--- There are the following types of CAS classes defined:
+-- ===
 -- 
---   * @{#AI_CAS_ZONE}: Perform a CAS in a zone.
---   
--- ====
+-- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl3JBO1WDqqpyYRRmIkR2ir2)
 -- 
--- # Demo Missions
+-- ===
 -- 
--- ### [AI_CAS Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/CAS%20-%20Close%20Air%20Support)
--- 
--- ### [AI_CAS Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/CAS%20-%20Close%20Air%20Support)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
--- 
--- ====
--- 
--- # YouTube Channel
--- 
--- ### [AI_CAS YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl3JBO1WDqqpyYRRmIkR2ir2)
--- 
--- ====
---
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- 
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 --
 --   * **[Quax](https://forums.eagle.ru/member.php?u=90530)**: Concept, Advice & Testing.
 --   * **[Pikey](https://forums.eagle.ru/member.php?u=62835)**: Concept, Advice & Testing.
 --   * **[Gunterlund](http://forums.eagle.ru:8080/member.php?u=75036)**: Test case revision.
 --
--- ====
+-- ===
 --
 -- @module AI_Cas
 
@@ -58556,43 +58454,28 @@ function AI_CAS_ZONE:OnEventDead( EventData )
 end
 
 
---- **AI** -- **Provide Battlefield Air Interdiction (bombing).**
+--- **AI** -- (R2.1) - Manages the independent process of Battlefield Air Interdiction (bombing) for airplanes.
+--
+-- ===
 --
 -- ![Banner Image](..\Presentations\AI_BAI\Dia1.JPG)
 -- 
 -- ===
 -- 
--- AI_BAI classes makes AI Controllables execute bombing tasks.
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/BAI%20-%20Battlefield%20Air%20Interdiction)
 -- 
--- There are the following types of BAI classes defined:
+-- ===
 -- 
---   * @{#AI_BAI_ZONE}: Perform a BAI in a zone.
---   
--- ====
+-- ### [YouTube Playlist]()
 -- 
--- # Demo Missions
+-- ===
 -- 
--- ### [AI_BAI Demo Missions source code](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master-release/BOMB%20-%20Close%20Air%20Support)
--- 
--- ### [AI_BAI Demo Missions, only for beta testers](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/BOMB%20-%20Close%20Air%20Support)
---
--- ### [ALL Demo Missions pack of the last release](https://github.com/FlightControl-Master/MOOSE_MISSIONS/releases)
--- 
--- ====
--- 
--- # YouTube Channel
--- 
--- ### [AI_BAI YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl3JBO1WDqqpyYRRmIkR2ir2)
--- 
--- ====
--- 
--- ### Author: **Sven Van de Velde (FlightControl)**
--- 
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
 --   * **[Gunterlund](http://forums.eagle.ru:8080/member.php?u=75036)**: Test case revision.
 -- 
--- ====
+-- ===
 --
 -- @module AI_Bai
 
@@ -59215,7 +59098,9 @@ function AI_BAI_ZONE:OnEventDead( EventData )
 end
 
 
---- **AI** -- Build large **formations** of AI @{Group}s flying together.
+--- **AI** -- (R2.2) - Build large airborne formations of aircraft.
+-- 
+-- ===
 -- 
 -- ![Banner Image](..\Presentations\AI_FORMATION\Dia1.JPG)
 -- 
@@ -59245,29 +59130,20 @@ end
 -- 
 --   * @{#AI_FORMATION}: Create a formation from several @{GROUP}s.
 --   
--- ====
+-- ===
 -- 
--- # Demo Missions
--- 
--- ### [AI_FORMATION Demo Missions source code]()
--- 
--- ### [AI_FORMATION Demo Missions, only for beta testers]()
---
--- ### [ALL Demo Missions pack of the last release]()
--- 
--- ====
--- 
--- # YouTube Channel
--- 
---- ### [AI_FORMATION YouTube Channel]()
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/FOR%20-%20Formation)
 -- 
 -- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl0bFIJ9jIdYM22uaWmIN4oz)
 -- 
+-- ===
+-- 
+-- ### Author: **FlightControl**
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --   
 -- @module AI_Formation
 
@@ -61578,11 +61454,11 @@ end--- **Tasking** -- A COMMANDCENTER is the owner of multiple missions within M
 -- 
 -- ===
 --  
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module CommandCenter
 
@@ -62049,9 +61925,9 @@ end
 
 --- **Tasking** -- A MISSION is the main owner of a Mission orchestration within MOOSE.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
@@ -63129,13 +63005,13 @@ end
 
 --- **Tasking** -- This module contains the TASK class, the main engine to run human taskings.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Task
 
@@ -64724,13 +64600,13 @@ do -- Additional Task Scoring and Task Progress
 end
 --- **Tasking** -- Controls the information of a Task.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module TaskInfo
 
@@ -65084,7 +64960,7 @@ end
 -- ===
 -- 
 -- 1) @{DetectionManager#DETECTION_MANAGER} class, extends @{Fsm#FSM}
--- ====================================================================
+-- ===
 -- The @{DetectionManager#DETECTION_MANAGER} class defines the core functions to report detected objects to groups.
 -- Reportings can be done in several manners, and it is up to the derived classes if DETECTION_MANAGER to model the reporting behaviour.
 -- 
@@ -65108,7 +64984,7 @@ end
 -- ===
 -- 
 -- 2) @{DetectionManager#DETECTION_REPORTING} class, extends @{DetectionManager#DETECTION_MANAGER}
--- =========================================================================================
+-- ===
 -- The @{DetectionManager#DETECTION_REPORTING} class implements detected units reporting. Reporting can be controlled using the reporting methods available in the @{DetectionManager#DETECTION_MANAGER} class.
 -- 
 -- 2.1) DETECTION_REPORTING constructor:
@@ -65349,13 +65225,13 @@ end
 
 --- **Tasking** - The TASK\_A2G\_DISPATCHER dispatches A2G Tasks to Players based on enemy location detection.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Task_A2G_Dispatcher
 
@@ -66139,13 +66015,13 @@ do -- TASK_A2G_DISPATCHER
 
 end--- **Tasking** - The TASK_A2G models tasks for players in Air to Ground engagements.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --   
 -- @module Task_A2G
 
@@ -66778,13 +66654,13 @@ end
 -- 
 -- The @{#TASK_A2A_DISPATCHER} classes implement the dynamic dispatching of tasks upon groups of detected units determined a @{Set} of EWR installation groups.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 -- 
 -- @module Task_A2A_Dispatcher
 
@@ -67372,13 +67248,13 @@ do -- TASK_A2A_DISPATCHER
 end
 --- **Tasking** - The TASK_A2A models tasks for players in Air to Air engagements.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --   
 -- @module Task_A2A
 
@@ -68031,7 +67907,7 @@ end
 -- 
 -- ![Banner Image](..\Presentations\TASK_CARGO\Dia1.JPG)
 -- 
--- ====
+-- ===
 --
 -- The Moose framework provides various CARGO classes that allow DCS phisical or logical objects to be transported or sling loaded by Carriers.
 -- The CARGO_ classes, as part of the moose core, are able to Board, Load, UnBoard and UnLoad cargo between Carrier units.
@@ -68043,13 +67919,13 @@ end
 -- 
 --   * @{#TASK_CARGO_TRANSPORT}: Defines a task for a human player to transport a set of cargo between various zones.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: 
 -- 
--- ====
+-- ===
 --   
 -- @module Task_Cargo
 
@@ -69037,13 +68913,13 @@ end
 
 --- **Tasking** - The TASK_Protect models tasks for players to protect or capture specific zones.
 -- 
--- ====
+-- ===
 -- 
--- ### Author: **Sven Van de Velde (FlightControl)**
+-- ### Author: **FlightControl**
 -- 
 -- ### Contributions: MillerTime
 -- 
--- ====
+-- ===
 --   
 -- @module TaskZoneCapture
 
