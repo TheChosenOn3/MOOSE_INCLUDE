@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T09:44:01.0000000Z-2d556e4f288a020f7479688646a252fea200ead5 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T10:30:13.0000000Z-d6104350cc3a56ce4429f136d1e1543db22d3219 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -50593,7 +50593,7 @@ function AI_BALANCER:onenterMonitoring( SetGroup )
             
             self:T2( RangeZone )
             
-            _DATABASE:ForEachPlayer(
+            _DATABASE:ForEachPlayerUnit(
               --- @param Wrapper.Unit#UNIT RangeTestUnit
               function( RangeTestUnit, RangeZone, AIGroup, PlayerInRange )
                 self:T2( { PlayerInRange, RangeTestUnit.UnitName, RangeZone.ZoneName } )
