@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T10:30:13.0000000Z-d6104350cc3a56ce4429f136d1e1543db22d3219 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T10:51:17.0000000Z-9e9b6e74be577c7c66b74808242e19d947008116 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -16007,7 +16007,7 @@ do -- COORDINATE
     RoutePoint.action = Formation or ""
 
 
-    RoutePoint.speed = ( Speed or 999 ) / 3.6
+    RoutePoint.speed = ( Speed or 20 ) / 3.6
     RoutePoint.speed_locked = true
 
     --  ["task"] =
