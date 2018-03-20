@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-18T11:17:15.0000000Z-d0283720990843c97122543b7aec6559e069aff9 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-18T22:06:15.0000000Z-1a08a6fa10bd8d422bb7cd270c1134954af748fb ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -24247,9 +24247,6 @@ self:AddTransition("*","Guard","Guarded")
 self:AddTransition("*","Empty","Empty")
 self:AddTransition({"Guarded","Empty"},"Attack","Attacked")
 self:AddTransition({"Guarded","Attacked","Empty"},"Capture","Captured")
-if not self.ScheduleStatusZone then
-self.ScheduleStatusZone=self:ScheduleRepeat(15,15,0.1,nil,self.StatusZone,self)
-end
 return self
 end
 function ZONE_CAPTURE_COALITION:onenterCaptured()
@@ -24341,6 +24338,19 @@ self:Attack()
 end
 if State~="Captured"and self:IsCaptured()then
 self:Capture()
+end
+end
+function ZONE_CAPTURE_COALITION:Start(StartInterval,RepeatInterval)
+StartInterval=StartInterval or 15
+RepeatInterval=RepeatInterval or 15
+if self.ScheduleStatusZone then
+self:ScheduleStop(self.ScheduleStatusZone)
+end
+self.ScheduleStatusZone=self:ScheduleRepeat(StartInterval,RepeatInterval,0.1,nil,self.StatusZone,self)
+end
+function ZONE_CAPTURE_COALITION:Stop()
+if self.ScheduleStatusZone then
+self:ScheduleStop(self.ScheduleStatusZone)
 end
 end
 end
