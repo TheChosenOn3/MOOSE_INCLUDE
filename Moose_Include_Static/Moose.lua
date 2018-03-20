@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T04:16:24.0000000Z-5fcfd120bf954d062b3a6ec80125a69e112da5a2 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T09:44:01.0000000Z-2d556e4f288a020f7479688646a252fea200ead5 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -4056,6 +4056,34 @@ function BASE:E( Arguments )
   	env.info( string.format( "%6d(%6d)/%1s:%20s%05d.%s(%s)" , LineCurrent, LineFrom, "E", self.ClassName, self.ClassID, Function, routines.utils.oneLineSerialize( Arguments ) ) )
   else
     env.info( string.format( "%1s:%20s%05d(%s)" , "E", self.ClassName, self.ClassID, routines.utils.oneLineSerialize( Arguments ) ) )
+  end
+  
+end
+
+
+--- Log an information which will be traced always. Can be anywhere within the function logic.
+-- @param #BASE self
+-- @param Arguments A #table or any field.
+function BASE:I( Arguments )
+
+  if BASE.Debug then
+    local DebugInfoCurrent = BASE.Debug.getinfo( 2, "nl" )
+    local DebugInfoFrom = BASE.Debug.getinfo( 3, "l" )
+    
+    local Function = "function"
+    if DebugInfoCurrent.name then
+      Function = DebugInfoCurrent.name
+    end
+  
+    local LineCurrent = DebugInfoCurrent.currentline
+    local LineFrom = -1 
+    if DebugInfoFrom then
+      LineFrom = DebugInfoFrom.currentline
+    end
+  
+    env.info( string.format( "%6d(%6d)/%1s:%20s%05d.%s(%s)" , LineCurrent, LineFrom, "I", self.ClassName, self.ClassID, Function, routines.utils.oneLineSerialize( Arguments ) ) )
+  else
+    env.info( string.format( "%1s:%20s%05d(%s)" , "I", self.ClassName, self.ClassID, routines.utils.oneLineSerialize( Arguments ) ) )
   end
   
 end
@@ -11357,15 +11385,16 @@ end
 
 --- Flushes the current SET_BASE contents in the log ... (for debugging reasons).
 -- @param #SET_BASE self
+-- @param Core.Base#BASE MasterObject (optional) The master object as a reference.
 -- @return #string A string with the names of the objects.
-function SET_BASE:Flush()
+function SET_BASE:Flush( MasterObject )
   self:F3()
 
   local ObjectNames = ""
   for ObjectName, Object in pairs( self.Set ) do
     ObjectNames = ObjectNames .. ObjectName .. ", "
   end
-  self:E( { "Objects in Set:", ObjectNames } )
+  self:I( { MasterObject = MasterObject:GetClassNameAndID(), "Objects in Set:", ObjectNames } )
   
   return ObjectNames
 end
@@ -41708,7 +41737,7 @@ do -- DESIGNATE
               -- ok, we added one item to the designate scope.
               self.AttackSet:ForEachGroupAlive(
                 function( AttackGroup )
-                  local DetectionText = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
+                  local DetectionText = self.Detection:DetectedItemReportSummary( DetectedItem, AttackGroup ):Text( ", " )
                   self.CC:GetPositionable():MessageToGroup( "Targets detected at \n" .. DetectionText, 10, AttackGroup, self.DesignateName )
                 end
               )
@@ -41813,7 +41842,7 @@ do -- DESIGNATE
   -- @return #DESIGNATE
   function DESIGNATE:SetDesignateMenu()
 
-    self.AttackSet:Flush()
+    self.AttackSet:Flush( self )
 
     self.AttackSet:ForEachGroupAlive(
     
@@ -61971,6 +62000,7 @@ function MISSION:New( CommandCenter, MissionName, MissionPriority, MissionBriefi
   self.MissionCoalition = MissionCoalition
   
   self.Tasks = {}
+  self.TaskNumber = 0
   self.PlayerNames = {} -- These are the players that achieved progress in the mission.
 
   self:SetStartState( "IDLE" )
@@ -62232,7 +62262,7 @@ end
 -- @param Wrapper.Group#GROUP PlayerGroup The GROUP of the player joining the Mission.
 -- @return #boolean true if Unit is part of a Task in the Mission.
 function MISSION:JoinUnit( PlayerUnit, PlayerGroup )
-  self:E( { Mission = self:GetName(), PlayerUnit = PlayerUnit, PlayerGroup = PlayerGroup } )
+  self:I( { Mission = self:GetName(), PlayerUnit = PlayerUnit, PlayerGroup = PlayerGroup } )
   
   local PlayerUnitAdded = false
   
@@ -62384,7 +62414,7 @@ do -- Group Assignment
     local MissionGroupName = MissionGroup:GetName()
   
     self.AssignedGroups[MissionGroupName] = MissionGroup
-    self:E( string.format( "Mission %s is assigned to %s", MissionName, MissionGroupName ) )
+    self:I( string.format( "Mission %s is assigned to %s", MissionName, MissionGroupName ) )
     
     return self
   end
@@ -62493,6 +62523,18 @@ function MISSION:GetTask( TaskName  )
 end
 
 
+--- Return the next @{Task} ID to be completed within the @{Mission}. 
+-- @param #MISSION self
+-- @param Tasking.Task#TASK Task is the @{Task} object.
+-- @return Tasking.Task#TASK The task added.
+function MISSION:GetNextTaskID( Task )
+
+  self.TaskNumber = self.TaskNumber + 1
+
+  return self.TaskNumber
+end
+
+
 --- Register a @{Task} to be completed within the @{Mission}. 
 -- Note that there can be multiple @{Task}s registered to be completed. 
 -- Each Task can be set a certain Goals. The Mission will not be completed until all Goals are reached.
@@ -62502,9 +62544,7 @@ end
 function MISSION:AddTask( Task )
 
   local TaskName = Task:GetTaskName()
-  self:E( { "==> Adding TASK ", MissionName = self:GetName(), TaskName = TaskName } )
-
-  self.Tasks[TaskName] = self.Tasks[TaskName] or { n = 0 }
+  self:I( { "==> Adding TASK ", MissionName = self:GetName(), TaskName = TaskName } )
 
   self.Tasks[TaskName] = Task
   
@@ -62512,6 +62552,7 @@ function MISSION:AddTask( Task )
 
   return Task
 end
+
 
 --- Removes a @{Task} to be completed within the @{Mission}. 
 -- Note that there can be multiple @{Task}s registered to be completed. 
@@ -62522,7 +62563,7 @@ end
 function MISSION:RemoveTask( Task )
 
   local TaskName = Task:GetTaskName()
-  self:E( { "<== Removing TASK ", MissionName = self:GetName(), TaskName = TaskName } )
+  self:I( { "<== Removing TASK ", MissionName = self:GetName(), TaskName = TaskName } )
 
   self:F( TaskName )
   self.Tasks[TaskName] = self.Tasks[TaskName] or { n = 0 }
@@ -62536,21 +62577,6 @@ function MISSION:RemoveTask( Task )
   self:GetCommandCenter():SetMenu()
   
   return nil
-end
-
---- Return the next @{Task} ID to be completed within the @{Mission}. 
--- @param #MISSION self
--- @param Tasking.Task#TASK Task is the @{Task} object.
--- @return Tasking.Task#TASK The task added.
-function MISSION:GetNextTaskID( Task )
-
-  local TaskName = Task:GetTaskName()
-  self:F( TaskName )
-  self.Tasks[TaskName] = self.Tasks[TaskName] or { n = 0 }
-  
-  self.Tasks[TaskName].n = self.Tasks[TaskName].n + 1
-
-  return self.Tasks[TaskName].n
 end
 
 --- Is the @{Mission} **COMPLETED**.
