@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-20T14:53:49.0000000Z-bfc3b685ef85f48509c5a52cbb37eb2100034486 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:26:18.0000000Z-d5309ebee5ee64de42b8d55ccd654ea9dd048650 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -23196,7 +23196,7 @@ TdelaySmoke=3.0,
 eventmoose=true,
 }
 RANGE.id="RANGE | "
-RANGE.version="1.0.0"
+RANGE.version="1.0.1"
 function RANGE:New(rangename)
 BASE:F({rangename=rangename})
 local self=BASE:Inherit(self,BASE:New())
@@ -23238,9 +23238,9 @@ self:E(RANGE.id..text)
 MESSAGE:New(text,10):ToAllIf(self.Debug)
 if self.eventmoose then
 self:T(RANGE.id.."Events are handled by MOOSE.")
-self:HandleEvent(EVENTS.Birth,self._OnBirth)
-self:HandleEvent(EVENTS.Hit,self._OnHit)
-self:HandleEvent(EVENTS.Shot,self._OnShot)
+self:HandleEvent(EVENTS.Birth)
+self:HandleEvent(EVENTS.Hit)
+self:HandleEvent(EVENTS.Shot)
 else
 self:T(RANGE.id.."Events are handled directly by DCS.")
 world.addEventHandler(self)
@@ -23370,7 +23370,7 @@ if _unit then
 self:AddBombingTargetUnit(_unit,goodhitrange)
 self:T(RANGE.id..string.format("Adding bombing target %s with hit range %d.",name,goodhitrange))
 else
-self:E(RANGE.id..string.fromat("ERROR! Could not find bombing target %s.",name))
+self:E(RANGE.id..string.format("ERROR! Could not find bombing target %s.",name))
 end
 end
 end
@@ -23386,7 +23386,12 @@ table.insert(self.bombingTargets,{name=name,point=coord,zone=Rzone,target=unit,g
 end
 function RANGE:onEvent(Event)
 self:F3(Event)
-if Event==nil or Event.initiator==nil or Unit.getByName(Event.initiator:getName())==nil then
+if Event==nil or Event.initiator==nil then
+self:T2("Skipping onEvent. Event or Event.initiator unknown.")
+return true
+end
+if Unit.getByName(Event.initiator:getName())==nil then
+self:T2("Skipping onEvent. Initiator unit name unknown.")
 return true
 end
 local DCSiniunit=Event.initiator
@@ -23403,9 +23408,6 @@ _playerunit,_playername=self:_GetPlayerUnitAndName(EventData.IniUnitName)
 end
 if Event.target then
 EventData.TgtUnitName=Event.target:getName()
-EventData.TgtDCSGroup=Event.target:getGroup()
-EventData.TgtGroupName=Event.target:getGroup():getName()
-EventData.TgtGroup=GROUP:FindByName(EventData.TgtGroupName)
 EventData.TgtUnit=UNIT:FindByName(EventData.TgtUnitName)
 end
 if Event.weapon then
@@ -23418,19 +23420,18 @@ self:T3(RANGE.id..string.format("EVENT: Ini unit   = %s",tostring(EventData.IniU
 self:T3(RANGE.id..string.format("EVENT: Ini group  = %s",tostring(EventData.IniGroupName)))
 self:T3(RANGE.id..string.format("EVENT: Ini player = %s",tostring(_playername)))
 self:T3(RANGE.id..string.format("EVENT: Tgt unit   = %s",tostring(EventData.TgtUnitName)))
-self:T3(RANGE.id..string.format("EVENT: Tgt group  = %s",tostring(EventData.IniGroupName)))
-self:T3(RANGE.id..string.format("EVENT: Wpn type   = %s",tostring(EventData.WeapoinTypeName)))
+self:T3(RANGE.id..string.format("EVENT: Wpn type   = %s",tostring(EventData.WeaponTypeName)))
 if Event.id==world.event.S_EVENT_BIRTH and _playername then
-self:_OnBirth(EventData)
+self:OnEventBirth(EventData)
 end
 if Event.id==world.event.S_EVENT_SHOT and _playername and Event.weapon then
-self:_OnShot(EventData)
+self:OnEventShot(EventData)
 end
 if Event.id==world.event.S_EVENT_HIT and _playername and DCStgtunit then
-self:_OnHit(EventData)
+self:OnEventHit(EventData)
 end
 end
-function RANGE:_OnBirth(EventData)
+function RANGE:OnEventBirth(EventData)
 self:F({eventbirth=EventData})
 local _unitName=EventData.IniUnitName
 local _unit,_playername=self:_GetPlayerUnitAndName(_unitName)
@@ -23459,7 +23460,7 @@ self.planes[_uid]=true
 end
 end
 end
-function RANGE:_OnHit(EventData)
+function RANGE:OnEventHit(EventData)
 self:F({eventhit=EventData})
 local _unitName=EventData.IniUnitName
 local _unit,_playername=self:_GetPlayerUnitAndName(_unitName)
@@ -23469,7 +23470,6 @@ local targetname=EventData.TgtUnitName
 self:T3(RANGE.id.."HIT: Ini unit   = "..tostring(EventData.IniUnitName))
 self:T3(RANGE.id.."HIT: Ini group  = "..tostring(EventData.IniGroupName))
 self:T3(RANGE.id.."HIT: Tgt target = "..tostring(EventData.TgtUnitName))
-self:T3(RANGE.id.."HIT: Tgt group  = "..tostring(EventData.TgtGroupName))
 local _currentTarget=self.strafeStatus[_unitID]
 if _currentTarget then
 local playerPos=_unit:GetCoordinate()
@@ -23506,7 +23506,7 @@ end
 end
 end
 end
-function RANGE:_OnShot(EventData)
+function RANGE:OnEventShot(EventData)
 self:F({eventshot=EventData})
 local _weapon=EventData.Weapon:getTypeName()
 local _weaponStrArray=self:_split(_weapon,"%.")
@@ -23568,7 +23568,7 @@ local _results=self.bombPlayerResults[_playername]
 table.insert(_results,{name=_closetTarget.name,distance=_distance,weapon=_weaponName,quality=_hitquality})
 local _message=string.format("%s, impact %d m from bullseye of target %s. %s hit.",_callsign,_distance,_closetTarget.name,_hitquality)
 self:_DisplayMessageToGroup(_unit,_message,nil,true)
-else
+elseif _distance<=self.rangeradius then
 local _message=string.format("%s, weapon fell more than %.1f km away from nearest range target. No score!",_callsign,self.scorebombdistance/1000)
 self:_DisplayMessageToGroup(_unit,_message,nil,true)
 end
@@ -24121,11 +24121,13 @@ function RANGE:_GetPlayerUnitAndName(_unitName)
 self:F(_unitName)
 if _unitName~=nil then
 local DCSunit=Unit.getByName(_unitName)
+if DCSunit then
 local playername=DCSunit:getPlayerName()
 local unit=UNIT:Find(DCSunit)
 self:T({DCSunit=DCSunit,unit=unit,playername=playername})
 if DCSunit and unit and playername then
 return unit,playername
+end
 end
 end
 return nil,nil

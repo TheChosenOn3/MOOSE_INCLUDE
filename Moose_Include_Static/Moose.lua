@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-20T14:53:49.0000000Z-bfc3b685ef85f48509c5a52cbb37eb2100034486 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:26:18.0000000Z-d5309ebee5ee64de42b8d55ccd654ea9dd048650 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -47392,6 +47392,8 @@ end
 -- Implementation is based on the [Simple Range Script](https://forums.eagle.ru/showthread.php?t=157991) by [Ciribob](https://forums.eagle.ru/member.php?u=112175), which itself was motivated
 -- by a script by SNAFU [see here](https://forums.eagle.ru/showthread.php?t=109174).
 -- 
+-- [476th - Air Weapons Range Objects mod](http://www.476vfightergroup.com/downloads.php?do=file&id=287) is highly recommended for this class.
+-- 
 -- ## Features
 --
 -- * Bomb and rocket impact point from closest range target is measured and distance reported to the player.
@@ -47416,7 +47418,7 @@ end
 -- 
 -- # YouTube Channel
 -- 
--- ### [MOOSE YouTube Channel](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl1jirWIo4t4YxqN-HxjqRkL)
+-- ### [MOOSE - On the Range - Demonstration Video](https://www.youtube.com/watch?v=kIXcxNB9_3M)
 -- 
 -- ===
 -- 
@@ -47434,7 +47436,7 @@ end
 -- @field #boolean Debug If true, debug info is send as messages on the screen.
 -- @field #string rangename Name of the range.
 -- @field Core.Point#COORDINATE location Coordinate of the range.
--- @field #number rangeradius Radius of range defining its total size for e.g. smoking bomb impact points. Default 10 km.
+-- @field #number rangeradius Radius of range defining its total size for e.g. smoking bomb impact points and sending radio messages. Default 10 km.
 -- @field #table strafeTargets Table of strafing targets.
 -- @field #table bombingTargets Table of targets to bomb.
 -- @field #number nbombtargets Number of bombing targets.
@@ -47535,6 +47537,8 @@ end
 -- ### Goldwater Range
 -- This example shows hot to set up the Barry M. Goldwater range. It consists of two strafe pits each has two targets plus three bombing targets.
 -- 
+-- The [476th - Air Weapons Range Objects mod](http://www.476vfightergroup.com/downloads.php?do=file&id=287) is used in this example.
+-- 
 --      -- Strafe pits. Each pit can consist of multiple targets. Here we have two pits and each of the pits has two targets. These are names of the corresponding units defined in the ME.
 --      local strafepit_left={"GWR Strafe Pit Left 1", "GWR Strafe Pit Left 2"}
 --      local strafepit_right={"GWR Strafe Pit Right 1", "GWR Strafe Pit Right 2"}
@@ -47599,7 +47603,7 @@ RANGE.id="RANGE | "
 
 --- Range script version.
 -- @field #number version
-RANGE.version="1.0.0"
+RANGE.version="1.0.1"
 
 --TODO list
 --TODO: Add statics for strafe pits.
@@ -47683,9 +47687,12 @@ function RANGE:Start()
   if self.eventmoose then
     -- Events are handled my MOOSE.
     self:T(RANGE.id.."Events are handled by MOOSE.")
-    self:HandleEvent(EVENTS.Birth, self._OnBirth)
-    self:HandleEvent(EVENTS.Hit,   self._OnHit)
-    self:HandleEvent(EVENTS.Shot,  self._OnShot)
+    --self:HandleEvent(EVENTS.Birth, self._OnBirth)
+    --self:HandleEvent(EVENTS.Hit,   self._OnHit)
+    --self:HandleEvent(EVENTS.Shot,  self._OnShot)
+    self:HandleEvent(EVENTS.Birth)
+    self:HandleEvent(EVENTS.Hit)
+    self:HandleEvent(EVENTS.Shot)
   else
     -- Events are handled directly by DCS.
     self:T(RANGE.id.."Events are handled directly by DCS.")
@@ -47929,7 +47936,7 @@ function RANGE:AddBombingTargets(unitnames, goodhitrange, static)
         self:AddBombingTargetUnit(_unit, goodhitrange)
         self:T(RANGE.id..string.format("Adding bombing target %s with hit range %d.", name, goodhitrange))
       else
-        self:E(RANGE.id..string.fromat("ERROR! Could not find bombing target %s.", name))
+        self:E(RANGE.id..string.format("ERROR! Could not find bombing target %s.", name))
       end
       
     end
@@ -47968,7 +47975,12 @@ end
 function RANGE:onEvent(Event)
   self:F3(Event)
 
-  if Event == nil or Event.initiator == nil or Unit.getByName(Event.initiator:getName()) == nil then
+  if Event == nil or Event.initiator == nil then
+    self:T2("Skipping onEvent. Event or Event.initiator unknown.")
+    return true
+  end
+  if Unit.getByName(Event.initiator:getName()) == nil then
+    self:T2("Skipping onEvent. Initiator unit name unknown.")
     return true
   end
 
@@ -47990,9 +48002,6 @@ function RANGE:onEvent(Event)
 
   if Event.target then  
     EventData.TgtUnitName  = Event.target:getName()
-    EventData.TgtDCSGroup  = Event.target:getGroup()
-    EventData.TgtGroupName = Event.target:getGroup():getName()
-    EventData.TgtGroup     = GROUP:FindByName(EventData.TgtGroupName)
     EventData.TgtUnit      = UNIT:FindByName(EventData.TgtUnitName)
   end
   
@@ -48008,22 +48017,24 @@ function RANGE:onEvent(Event)
   self:T3(RANGE.id..string.format("EVENT: Ini group  = %s" , tostring(EventData.IniGroupName)))
   self:T3(RANGE.id..string.format("EVENT: Ini player = %s" , tostring(_playername)))
   self:T3(RANGE.id..string.format("EVENT: Tgt unit   = %s" , tostring(EventData.TgtUnitName)))
-  self:T3(RANGE.id..string.format("EVENT: Tgt group  = %s" , tostring(EventData.IniGroupName)))
-  self:T3(RANGE.id..string.format("EVENT: Wpn type   = %s" , tostring(EventData.WeapoinTypeName)))
+  self:T3(RANGE.id..string.format("EVENT: Wpn type   = %s" , tostring(EventData.WeaponTypeName)))
     
   -- Call event Birth function.
   if Event.id==world.event.S_EVENT_BIRTH and _playername then
-    self:_OnBirth(EventData)
+    self:OnEventBirth(EventData)
+    --self:_OnBirth(EventData)
   end
   
   -- Call event Shot function.
   if Event.id==world.event.S_EVENT_SHOT and _playername and Event.weapon then
-    self:_OnShot(EventData)
+    self:OnEventShot(EventData)
+    --self:_OnShot(EventData)
   end
   
   -- Call event Hit function.
   if Event.id==world.event.S_EVENT_HIT and _playername and DCStgtunit then
-    self:_OnHit(EventData)
+    self:OnEventHit(EventData)
+    --self:_OnHit(EventData)
   end
   
 end
@@ -48032,7 +48043,8 @@ end
 --- Range event handler for event birth.
 -- @param #RANGE self
 -- @param Core.Event#EVENTDATA EventData
-function RANGE:_OnBirth(EventData)
+function RANGE:OnEventBirth(EventData)
+--function RANGE:_OnBirth(EventData)
   self:F({eventbirth = EventData})
   
   local _unitName=EventData.IniUnitName  
@@ -48080,7 +48092,8 @@ end
 --- Range event handler for event hit.
 -- @param #RANGE self
 -- @param Core.Event#EVENTDATA EventData
-function RANGE:_OnHit(EventData)
+function RANGE:OnEventHit(EventData)
+--function RANGE:_OnHit(EventData)
   self:F({eventhit = EventData})
 
   -- Player info
@@ -48096,7 +48109,6 @@ function RANGE:_OnHit(EventData)
   self:T3(RANGE.id.."HIT: Ini unit   = "..tostring(EventData.IniUnitName))
   self:T3(RANGE.id.."HIT: Ini group  = "..tostring(EventData.IniGroupName))
   self:T3(RANGE.id.."HIT: Tgt target = "..tostring(EventData.TgtUnitName))
-  self:T3(RANGE.id.."HIT: Tgt group  = "..tostring(EventData.TgtGroupName))
   
   -- Current strafe target of player.
   local _currentTarget = self.strafeStatus[_unitID]
@@ -48167,7 +48179,8 @@ end
 --- Range event handler for event shot (when a unit releases a rocket or bomb (but not a fast firing gun). 
 -- @param #RANGE self
 -- @param Core.Event#EVENTDATA EventData
-function RANGE:_OnShot(EventData)
+function RANGE:OnEventShot(EventData)
+--function RANGE:_OnShot(EventData)
   self:F({eventshot = EventData})
   
   -- Weapon data.
@@ -48281,10 +48294,10 @@ function RANGE:_OnShot(EventData)
             -- Send message to player.
             local _message = string.format("%s, impact %d m from bullseye of target %s. %s hit.", _callsign, _distance, _closetTarget.name, _hitquality)
 
-            -- Sendmessage.
+            -- Send message.
             self:_DisplayMessageToGroup(_unit, _message, nil, true)
-          else
-            -- Sendmessage
+          elseif _distance <= self.rangeradius then
+            -- Send message
             local _message=string.format("%s, weapon fell more than %.1f km away from nearest range target. No score!", _callsign, self.scorebombdistance/1000)
             self:_DisplayMessageToGroup(_unit, _message, nil, true)
           end
@@ -49243,16 +49256,25 @@ function RANGE:_GetPlayerUnitAndName(_unitName)
   self:F(_unitName)
 
   if _unitName ~= nil then
+  
+    -- Get DCS unit from its name.
     local DCSunit=Unit.getByName(_unitName)
-    local playername=DCSunit:getPlayerName()
-    local unit=UNIT:Find(DCSunit)
     
-    self:T({DCSunit=DCSunit, unit=unit, playername=playername})
-    if DCSunit and unit and playername then
-      return unit, playername
+    if DCSunit then
+    
+      local playername=DCSunit:getPlayerName()
+      local unit=UNIT:Find(DCSunit)
+    
+      self:T({DCSunit=DCSunit, unit=unit, playername=playername})
+      if DCSunit and unit and playername then
+        return unit, playername
+      end
+      
     end
-  end
     
+  end
+  
+  -- Return nil if we could not find a player.
   return nil,nil
 end
 
