@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-22T04:02:42.0000000Z-bb2fcfbc776e90dec8fc45571db771afe830f819 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-22T05:11:28.0000000Z-eb5567542ceec102479d2dd6869e94d235e11ae5 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -18685,7 +18685,6 @@ self.DetectRWR,
 self.DetectDLINK
 )
 self:T2({TargetIsDetected=TargetIsDetected,TargetIsVisible=TargetIsVisible,TargetLastTime=TargetLastTime,TargetKnowType=TargetKnowType,TargetKnowDistance=TargetKnowDistance,TargetLastPos=TargetLastPos,TargetLastVelocity=TargetLastVelocity})
-if Detection.visible==true then
 local DetectionAccepted=true
 local DetectedObjectName=DetectedObject:getName()
 local DetectedObjectType=DetectedObject:getTypeName()
@@ -18782,7 +18781,6 @@ DetectedUnits[DetectedObjectName]=DetectedUnit
 else
 if self.DetectedObjects[DetectedObjectName]then
 self.DetectedObjects[DetectedObjectName]=nil
-end
 end
 end
 end

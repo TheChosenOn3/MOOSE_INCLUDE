@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-22T04:02:42.0000000Z-bb2fcfbc776e90dec8fc45571db771afe830f819 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-22T05:11:28.0000000Z-eb5567542ceec102479d2dd6869e94d235e11ae5 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -38776,7 +38776,7 @@ do -- DETECTION_BASE
             self:T2( { TargetIsDetected = TargetIsDetected, TargetIsVisible = TargetIsVisible, TargetLastTime = TargetLastTime, TargetKnowType = TargetKnowType, TargetKnowDistance = TargetKnowDistance, TargetLastPos = TargetLastPos, TargetLastVelocity = TargetLastVelocity } )
 
             -- Only process if the target is visible. Detection also returns invisible units.
-            if Detection.visible == true then
+            --if Detection.visible == true then
             
               local DetectionAccepted = true
               
@@ -38912,7 +38912,7 @@ do -- DETECTION_BASE
                   self.DetectedObjects[DetectedObjectName] = nil
                 end
               end
-            end
+            --end
           end
           
           self:T2( self.DetectedObjects )
