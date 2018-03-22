@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-22T05:11:28.0000000Z-eb5567542ceec102479d2dd6869e94d235e11ae5 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-22T05:20:57.0000000Z-d0886b9596fde9579ddda6588069455822f4f56a ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -61606,7 +61606,7 @@ function COMMANDCENTER:New( CommandCenterPositionable, CommandCenterName )
         local EventGroup = GROUP:Find( EventData.IniDCSGroup )
         self:E( { CommandCenter = self:GetName(), EventGroup = EventGroup:GetName(), HasGroup = self:HasGroup( EventGroup ), EventData = EventData } )
         if EventGroup and self:HasGroup( EventGroup ) then
-          local CommandCenterMenu = MENU_GROUP:New( EventGroup, "Command Center (" .. self:GetName() .. ")" )
+          local CommandCenterMenu = MENU_GROUP:New( EventGroup, self:GetText() )
           local MenuReporting = MENU_GROUP:New( EventGroup, "Missions Reports", CommandCenterMenu )
           local MenuMissionsSummary = MENU_GROUP_COMMAND:New( EventGroup, "Missions Status Report", MenuReporting, self.ReportMissionsStatus, self, EventGroup )
           local MenuMissionsDetails = MENU_GROUP_COMMAND:New( EventGroup, "Missions Players Report", MenuReporting, self.ReportMissionsPlayers, self, EventGroup )
