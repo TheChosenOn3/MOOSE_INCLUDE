@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:26:18.0000000Z-d5309ebee5ee64de42b8d55ccd654ea9dd048650 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:36:51.0000000Z-1a5d605e42373d11a03c687abcec50b171c600ae ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -11394,7 +11394,7 @@ function SET_BASE:Flush( MasterObject )
   for ObjectName, Object in pairs( self.Set ) do
     ObjectNames = ObjectNames .. ObjectName .. ", "
   end
-  self:I( { MasterObject = MasterObject:GetClassNameAndID(), "Objects in Set:", ObjectNames } )
+  self:I( { MasterObject = MasterObject and MasterObject:GetClassNameAndID(), "Objects in Set:", ObjectNames } )
   
   return ObjectNames
 end
@@ -39928,7 +39928,7 @@ do -- DETECTION_BASE
   -- @param Core.Settings#SETTINGS Settings Message formatting settings to use.
   -- @return Core.Report#REPORT
   function DETECTION_BASE:DetectedItemReportSummary( DetectedItem, AttackGroup, Settings )
-    self:F( Index )
+    self:F()
     return nil
   end
   
@@ -40906,7 +40906,7 @@ do -- DETECTION_AREAS
         DetectedZone.ZoneUNIT:SmokeRed()
       end
       
-      --DetectedSet:Flush()
+      --DetectedSet:Flush( self )
       
       DetectedSet:ForEachUnit(
         --- @param Wrapper.Unit#UNIT DetectedUnit
@@ -41711,7 +41711,7 @@ do -- DESIGNATE
             --- @param Wrapper.Group#GROUP AttackGroup
             function( AttackGroup )
               if AttackGroup:IsAlive() == true then
-                local DetectionText = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
+                local DetectionText = self.Detection:DetectedItemReportSummary( DetectedItem, AttackGroup ):Text( ", " )
                 self.CC:GetPositionable():MessageToGroup( "Targets out of LOS\n" .. DetectionText, 10, AttackGroup, self.DesignateName )
               end
             end
@@ -41794,7 +41794,7 @@ do -- DESIGNATE
           for DesignateIndex, Designating in pairs( self.Designating ) do
             local DetectedItem = DetectedItems[DesignateIndex]
             if DetectedItem then
-              local Report = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
+              local Report = self.Detection:DetectedItemReportSummary( DetectedItem, AttackGroup ):Text( ", " )
               DetectedReport:Add( string.rep( "-", 140 ) )
               DetectedReport:Add( " - " .. Report )
               if string.find( Designating, "L" ) then
@@ -41882,8 +41882,8 @@ do -- DESIGNATE
 
           if DetectedItem then
           
-            local Coord = self.Detection:GetDetectedItemCoordinate( DesignateIndex )
-            local ID = self.Detection:GetDetectedItemID( DesignateIndex )
+            local Coord = self.Detection:GetDetectedItemCoordinate( DetectedItem )
+            local ID = self.Detection:GetDetectedItemID( DetectedItem )
             local MenuText = ID --.. ", " .. Coord:ToStringA2G( AttackGroup )
             
             MenuText = string.format( "(%3s) %s", Designating, MenuText )
@@ -42041,14 +42041,15 @@ do -- DESIGNATE
   function DESIGNATE:onafterLasing( From, Event, To, Index, Duration, LaserCodeRequested )
   
   
-    local TargetSetUnit = self.Detection:GetDetectedSet( Index )
+    local DetectedItem = self.Detection:GetDetectedItemByIndex( Index )
+    local TargetSetUnit = self.Detection:GetDetectedSet( DetectedItem )
 
     local MarkingCount = 0
     local MarkedTypes = {}
     local ReportTypes = REPORT:New()
     local ReportLaserCodes = REPORT:New()
     
-    TargetSetUnit:Flush()
+    TargetSetUnit:Flush( self )
 
     --self:F( { Recces = self.Recces } ) 
     for TargetUnit, RecceData in pairs( self.Recces ) do
@@ -42096,7 +42097,7 @@ do -- DESIGNATE
               if not Recce then
     
                 self:F( "Lasing..." )
-                self.RecceSet:Flush()
+                self.RecceSet:Flush( self)
     
                 for RecceGroupID, RecceGroup in pairs( self.RecceSet:GetSet() ) do
                   for UnitID, UnitData in pairs( RecceGroup:GetUnits() or {} ) do
@@ -42210,7 +42211,8 @@ do -- DESIGNATE
       CC:MessageToSetGroup( "Stopped lasing.", 5, self.AttackSet, self.DesignateName )
     end
     
-    local TargetSetUnit = self.Detection:GetDetectedSet( Index )
+    local DetectedItem = self.Detection:GetDetectedItemByIndex( Index )
+    local TargetSetUnit = self.Detection:GetDetectedSet( DetectedItem )
     
     local Recces = self.Recces
     
@@ -42234,7 +42236,8 @@ do -- DESIGNATE
   -- @return #DESIGNATE
   function DESIGNATE:onafterSmoke( From, Event, To, Index, Color )
   
-    local TargetSetUnit = self.Detection:GetDetectedSet( Index )
+    local DetectedItem = self.Detection:GetDetectedItemByIndex( Index )
+    local TargetSetUnit = self.Detection:GetDetectedSet( DetectedItem )
     local TargetSetUnitCount = TargetSetUnit:Count()
   
     local MarkedCount = 0
@@ -42278,7 +42281,8 @@ do -- DESIGNATE
   -- @return #DESIGNATE
   function DESIGNATE:onafterIlluminate( From, Event, To, Index )
   
-    local TargetSetUnit = self.Detection:GetDetectedSet( Index )
+    local DetectedItem = self.Detection:GetDetectedItemByIndex( Index )
+    local TargetSetUnit = self.Detection:GetDetectedSet( DetectedItem )
     local TargetUnit = TargetSetUnit:GetFirst()
   
     if TargetUnit then
@@ -50553,9 +50557,9 @@ end
 function AI_BALANCER:onenterDestroying( SetGroup, From, Event, To, ClientName, AIGroup )
 
   AIGroup:Destroy()
-  SetGroup:Flush()
+  SetGroup:Flush( self )
   SetGroup:Remove( ClientName )
-  SetGroup:Flush()
+  SetGroup:Flush( self )
 end
 
 --- @param #AI_BALANCER self
@@ -55712,7 +55716,7 @@ do -- AI_A2A_DISPATCHER
       local DetectedZone = DetectedItem.Zone
 
       self:F( { "Target ID", DetectedItem.ItemID } )
-      DetectedSet:Flush()
+      DetectedSet:Flush( self )
 
       local DetectedID = DetectedItem.ID
       local DetectionIndex = DetectedItem.Index
@@ -59820,7 +59824,7 @@ end
 function AI_FORMATION:onafterFormationLine( FollowGroupSet, From , Event , To, XStart, XSpace, YStart, YSpace, ZStart, ZSpace ) --R2.1
   self:F( { FollowGroupSet, From , Event ,To, XStart, XSpace, YStart, YSpace, ZStart, ZSpace } )
 
-  FollowGroupSet:Flush()
+  FollowGroupSet:Flush( self )
   
   local FollowSet = FollowGroupSet:GetSet()
   
@@ -63374,7 +63378,7 @@ function TASK:AbortGroup( PlayerGroup )
         -- Now check if the task needs to go to hold...
         -- It will go to hold, if there are no players in the mission...
         
-        PlayerGroups:Flush()
+        PlayerGroups:Flush( self )
         local IsRemaining = false
         for GroupName, AssignedGroup in pairs( PlayerGroups:GetSet() or {} ) do
           if self:IsGroupAssigned( AssignedGroup ) == true then
@@ -63425,7 +63429,7 @@ function TASK:CrashGroup( PlayerGroup )
         -- Now check if the task needs to go to hold...
         -- It will go to hold, if there are no players in the mission...
         
-        PlayerGroups:Flush()
+        PlayerGroups:Flush( self )
         local IsRemaining = false
         for GroupName, AssignedGroup in pairs( PlayerGroups:GetSet() or {} ) do
           if self:IsGroupAssigned( AssignedGroup ) == true then
@@ -65892,7 +65896,7 @@ do -- TASK_A2G_DISPATCHER
         local DetectedSet = DetectedItem.Set -- Core.Set#SET_UNIT
         local DetectedZone = DetectedItem.Zone
         --self:F( { "Targets in DetectedItem", DetectedItem.ItemID, DetectedSet:Count(), tostring( DetectedItem ) } )
-        --DetectedSet:Flush()
+        --DetectedSet:Flush( self )
         
         local DetectedItemID = DetectedItem.ID
         local TaskIndex = DetectedItem.ID
@@ -67073,7 +67077,7 @@ do -- TASK_A2A_DISPATCHER
         end
 
         local DetectedSet = DetectedItem.Set -- Core.Set#SET_UNIT
-        --DetectedSet:Flush()
+        --DetectedSet:Flush( self )
         --self:F( { DetectedSetCount = DetectedSet:Count() } )
         if DetectedSet:Count() == 0 then
           Remove = true
@@ -67222,7 +67226,7 @@ do -- TASK_A2A_DISPATCHER
         local DetectedCount = DetectedSet:Count()
         local DetectedZone = DetectedItem.Zone
         --self:F( { "Targets in DetectedItem", DetectedItem.ItemID, DetectedSet:Count(), tostring( DetectedItem ) } )
-        --DetectedSet:Flush()
+        --DetectedSet:Flush( self )
         
         local DetectedID = DetectedItem.ID
         local TaskIndex = DetectedItem.Index

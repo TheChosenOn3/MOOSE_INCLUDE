@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:26:18.0000000Z-d5309ebee5ee64de42b8d55ccd654ea9dd048650 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:36:51.0000000Z-1a5d605e42373d11a03c687abcec50b171c600ae ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -5892,7 +5892,7 @@ local ObjectNames=""
 for ObjectName,Object in pairs(self.Set)do
 ObjectNames=ObjectNames..ObjectName..", "
 end
-self:I({MasterObject=MasterObject:GetClassNameAndID(),"Objects in Set:",ObjectNames})
+self:I({MasterObject=MasterObject and MasterObject:GetClassNameAndID(),"Objects in Set:",ObjectNames})
 return ObjectNames
 end
 SET_GROUP={
@@ -19278,7 +19278,7 @@ end
 return nil,""
 end
 function DETECTION_BASE:DetectedItemReportSummary(DetectedItem,AttackGroup,Settings)
-self:F(Index)
+self:F()
 return nil
 end
 function DETECTION_BASE:DetectedReportDetailed(AttackGroup)
@@ -20009,7 +20009,7 @@ self.Designating[DesignateIndex]=nil
 self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 if AttackGroup:IsAlive()==true then
-local DetectionText=self.Detection:DetectedItemReportSummary(DesignateIndex,AttackGroup):Text(", ")
+local DetectionText=self.Detection:DetectedItemReportSummary(DetectedItem,AttackGroup):Text(", ")
 self.CC:GetPositionable():MessageToGroup("Targets out of LOS\n"..DetectionText,10,AttackGroup,self.DesignateName)
 end
 end
@@ -20064,7 +20064,7 @@ local DetectedItems=self.Detection:GetDetectedItems()
 for DesignateIndex,Designating in pairs(self.Designating)do
 local DetectedItem=DetectedItems[DesignateIndex]
 if DetectedItem then
-local Report=self.Detection:DetectedItemReportSummary(DesignateIndex,AttackGroup):Text(", ")
+local Report=self.Detection:DetectedItemReportSummary(DetectedItem,AttackGroup):Text(", ")
 DetectedReport:Add(string.rep("-",140))
 DetectedReport:Add(" - "..Report)
 if string.find(Designating,"L")then
@@ -20125,8 +20125,8 @@ end
 for DesignateIndex,Designating in pairs(self.Designating)do
 local DetectedItem=self.Detection:GetDetectedItemByIndex(DesignateIndex)
 if DetectedItem then
-local Coord=self.Detection:GetDetectedItemCoordinate(DesignateIndex)
-local ID=self.Detection:GetDetectedItemID(DesignateIndex)
+local Coord=self.Detection:GetDetectedItemCoordinate(DetectedItem)
+local ID=self.Detection:GetDetectedItemID(DetectedItem)
 local MenuText=ID
 MenuText=string.format("(%3s) %s",Designating,MenuText)
 local DetectedMenu=MENU_GROUP_DELAYED:New(AttackGroup,MenuText,MenuDesignate):SetTime(MenuTime):SetTag(self.DesignateName)
@@ -20216,12 +20216,13 @@ self.LaseDuration=Duration
 self:Lasing(Index,Duration,LaserCode)
 end
 function DESIGNATE:onafterLasing(From,Event,To,Index,Duration,LaserCodeRequested)
-local TargetSetUnit=self.Detection:GetDetectedSet(Index)
+local DetectedItem=self.Detection:GetDetectedItemByIndex(Index)
+local TargetSetUnit=self.Detection:GetDetectedSet(DetectedItem)
 local MarkingCount=0
 local MarkedTypes={}
 local ReportTypes=REPORT:New()
 local ReportLaserCodes=REPORT:New()
-TargetSetUnit:Flush()
+TargetSetUnit:Flush(self)
 for TargetUnit,RecceData in pairs(self.Recces)do
 local Recce=RecceData
 self:F({TargetUnit=TargetUnit,Recce=Recce:GetName()})
@@ -20255,7 +20256,7 @@ if TargetUnit:IsAlive()then
 local Recce=self.Recces[TargetUnit]
 if not Recce then
 self:F("Lasing...")
-self.RecceSet:Flush()
+self.RecceSet:Flush(self)
 for RecceGroupID,RecceGroup in pairs(self.RecceSet:GetSet())do
 for UnitID,UnitData in pairs(RecceGroup:GetUnits()or{})do
 local RecceUnit=UnitData
@@ -20334,7 +20335,8 @@ local CC=self.CC:GetPositionable()
 if CC then
 CC:MessageToSetGroup("Stopped lasing.",5,self.AttackSet,self.DesignateName)
 end
-local TargetSetUnit=self.Detection:GetDetectedSet(Index)
+local DetectedItem=self.Detection:GetDetectedItemByIndex(Index)
+local TargetSetUnit=self.Detection:GetDetectedSet(DetectedItem)
 local Recces=self.Recces
 for TargetID,RecceData in pairs(Recces)do
 local Recce=RecceData
@@ -20348,7 +20350,8 @@ self.Designating[Index]=string.gsub(self.Designating[Index],"L","")
 self:SetDesignateMenu()
 end
 function DESIGNATE:onafterSmoke(From,Event,To,Index,Color)
-local TargetSetUnit=self.Detection:GetDetectedSet(Index)
+local DetectedItem=self.Detection:GetDetectedItemByIndex(Index)
+local TargetSetUnit=self.Detection:GetDetectedSet(DetectedItem)
 local TargetSetUnitCount=TargetSetUnit:Count()
 local MarkedCount=0
 TargetSetUnit:ForEachUnitPerThreatLevel(10,0,
@@ -20374,7 +20377,8 @@ end
 )
 end
 function DESIGNATE:onafterIlluminate(From,Event,To,Index)
-local TargetSetUnit=self.Detection:GetDetectedSet(Index)
+local DetectedItem=self.Detection:GetDetectedItemByIndex(Index)
+local TargetSetUnit=self.Detection:GetDetectedSet(DetectedItem)
 local TargetUnit=TargetSetUnit:GetFirst()
 if TargetUnit then
 local RecceGroup=self.RecceSet:FindNearestGroupFromPointVec2(TargetUnit:GetPointVec2())
@@ -24426,9 +24430,9 @@ end
 end
 function AI_BALANCER:onenterDestroying(SetGroup,From,Event,To,ClientName,AIGroup)
 AIGroup:Destroy()
-SetGroup:Flush()
+SetGroup:Flush(self)
 SetGroup:Remove(ClientName)
-SetGroup:Flush()
+SetGroup:Flush(self)
 end
 function AI_BALANCER:onenterReturning(SetGroup,From,Event,To,AIGroup)
 local AIGroupTemplate=AIGroup:GetTemplate()
@@ -25936,7 +25940,7 @@ local DetectedSet=DetectedItem.Set
 local DetectedCount=DetectedSet:Count()
 local DetectedZone=DetectedItem.Zone
 self:F({"Target ID",DetectedItem.ItemID})
-DetectedSet:Flush()
+DetectedSet:Flush(self)
 local DetectedID=DetectedItem.ID
 local DetectionIndex=DetectedItem.Index
 local DetectedItemChanged=DetectedItem.Changed
@@ -26985,7 +26989,7 @@ return self
 end
 function AI_FORMATION:onafterFormationLine(FollowGroupSet,From,Event,To,XStart,XSpace,YStart,YSpace,ZStart,ZSpace)
 self:F({FollowGroupSet,From,Event,To,XStart,XSpace,YStart,YSpace,ZStart,ZSpace})
-FollowGroupSet:Flush()
+FollowGroupSet:Flush(self)
 local FollowSet=FollowGroupSet:GetSet()
 local i=0
 for FollowID,FollowGroup in pairs(FollowSet)do
@@ -28315,7 +28319,7 @@ self:F({IsGroupAssigned=IsGroupAssigned})
 if IsGroupAssigned then
 local PlayerName=PlayerGroup:GetUnit(1):GetPlayerName()
 self:UnAssignFromGroup(PlayerGroup)
-PlayerGroups:Flush()
+PlayerGroups:Flush(self)
 local IsRemaining=false
 for GroupName,AssignedGroup in pairs(PlayerGroups:GetSet()or{})do
 if self:IsGroupAssigned(AssignedGroup)==true then
@@ -28345,7 +28349,7 @@ if IsGroupAssigned then
 local PlayerName=PlayerGroup:GetUnit(1):GetPlayerName()
 self:MessageToGroups(PlayerName.." crashed! ")
 self:UnAssignFromGroup(PlayerGroup)
-PlayerGroups:Flush()
+PlayerGroups:Flush(self)
 local IsRemaining=false
 for GroupName,AssignedGroup in pairs(PlayerGroups:GetSet()or{})do
 if self:IsGroupAssigned(AssignedGroup)==true then
