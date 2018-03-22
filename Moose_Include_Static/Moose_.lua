@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:36:51.0000000Z-1a5d605e42373d11a03c687abcec50b171c600ae ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-22T04:02:42.0000000Z-bb2fcfbc776e90dec8fc45571db771afe830f819 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -27657,7 +27657,7 @@ self:HandleEvent(EVENTS.Birth,
 function(self,EventData)
 if EventData.IniObjectCategory==1 then
 local EventGroup=GROUP:Find(EventData.IniDCSGroup)
-self:E({CommandCenter=self:GetName(),EventGroup=EventGroup,HasGroup=self:HasGroup(EventGroup),EventData=EventData})
+self:E({CommandCenter=self:GetName(),EventGroup=EventGroup:GetName(),HasGroup=self:HasGroup(EventGroup),EventData=EventData})
 if EventGroup and self:HasGroup(EventGroup)then
 local CommandCenterMenu=MENU_GROUP:New(EventGroup,"Command Center ("..self:GetName()..")")
 local MenuReporting=MENU_GROUP:New(EventGroup,"Missions Reports",CommandCenterMenu)
@@ -28082,30 +28082,6 @@ local Name=self:GetText()
 local Status="<"..self:GetState()..">"
 Report:Add(string.format('%s - %s - Mission Briefing Report',Name,Status))
 Report:Add(self.MissionBriefing)
-return Report:Text()
-end
-function MISSION:ReportSummary()
-local Report=REPORT:New()
-local Name=self:GetText()
-local Status="<"..self:GetState()..">"
-Report:Add(string.format('%s - Status "%s"',Name,Status))
-local TaskTypes=self:GetTaskTypes()
-Report:Add(string.format(" - Task Types: %s",table.concat(TaskTypes,", ")))
-local TaskStatusList={"Planned","Assigned","Success","Hold","Cancelled","Aborted","Failed"}
-for TaskStatusID,TaskStatus in pairs(TaskStatusList)do
-local TaskCount=0
-local TaskPlayerCount=0
-for TaskID,Task in pairs(self:GetTasks())do
-local Task=Task
-if Task:Is(TaskStatus)then
-TaskCount=TaskCount+1
-TaskPlayerCount=TaskPlayerCount+Task:GetPlayerCount()
-end
-end
-if TaskCount>0 then
-Report:Add(string.format(" - %02d %s Tasks (%dp)",TaskCount,TaskStatus,TaskPlayerCount))
-end
-end
 return Report:Text()
 end
 function MISSION:ReportPlayersPerTask(ReportGroup)
@@ -28857,6 +28833,7 @@ end
 end
 do
 function TASK:ReportSummary(ReportGroup)
+self:UpdateTaskInfo(self.DetectedItem)
 local Report=REPORT:New()
 Report:Add("Task "..self:GetName())
 Report:Add("State: <"..self:GetState()..">")
@@ -29904,16 +29881,19 @@ local TargetSetUnit=self:EvaluateENGAGE(DetectedItem)
 if TargetSetUnit then
 Task=TASK_A2A_ENGAGE:New(Mission,self.SetGroup,string.format("ENGAGE.%03d",DetectedID),TargetSetUnit)
 Task:SetDetection(Detection,DetectedItem)
+Task:UpdateTaskInfo(DetectedItem)
 else
 local TargetSetUnit=self:EvaluateINTERCEPT(DetectedItem)
 if TargetSetUnit then
 Task=TASK_A2A_INTERCEPT:New(Mission,self.SetGroup,string.format("INTERCEPT.%03d",DetectedID),TargetSetUnit)
 Task:SetDetection(Detection,DetectedItem)
+Task:UpdateTaskInfo(DetectedItem)
 else
 local TargetSetUnit=self:EvaluateSWEEP(DetectedItem)
 if TargetSetUnit then
 Task=TASK_A2A_SWEEP:New(Mission,self.SetGroup,string.format("SWEEP.%03d",DetectedID),TargetSetUnit)
 Task:SetDetection(Detection,DetectedItem)
+Task:UpdateTaskInfo(DetectedItem)
 end
 end
 end

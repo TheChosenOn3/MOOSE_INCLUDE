@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-21T23:36:51.0000000Z-1a5d605e42373d11a03c687abcec50b171c600ae ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-22T04:02:42.0000000Z-bb2fcfbc776e90dec8fc45571db771afe830f819 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -61604,7 +61604,7 @@ function COMMANDCENTER:New( CommandCenterPositionable, CommandCenterName )
     function( self, EventData )
       if EventData.IniObjectCategory == 1 then
         local EventGroup = GROUP:Find( EventData.IniDCSGroup )
-        self:E( { CommandCenter = self:GetName(), EventGroup = EventGroup, HasGroup = self:HasGroup( EventGroup ), EventData = EventData } )
+        self:E( { CommandCenter = self:GetName(), EventGroup = EventGroup:GetName(), HasGroup = self:HasGroup( EventGroup ), EventData = EventData } )
         if EventGroup and self:HasGroup( EventGroup ) then
           local CommandCenterMenu = MENU_GROUP:New( EventGroup, "Command Center (" .. self:GetName() .. ")" )
           local MenuReporting = MENU_GROUP:New( EventGroup, "Missions Reports", CommandCenterMenu )
@@ -62717,57 +62717,57 @@ function MISSION:ReportBriefing()
 end
 
 
---- Create a status report of the Mission.
--- This reports provides a one liner of the mission status. It indicates how many players and how many Tasks.
--- 
---     Mission "<MissionName>" - Status "<MissionStatus>"
---      - Task Types: <TaskType>, <TaskType>
---      - <xx> Planned Tasks (xp)
---      - <xx> Assigned Tasks(xp)
---      - <xx> Success Tasks (xp)
---      - <xx> Hold Tasks (xp)
---      - <xx> Cancelled Tasks (xp)
---      - <xx> Aborted Tasks (xp)
---      - <xx> Failed Tasks (xp)
--- 
--- @param #MISSION self
--- @return #string
-function MISSION:ReportSummary()
-
-  local Report = REPORT:New()
-
-  -- List the name of the mission.
-  local Name = self:GetText()
-  
-  -- Determine the status of the mission.
-  local Status = "<" .. self:GetState() .. ">"
-
-  Report:Add( string.format( '%s - Status "%s"', Name, Status ) )
-  
-  local TaskTypes = self:GetTaskTypes()
-  
-  Report:Add( string.format( " - Task Types: %s", table.concat(TaskTypes, ", " ) ) )
-  
-  local TaskStatusList = { "Planned", "Assigned", "Success", "Hold", "Cancelled", "Aborted", "Failed" }
-  
-  for TaskStatusID, TaskStatus in pairs( TaskStatusList ) do
-    local TaskCount = 0
-    local TaskPlayerCount = 0 
-    -- Determine how many tasks are remaining.
-    for TaskID, Task in pairs( self:GetTasks() ) do
-      local Task = Task -- Tasking.Task#TASK
-      if Task:Is( TaskStatus ) then
-        TaskCount = TaskCount + 1
-        TaskPlayerCount = TaskPlayerCount + Task:GetPlayerCount()
-      end
-    end
-    if TaskCount > 0 then
-      Report:Add( string.format( " - %02d %s Tasks (%dp)", TaskCount, TaskStatus, TaskPlayerCount ) )
-    end
-  end
-
-  return Report:Text()
-end
+----- Create a status report of the Mission.
+---- This reports provides a one liner of the mission status. It indicates how many players and how many Tasks.
+---- 
+----     Mission "<MissionName>" - Status "<MissionStatus>"
+----      - Task Types: <TaskType>, <TaskType>
+----      - <xx> Planned Tasks (xp)
+----      - <xx> Assigned Tasks(xp)
+----      - <xx> Success Tasks (xp)
+----      - <xx> Hold Tasks (xp)
+----      - <xx> Cancelled Tasks (xp)
+----      - <xx> Aborted Tasks (xp)
+----      - <xx> Failed Tasks (xp)
+---- 
+---- @param #MISSION self
+---- @return #string
+--function MISSION:ReportSummary()
+--
+--  local Report = REPORT:New()
+--
+--  -- List the name of the mission.
+--  local Name = self:GetText()
+--  
+--  -- Determine the status of the mission.
+--  local Status = "<" .. self:GetState() .. ">"
+--
+--  Report:Add( string.format( '%s - Status "%s"', Name, Status ) )
+--  
+--  local TaskTypes = self:GetTaskTypes()
+--  
+--  Report:Add( string.format( " - Task Types: %s", table.concat(TaskTypes, ", " ) ) )
+--  
+--  local TaskStatusList = { "Planned", "Assigned", "Success", "Hold", "Cancelled", "Aborted", "Failed" }
+--  
+--  for TaskStatusID, TaskStatus in pairs( TaskStatusList ) do
+--    local TaskCount = 0
+--    local TaskPlayerCount = 0 
+--    -- Determine how many tasks are remaining.
+--    for TaskID, Task in pairs( self:GetTasks() ) do
+--      local Task = Task -- Tasking.Task#TASK
+--      if Task:Is( TaskStatus ) then
+--        TaskCount = TaskCount + 1
+--        TaskPlayerCount = TaskPlayerCount + Task:GetPlayerCount()
+--      end
+--    end
+--    if TaskCount > 0 then
+--      Report:Add( string.format( " - %02d %s Tasks (%dp)", TaskCount, TaskStatus, TaskPlayerCount ) )
+--    end
+--  end
+--
+--  return Report:Text()
+--end
 
 
 --- Create an active player report of the Mission.
@@ -64456,6 +64456,8 @@ do -- Reporting
 -- @return #string
 function TASK:ReportSummary( ReportGroup ) 
 
+  self:UpdateTaskInfo( self.DetectedItem )
+  
   local Report = REPORT:New()
   
   -- List the name of the Task.
@@ -67241,16 +67243,19 @@ do -- TASK_A2A_DISPATCHER
           if TargetSetUnit then
             Task = TASK_A2A_ENGAGE:New( Mission, self.SetGroup, string.format( "ENGAGE.%03d", DetectedID ), TargetSetUnit )
             Task:SetDetection( Detection, DetectedItem )
+            Task:UpdateTaskInfo( DetectedItem )
           else
             local TargetSetUnit = self:EvaluateINTERCEPT( DetectedItem ) -- Returns a SetUnit if there are targets to be INTERCEPTed...
             if TargetSetUnit then
               Task = TASK_A2A_INTERCEPT:New( Mission, self.SetGroup, string.format( "INTERCEPT.%03d", DetectedID ), TargetSetUnit )
               Task:SetDetection( Detection, DetectedItem )
+              Task:UpdateTaskInfo( DetectedItem )
             else
               local TargetSetUnit = self:EvaluateSWEEP( DetectedItem ) -- Returns a SetUnit 
               if TargetSetUnit then
                 Task = TASK_A2A_SWEEP:New( Mission, self.SetGroup, string.format( "SWEEP.%03d", DetectedID ), TargetSetUnit )
                 Task:SetDetection( Detection, DetectedItem )
+                Task:UpdateTaskInfo( DetectedItem )
               end  
             end
           end
