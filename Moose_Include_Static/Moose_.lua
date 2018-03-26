@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-22T18:59:26.0000000Z-0af967058f7beb76e27430307aeab3353e35da55 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-24T04:34:33.0000000Z-1c6cc2393d8906d346c2f2d9678624fda267b21c ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -3205,7 +3205,7 @@ if Event.TgtObjectCategory==Object.Category.STATIC then
 Event.TgtDCSUnit=Event.target
 Event.TgtDCSUnitName=Event.TgtDCSUnit:getName()
 Event.TgtUnitName=Event.TgtDCSUnitName
-Event.TgtUnit=STATIC:FindByName(Event.TgtDCSUnitName)
+Event.TgtUnit=STATIC:FindByName(Event.TgtDCSUnitName,false)
 Event.TgtCoalition=Event.TgtDCSUnit:getCoalition()
 Event.TgtCategory=Event.TgtDCSUnit:getDesc().category
 Event.TgtTypeName=Event.TgtDCSUnit:getTypeName()
@@ -19179,6 +19179,9 @@ end
 function DETECTION_BASE:GetDetectedItems()
 return self.DetectedItems
 end
+function DETECTION_BASE:GetDetectedItemsByIndex()
+return self.DetectedItemsByIndex
+end
 function DETECTION_BASE:GetDetectedItemsCount()
 local DetectedCount=self.DetectedItemCount
 return DetectedCount
@@ -19356,7 +19359,7 @@ return table.concat(MT,"\n")
 end
 function DETECTION_UNITS:CreateDetectionItems()
 self:F2(#self.DetectedObjects)
-for DetectedItemID,DetectedItem in pairs(self.DetectedItems)do
+for DetectedItemKey,DetectedItem in pairs(self.DetectedItems)do
 local DetectedItemSet=DetectedItem.Set
 for DetectedUnitName,DetectedUnitData in pairs(DetectedItemSet:GetSet())do
 local DetectedUnit=DetectedUnitData
@@ -19380,6 +19383,9 @@ else
 self:AddChangeUnit(DetectedItem,"RU",DetectedUnitName)
 DetectedItemSet:Remove(DetectedUnitName)
 end
+end
+if DetectedItemSet:Count()==0 then
+self:RemoveDetectedItem(DetectedItemKey)
 end
 end
 for DetectedUnitName,DetectedObjectData in pairs(self.DetectedObjects)do
@@ -19511,7 +19517,7 @@ return table.concat(MT,"\n")
 end
 function DETECTION_TYPES:CreateDetectionItems()
 self:F2(#self.DetectedObjects)
-for DetectedItemID,DetectedItem in pairs(self.DetectedItems)do
+for DetectedItemKey,DetectedItem in pairs(self.DetectedItems)do
 local DetectedItemSet=DetectedItem.Set
 local DetectedTypeName=DetectedItem.TypeName
 for DetectedUnitName,DetectedUnitData in pairs(DetectedItemSet:GetSet())do
@@ -19526,6 +19532,9 @@ else
 self:AddChangeUnit(DetectedItem,"RU",DetectedUnitName)
 DetectedItemSet:Remove(DetectedUnitName)
 end
+end
+if DetectedItemSet:Count()==0 then
+self:RemoveDetectedItem(DetectedItemKey)
 end
 end
 for DetectedUnitName,DetectedObjectData in pairs(self.DetectedObjects)do
@@ -20004,13 +20013,13 @@ self:SetDesignateMenu()
 return self
 end
 function DESIGNATE:DesignationScope()
-local DetectedItems=self.Detection:GetDetectedItems()
+local DetectedItems=self.Detection:GetDetectedItemsByIndex()
 local DetectedItemCount=0
 for DesignateIndex,Designating in pairs(self.Designating)do
-local DetectedItem=DetectedItems[DesignateIndex]
+local DetectedItem=self.Detection:GetDetectedItemByIndex(DesignateIndex)
 if DetectedItem then
 local IsDetected=self.Detection:IsDetectedItemDetected(DetectedItem)
-self:F({IsDetected=IsDetected,DetectedItem})
+self:F({IsDetected=IsDetected})
 if IsDetected==false then
 self:F("Removing")
 self.Designating[DesignateIndex]=nil
@@ -20054,7 +20063,7 @@ end
 return self
 end
 function DESIGNATE:CoordinateLase()
-local DetectedItems=self.Detection:GetDetectedItems()
+local DetectedItems=self.Detection:GetDetectedItemsByIndex()
 for DesignateIndex,Designating in pairs(self.Designating)do
 local DetectedItem=DetectedItems[DesignateIndex]
 if DetectedItem then
@@ -20070,7 +20079,7 @@ self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 if self.FlashStatusMenu[AttackGroup]or(MenuAttackGroup and(AttackGroup:GetName()==MenuAttackGroup:GetName()))then
 local DetectedReport=REPORT:New("Targets ready for Designation:")
-local DetectedItems=self.Detection:GetDetectedItems()
+local DetectedItems=self.Detection:GetDetectedItemsByIndex()
 for DesignateIndex,Designating in pairs(self.Designating)do
 local DetectedItem=DetectedItems[DesignateIndex]
 if DetectedItem then
