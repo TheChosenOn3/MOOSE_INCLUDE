@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-27T11:31:45.0000000Z-965ed5f6f4a72ccb6730b84e597d5db491215823 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2018-03-27T11:32:38.0000000Z-738e3118b94175cc26782517f026da90648e82d0 ***')
 env.info('*** MOOSE STATIC INCLUDE START *** ')
 env.setErrorMessageBoxEnabled(false)
 routines={}
@@ -5706,12 +5706,14 @@ return Objects
 end
 function SET_BASE:Remove(ObjectName)
 local Object=self.Set[ObjectName]
-self:F3({ObjectName,Object})
+self:F({ObjectName,Object})
 if Object then
 for Index,Key in ipairs(self.Index)do
+self:F({Index=Index,Key=Key})
 if Key==ObjectName then
 table.remove(self.Index,Index)
 self.Set[ObjectName]=nil
+self:Flush(self)
 break
 end
 end
@@ -7577,7 +7579,7 @@ end
 function SET_AIRBASE:RemoveAirbasesByName(RemoveAirbaseNames)
 local RemoveAirbaseNamesArray=(type(RemoveAirbaseNames)=="table")and RemoveAirbaseNames or{RemoveAirbaseNames}
 for RemoveAirbaseID,RemoveAirbaseName in pairs(RemoveAirbaseNamesArray)do
-self:Remove(RemoveAirbaseName.AirbaseName)
+self:Remove(RemoveAirbaseName)
 end
 return self
 end
@@ -7611,9 +7613,25 @@ return self
 end
 function SET_AIRBASE:FilterStart()
 if _DATABASE then
-self:_FilterStart()
+self:HandleEvent(EVENTS.BaseCaptured)
+for ObjectName,Object in pairs(self.Database)do
+if self:IsIncludeObject(Object)then
+self:Add(ObjectName,Object)
+else
+self:RemoveAirbasesByName(ObjectName)
+end
+end
 end
 return self
+end
+function SET_AIRBASE:OnEventBaseCaptured(EventData)
+for ObjectName,Object in pairs(self.Database)do
+if self:IsIncludeObject(Object)then
+self:Add(ObjectName,Object)
+else
+self:RemoveAirbasesByName(ObjectName)
+end
+end
 end
 function SET_AIRBASE:AddInDatabase(Event)
 self:F3({Event})
