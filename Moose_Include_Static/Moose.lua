@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-27T11:32:38.0000000Z-738e3118b94175cc26782517f026da90648e82d0 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-27T13:08:00.0000000Z-81822f25bd9ab8750d30e9f430a75197953bb0d6 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -10933,11 +10933,8 @@ function SET_BASE:Remove( ObjectName )
 
   local Object = self.Set[ObjectName]
   
-  self:F( { ObjectName, Object } )
-
   if Object then  
     for Index, Key in ipairs( self.Index ) do
-      self:F( { Index = Index, Key = Key } )
       if Key == ObjectName then
         table.remove( self.Index, Index )
         self.Set[ObjectName] = nil
