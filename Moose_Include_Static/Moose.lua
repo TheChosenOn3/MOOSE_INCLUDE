@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-30T09:33:13.0000000Z-f646bb8e942c433161d37d45eb4dd1d8ffdbc8e2 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-03-30T09:44:46.0000000Z-fb316b95f1b1c8720499944b1c71317f7758cb79 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -48206,7 +48206,7 @@ RANGE.id="RANGE | "
 
 --- Range script version.
 -- @field #number version
-RANGE.version="1.0.2"
+RANGE.version="1.0.3"
 
 --TODO list
 --TODO: Add statics for strafe pits.
@@ -49552,6 +49552,9 @@ end
 function RANGE:_GetAmmo(unitname)
   self:F(unitname)
   
+  -- Init counter.
+  local ammo=0
+  
   local unit, playername = self:_GetPlayerUnitAndName(unitname)
   
   if unit and playername then
@@ -49559,7 +49562,7 @@ function RANGE:_GetAmmo(unitname)
     local has_ammo=false
     
     local ammotable=unit:GetAmmo()
-    self:E({ammotable=ammotable})
+    self:T2({ammotable=ammotable})
     
     if ammotable ~= nil then
     
@@ -49573,16 +49576,19 @@ function RANGE:_GetAmmo(unitname)
         
         -- We are specifically looking for shells here.
         if string.match(Tammo, "shell") then
+        
+          -- Add up all shells
+          ammo=ammo+Nammo
+        
           local text=string.format("Player %s has %d rounds ammo of type %s", playername, Nammo, Tammo)
           self:T(RANGE.id..text)
           MESSAGE:New(text, 10):ToAllIf(self.Debug)         
-          return Nammo
         end
       end
     end
   end
       
-  return 0
+  return ammo
 end
 
 --- Mark targets on F10 map.
