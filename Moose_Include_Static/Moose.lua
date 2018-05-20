@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-04-07T21:49:39.0000000Z-ce883c99bcba0efe251f4df78a0e95b7fc72bbc7 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-04-14T05:30:11.0000000Z-38622fa8d5b66376cedd502194ca7d149508a99b ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -5186,6 +5186,10 @@ EVENTS = {
   PlayerComment =     world.event.S_EVENT_PLAYER_COMMENT,
   ShootingStart =     world.event.S_EVENT_SHOOTING_START,
   ShootingEnd =       world.event.S_EVENT_SHOOTING_END,
+  MarkAdded =         world.event.S_EVENT_MARK_ADDED,
+  MarkChange =        world.event.S_EVENT_MARK_CHANGE,
+  MarkRemoved =       world.event.S_EVENT_MARK_REMOVED,
+  ShootingEnd =       world.event.S_EVENT_SHOOTING_END,
   NewCargo =          world.event.S_EVENT_NEW_CARGO,
   DeleteCargo =       world.event.S_EVENT_DELETE_CARGO,
 }
@@ -5374,6 +5378,24 @@ local _EVENTMETA = {
      Side = "I",
      Event = "OnEventShootingEnd",
      Text = "S_EVENT_SHOOTING_END" 
+   },
+   [world.event.S_EVENT_MARK_ADDED] = {
+     Order = 1,
+     Side = "I",
+     Event = "OnEventMarkAdded",
+     Text = "S_EVENT_MARK_ADDED" 
+   },
+   [world.event.S_EVENT_MARK_CHANGE] = {
+     Order = 1,
+     Side = "I",
+     Event = "OnEventMarkChange",
+     Text = "S_EVENT_MARK_CHANGE" 
+   },
+   [world.event.S_EVENT_MARK_REMOVED] = {
+     Order = 1,
+     Side = "I",
+     Event = "OnEventMarkRemoved",
+     Text = "S_EVENT_MARK_REMOVED" 
    },
    [EVENTS.NewCargo] = {
      Order = 1,
