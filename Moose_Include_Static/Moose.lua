@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-02T16:21:31.0000000Z-edff046b2adc50e46f5528d39ef8df6c0c986f2f ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-02T17:39:10.0000000Z-191fa690deb4ecf9d8c9a75531f32422d99eb546 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -66158,7 +66158,7 @@ end
 -- ### Co-author: FlightControl (cargo dispatcher classes)
 --
 -- @module Functional.Warehouse
--- @image MOOSE.JPG
+-- @image Warehouse.JPG
 
 --- WAREHOUSE class.
 -- @type WAREHOUSE
@@ -66193,8 +66193,6 @@ end
 --- Have your assets at the right place at the right time - or not!
 --
 -- ===
---
--- ![Banner Image](..\Presentations\WAREHOUSE\Warehouse_Main.png)
 --
 -- # The Warehouse Concept
 -- 
