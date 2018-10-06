@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-02T17:39:10.0000000Z-191fa690deb4ecf9d8c9a75531f32422d99eb546 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-02T19:52:00.0000000Z-1b0f9d0a858b1e0b9e33245e41da9c505e0b9071 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -13982,92 +13982,98 @@ do -- SET_UNIT
   -- @return #SET_UNIT self
   function SET_UNIT:IsIncludeObject( MUnit )
     self:F2( MUnit )
-    local MUnitInclude = true
+
+    local MUnitInclude = false
+
+    if MUnit:IsAlive() ~= nil then
   
-    if self.Filter.Active ~= nil then
-      local MUnitActive = false
-      if self.Filter.Active == false or ( self.Filter.Active == true and MUnit:IsActive() == true ) then
-        MUnitActive = true
-      end
-      MUnitInclude = MUnitInclude and MUnitActive
-    end
+      MUnitInclude = true
   
-    if self.Filter.Coalitions then
-      local MUnitCoalition = false
-      for CoalitionID, CoalitionName in pairs( self.Filter.Coalitions ) do
-        self:F( { "Coalition:", MUnit:GetCoalition(), self.FilterMeta.Coalitions[CoalitionName], CoalitionName } )
-        if self.FilterMeta.Coalitions[CoalitionName] and self.FilterMeta.Coalitions[CoalitionName] == MUnit:GetCoalition() then
-          MUnitCoalition = true
+      if self.Filter.Active ~= nil then
+        local MUnitActive = false
+        if self.Filter.Active == false or ( self.Filter.Active == true and MUnit:IsActive() == true ) then
+          MUnitActive = true
         end
+        MUnitInclude = MUnitInclude and MUnitActive
       end
-      MUnitInclude = MUnitInclude and MUnitCoalition
-    end
     
-    if self.Filter.Categories then
-      local MUnitCategory = false
-      for CategoryID, CategoryName in pairs( self.Filter.Categories ) do
-        self:T3( { "Category:", MUnit:GetDesc().category, self.FilterMeta.Categories[CategoryName], CategoryName } )
-        if self.FilterMeta.Categories[CategoryName] and self.FilterMeta.Categories[CategoryName] == MUnit:GetDesc().category then
-          MUnitCategory = true
-        end
-      end
-      MUnitInclude = MUnitInclude and MUnitCategory
-    end
-    
-    if self.Filter.Types then
-      local MUnitType = false
-      for TypeID, TypeName in pairs( self.Filter.Types ) do
-        self:T3( { "Type:", MUnit:GetTypeName(), TypeName } )
-        if TypeName == MUnit:GetTypeName() then
-          MUnitType = true
-        end
-      end
-      MUnitInclude = MUnitInclude and MUnitType
-    end
-    
-    if self.Filter.Countries then
-      local MUnitCountry = false
-      for CountryID, CountryName in pairs( self.Filter.Countries ) do
-        self:T3( { "Country:", MUnit:GetCountry(), CountryName } )
-        if country.id[CountryName] == MUnit:GetCountry() then
-          MUnitCountry = true
-        end
-      end
-      MUnitInclude = MUnitInclude and MUnitCountry
-    end
-  
-    if self.Filter.UnitPrefixes then
-      local MUnitPrefix = false
-      for UnitPrefixId, UnitPrefix in pairs( self.Filter.UnitPrefixes ) do
-        self:T3( { "Prefix:", string.find( MUnit:GetName(), UnitPrefix, 1 ), UnitPrefix } )
-        if string.find( MUnit:GetName(), UnitPrefix, 1 ) then
-          MUnitPrefix = true
-        end
-      end
-      MUnitInclude = MUnitInclude and MUnitPrefix
-    end
-  
-    if self.Filter.RadarTypes then
-      local MUnitRadar = false
-      for RadarTypeID, RadarType in pairs( self.Filter.RadarTypes ) do
-        self:T3( { "Radar:", RadarType } )
-        if MUnit:HasSensors( Unit.SensorType.RADAR, RadarType ) == true then
-          if MUnit:GetRadar() == true then -- This call is necessary to evaluate the SEAD capability.
-            self:T3( "RADAR Found" )
+      if self.Filter.Coalitions then
+        local MUnitCoalition = false
+        for CoalitionID, CoalitionName in pairs( self.Filter.Coalitions ) do
+          self:F( { "Coalition:", MUnit:GetCoalition(), self.FilterMeta.Coalitions[CoalitionName], CoalitionName } )
+          if self.FilterMeta.Coalitions[CoalitionName] and self.FilterMeta.Coalitions[CoalitionName] == MUnit:GetCoalition() then
+            MUnitCoalition = true
           end
-          MUnitRadar = true
         end
+        MUnitInclude = MUnitInclude and MUnitCoalition
       end
-      MUnitInclude = MUnitInclude and MUnitRadar
-    end
-  
-    if self.Filter.SEAD then
-      local MUnitSEAD = false
-      if MUnit:HasSEAD() == true then
-        self:T3( "SEAD Found" )
-        MUnitSEAD = true
+      
+      if self.Filter.Categories then
+        local MUnitCategory = false
+        for CategoryID, CategoryName in pairs( self.Filter.Categories ) do
+          self:T3( { "Category:", MUnit:GetDesc().category, self.FilterMeta.Categories[CategoryName], CategoryName } )
+          if self.FilterMeta.Categories[CategoryName] and self.FilterMeta.Categories[CategoryName] == MUnit:GetDesc().category then
+            MUnitCategory = true
+          end
+        end
+        MUnitInclude = MUnitInclude and MUnitCategory
       end
-      MUnitInclude = MUnitInclude and MUnitSEAD
+      
+      if self.Filter.Types then
+        local MUnitType = false
+        for TypeID, TypeName in pairs( self.Filter.Types ) do
+          self:T3( { "Type:", MUnit:GetTypeName(), TypeName } )
+          if TypeName == MUnit:GetTypeName() then
+            MUnitType = true
+          end
+        end
+        MUnitInclude = MUnitInclude and MUnitType
+      end
+      
+      if self.Filter.Countries then
+        local MUnitCountry = false
+        for CountryID, CountryName in pairs( self.Filter.Countries ) do
+          self:T3( { "Country:", MUnit:GetCountry(), CountryName } )
+          if country.id[CountryName] == MUnit:GetCountry() then
+            MUnitCountry = true
+          end
+        end
+        MUnitInclude = MUnitInclude and MUnitCountry
+      end
+    
+      if self.Filter.UnitPrefixes then
+        local MUnitPrefix = false
+        for UnitPrefixId, UnitPrefix in pairs( self.Filter.UnitPrefixes ) do
+          self:T3( { "Prefix:", string.find( MUnit:GetName(), UnitPrefix, 1 ), UnitPrefix } )
+          if string.find( MUnit:GetName(), UnitPrefix, 1 ) then
+            MUnitPrefix = true
+          end
+        end
+        MUnitInclude = MUnitInclude and MUnitPrefix
+      end
+    
+      if self.Filter.RadarTypes then
+        local MUnitRadar = false
+        for RadarTypeID, RadarType in pairs( self.Filter.RadarTypes ) do
+          self:T3( { "Radar:", RadarType } )
+          if MUnit:HasSensors( Unit.SensorType.RADAR, RadarType ) == true then
+            if MUnit:GetRadar() == true then -- This call is necessary to evaluate the SEAD capability.
+              self:T3( "RADAR Found" )
+            end
+            MUnitRadar = true
+          end
+        end
+        MUnitInclude = MUnitInclude and MUnitRadar
+      end
+    
+      if self.Filter.SEAD then
+        local MUnitSEAD = false
+        if MUnit:HasSEAD() == true then
+          self:T3( "SEAD Found" )
+          MUnitSEAD = true
+        end
+        MUnitInclude = MUnitInclude and MUnitSEAD
+      end
     end
   
     self:T2( MUnitInclude )
@@ -18166,9 +18172,53 @@ do -- COORDINATE
     return surface
   end
 
+  --- Checks if the surface type is on land.
+  -- @param #COORDINATE self
+  -- @return #boolean If true, the surface type at the coordinate is land.
+  function COORDINATE:IsSurfaceTypeLand()
+    return self:GetSurfaceType()==land.SurfaceType.LAND
+  end
+
+  --- Checks if the surface type is road.
+  -- @param #COORDINATE self
+  -- @return #boolean If true, the surface type at the coordinate is land.
+  function COORDINATE:IsSurfaceTypeLand()
+    return self:GetSurfaceType()==land.SurfaceType.LAND
+  end
+
+
+  --- Checks if the surface type is road.
+  -- @param #COORDINATE self
+  -- @return #boolean If true, the surface type at the coordinate is a road.
+  function COORDINATE:IsSurfaceTypeRoad()
+    return self:GetSurfaceType()==land.SurfaceType.ROAD
+  end
+
+  --- Checks if the surface type is runway.
+  -- @param #COORDINATE self
+  -- @return #boolean If true, the surface type at the coordinate is a runway or taxi way.
+  function COORDINATE:IsSurfaceTypeRunway()
+    return self:GetSurfaceType()==land.SurfaceType.RUNWAY
+  end
+
+  --- Checks if the surface type is shallow water.
+  -- @param #COORDINATE self
+  -- @return #boolean If true, the surface type at the coordinate is a shallow water.
+  function COORDINATE:IsSurfaceTypeShallowWater()
+    return self:GetSurfaceType()==land.SurfaceType.SHALLOW_WATER
+  end
+
+  --- Checks if the surface type is water.
+  -- @param #COORDINATE self
+  -- @return #boolean If true, the surface type at the coordinate is a deep water.
+  function COORDINATE:IsSurfaceTypeWater()
+    return self:GetSurfaceType()==land.SurfaceType.WATER
+  end
+
+
   --- Creates an explosion at the point of a certain intensity.
   -- @param #COORDINATE self
-  -- @param #number ExplosionIntensity
+  -- @param #number ExplosionIntensity Intensity of the explosion in kg TNT.
   function COORDINATE:Explosion( ExplosionIntensity )
     self:F2( { ExplosionIntensity } )
     trigger.action.explosion( self:GetVec3(), ExplosionIntensity )
@@ -24767,7 +24817,8 @@ end--- **Core** -- Management of SPOT logistics, that can be transported from an
 -- SPOT implements the DCS Spot class functionality, but adds additional luxury to be able to:
 -- 
 --   * Spot for a defined duration.
---   * wiggle the spot at the target.
+--   * Updates of laer spot position every 0.2 seconds for moving targets.
+--   * Wiggle the spot at the target.
 --   * Provide a @{Wrapper.Unit} as a target, instead of a point.
 --   * Implement a status machine, LaseOn, LaseOff.
 --
@@ -24811,7 +24862,8 @@ do
   --- Implements the target spotting or marking functionality, but adds additional luxury to be able to:
   -- 
   --   * Mark targets for a defined duration.
-  --   * wiggle the spot at the target.
+  --   * Updates of laer spot position every 0.2 seconds for moving targets.
+  --   * Wiggle the spot at the target.
   --   * Provide a @{Wrapper.Unit} as a target, instead of a point.
   --   * Implement a status machine, LaseOn, LaseOff.
   -- 
@@ -24847,9 +24899,7 @@ do
   
   --- SPOT Constructor.
   -- @param #SPOT self
-  -- @param Wrapper.Unit#UNIT Recce
-  -- @param #number LaserCode
-  -- @param #number Duration
+  -- @param Wrapper.Unit#UNIT Recce Unit that is lasing
   -- @return #SPOT
   function SPOT:New( Recce )
   
@@ -24877,12 +24927,17 @@ do
     --- LaseOn Trigger for SPOT
     -- @function [parent=#SPOT] LaseOn
     -- @param #SPOT self
+    -- @param Wrapper.Positionable#POSITIONABLE Target
+    -- @param #number LaserCode Laser code.
+    -- @param #number Duration Duration of lasing in seconds.
     
     --- LaseOn Asynchronous Trigger for SPOT
     -- @function [parent=#SPOT] __LaseOn
     -- @param #SPOT self
     -- @param #number Delay
-    
+    -- @param Wrapper.Positionable#POSITIONABLE Target
+    -- @param #number LaserCode Laser code.
+    -- @param #number Duration Duration of lasing in seconds.
     
     
     self:AddTransition( "On",  "Lasing", "On" )
@@ -24955,9 +25010,9 @@ do
   -- @param From
   -- @param Event
   -- @param To
-  -- @param Wrapper.Positionable#POSITIONABLE Target
-  -- @param #number LaserCode
-  -- @param #number Duration
+  -- @param Wrapper.Positionable#POSITIONABLE Target Unit that is being lased.
+  -- @param #number LaserCode Laser code.
+  -- @param #number Duration Duration of lasing in seconds.
   function SPOT:onafterLaseOn( From, Event, To, Target, LaserCode, Duration )
     self:F( { "LaseOn", Target, LaserCode, Duration } )
 
@@ -27226,10 +27281,8 @@ end
 -- @return #CONTROLLABLE self
 function CONTROLLABLE:StartUncontrolled(delay)
   if delay and delay>0 then
-    env.info(string.format("FF %s delayed start after %d seconds", self:GetName(), delay))
     SCHEDULER:New(nil, CONTROLLABLE.StartUncontrolled, {self}, delay)    
   else
-    env.info(string.format("FF %s instant start", self:GetName()))
     self:SetCommand({id='Start', params={}})
   end
   return self
@@ -27682,10 +27735,10 @@ end
 -- The unit / controllable will follow lead unit of another controllable, wingmens of both controllables will continue following their leaders. 
 -- The unit / controllable will also protect that controllable from threats of specified types.
 -- @param #CONTROLLABLE self
--- @param Wrapper.Controllable#CONTROLLABLE EscortControllable The controllable to be escorted.
+-- @param Wrapper.Controllable#CONTROLLABLE FollowControllable The controllable to be escorted.
 -- @param DCS#Vec3 Vec3 Position of the unit / lead unit of the controllable relative lead unit of another controllable in frame reference oriented by course of lead unit of another controllable. If another controllable is on land the unit / controllable will orbit around.
 -- @param #number LastWaypointIndex Detach waypoint of another controllable. Once reached the unit / controllable Follow task is finished.
--- @param #number EngagementDistanceMax Maximal distance from escorted controllable to threat. If the threat is already engaged by escort escort will disengage if the distance becomes greater than 1.5 * engagementDistMax. 
+-- @param #number EngagementDistance Maximal distance from escorted controllable to threat. If the threat is already engaged by escort escort will disengage if the distance becomes greater than 1.5 * engagementDistMax. 
 -- @param DCS#AttributeNameArray TargetTypes Array of AttributeName that is contains threat categories allowed to engage. 
 -- @return DCS#Task The DCS task structure.
 function CONTROLLABLE:TaskEscort( FollowControllable, Vec3, LastWaypointIndex, EngagementDistance, TargetTypes )
@@ -27707,6 +27760,8 @@ function CONTROLLABLE:TaskEscort( FollowControllable, Vec3, LastWaypointIndex, E
   if LastWaypointIndex then
     LastWaypointIndexFlag = true
   end
+  
+  TargetTypes=TargetTypes or {}
   
   local DCSTask
   DCSTask = { id = 'Escort',
@@ -39436,6 +39491,20 @@ function CLEANUP_AIRBASE:New( AirbaseNames )
   self:HandleEvent( EVENTS.PilotDead, self.__.OnEventCrash )
   self:HandleEvent( EVENTS.Dead, self.__.OnEventCrash )
   self:HandleEvent( EVENTS.Crash, self.__.OnEventCrash )
+  
+  for UnitName, Unit in pairs( _DATABASE.UNITS ) do
+    local Unit = Unit -- Wrapper.Unit#UNIT
+    if Unit:IsAlive() ~= nil then
+      if self:IsInAirbase( Unit:GetVec2() ) then
+        self:F( { UnitName = UnitName } )
+        self.CleanUpList[UnitName] = {}
+        self.CleanUpList[UnitName].CleanUpUnit = Unit
+        self.CleanUpList[UnitName].CleanUpGroup = Unit:GetGroup()
+        self.CleanUpList[UnitName].CleanUpGroupName = Unit:GetGroup():GetName()
+        self.CleanUpList[UnitName].CleanUpUnitName = Unit:GetName()
+      end
+    end
+  end
 	
 	return self
 end
@@ -39537,11 +39606,15 @@ end
 function CLEANUP_AIRBASE.__:OnEventBirth( EventData )
   self:F( { EventData } )
   
-  self.CleanUpList[EventData.IniDCSUnitName] = {}
-  self.CleanUpList[EventData.IniDCSUnitName].CleanUpUnit = EventData.IniUnit
-  self.CleanUpList[EventData.IniDCSUnitName].CleanUpGroup = EventData.IniGroup
-  self.CleanUpList[EventData.IniDCSUnitName].CleanUpGroupName = EventData.IniDCSGroupName
-  self.CleanUpList[EventData.IniDCSUnitName].CleanUpUnitName = EventData.IniDCSUnitName
+  if EventData.IniUnit:IsAlive() ~= nil then
+    if self:IsInAirbase( EventData.IniUnit:GetVec2() ) then
+      self.CleanUpList[EventData.IniDCSUnitName] = {}
+      self.CleanUpList[EventData.IniDCSUnitName].CleanUpUnit = EventData.IniUnit
+      self.CleanUpList[EventData.IniDCSUnitName].CleanUpGroup = EventData.IniGroup
+      self.CleanUpList[EventData.IniDCSUnitName].CleanUpGroupName = EventData.IniDCSGroupName
+      self.CleanUpList[EventData.IniDCSUnitName].CleanUpUnitName = EventData.IniDCSUnitName
+    end
+  end
 
 end
 
@@ -39673,45 +39746,50 @@ function CLEANUP_AIRBASE.__:CleanUpSchedule()
 		local CleanUpGroupName = CleanUpListData.CleanUpGroupName
 
 		if CleanUpUnit:IsAlive() ~= nil then
+		
+		  if self:IsInAirbase( CleanUpUnit:GetVec2() ) then
 
-			if _DATABASE:GetStatusGroup( CleanUpGroupName ) ~= "ReSpawn" then
-
-				local CleanUpCoordinate = CleanUpUnit:GetCoordinate()
-
-        self:T( { "CleanUp Scheduler", CleanUpUnitName } )
-        if CleanUpUnit:GetLife() <= CleanUpUnit:GetLife0() * 0.95 then
-					if CleanUpUnit:IsAboveRunway() then
-						if CleanUpUnit:InAir() then
-
-							local CleanUpLandHeight = CleanUpCoordinate:GetLandHeight()
-							local CleanUpUnitHeight = CleanUpCoordinate.y - CleanUpLandHeight
-							
-							if CleanUpUnitHeight < 100 then
-								self:T( { "CleanUp Scheduler", "Destroy " .. CleanUpUnitName .. " because below safe height and damaged." } )
-								self:DestroyUnit( CleanUpUnit )
-							end
-						else
-							self:T( { "CleanUp Scheduler", "Destroy " .. CleanUpUnitName .. " because on runway and damaged." } )
-							self:DestroyUnit( CleanUpUnit )
-						end
-					end
-				end
-				-- Clean Units which are waiting for a very long time in the CleanUpZone.
-				if CleanUpUnit then
-					local CleanUpUnitVelocity = CleanUpUnit:GetVelocityKMH()
-					if CleanUpUnitVelocity < 1 then
-						if CleanUpListData.CleanUpMoved then
-							if CleanUpListData.CleanUpTime + 180 <= timer.getTime() then
-								self:T( { "CleanUp Scheduler", "Destroy due to not moving anymore " .. CleanUpUnitName } )
-								self:DestroyUnit( CleanUpUnit )
-							end
-						end
-					else
-						CleanUpListData.CleanUpTime = timer.getTime()
-						CleanUpListData.CleanUpMoved = true
-					end
-				end
-				
+  			if _DATABASE:GetStatusGroup( CleanUpGroupName ) ~= "ReSpawn" then
+  
+  				local CleanUpCoordinate = CleanUpUnit:GetCoordinate()
+  
+          self:T( { "CleanUp Scheduler", CleanUpUnitName } )
+          if CleanUpUnit:GetLife() <= CleanUpUnit:GetLife0() * 0.95 then
+  					if CleanUpUnit:IsAboveRunway() then
+  						if CleanUpUnit:InAir() then
+  
+  							local CleanUpLandHeight = CleanUpCoordinate:GetLandHeight()
+  							local CleanUpUnitHeight = CleanUpCoordinate.y - CleanUpLandHeight
+  							
+  							if CleanUpUnitHeight < 100 then
+  								self:T( { "CleanUp Scheduler", "Destroy " .. CleanUpUnitName .. " because below safe height and damaged." } )
+  								self:DestroyUnit( CleanUpUnit )
+  							end
+  						else
+  							self:T( { "CleanUp Scheduler", "Destroy " .. CleanUpUnitName .. " because on runway and damaged." } )
+  							self:DestroyUnit( CleanUpUnit )
+  						end
+  					end
+  				end
+  				-- Clean Units which are waiting for a very long time in the CleanUpZone.
+  				if CleanUpUnit and not CleanUpUnit:GetPlayerName() then
+  					local CleanUpUnitVelocity = CleanUpUnit:GetVelocityKMH()
+  					if CleanUpUnitVelocity < 1 then
+  						if CleanUpListData.CleanUpMoved then
+  							if CleanUpListData.CleanUpTime + 180 <= timer.getTime() then
+  								self:T( { "CleanUp Scheduler", "Destroy due to not moving anymore " .. CleanUpUnitName } )
+  								self:DestroyUnit( CleanUpUnit )
+  							end
+  						end
+  					else
+  						CleanUpListData.CleanUpTime = timer.getTime()
+  						CleanUpListData.CleanUpMoved = true
+  					end
+  				end
+        else
+          -- not anymore in an airbase zone, remove from cleanup list.
+          self.CleanUpList[CleanUpUnitName] = nil
+        end
 			else
 				-- Do nothing ...
 				self.CleanUpList[CleanUpUnitName] = nil
@@ -58900,8 +58978,15 @@ ARTY={
   autorelocateonroad=false,
 }
 
---- Weapong type ID. http://wiki.hoggit.us/view/DCS_enum_weapon_flag
--- @list WeaponType
+--- Weapong type ID. See [here](http://wiki.hoggit.us/view/DCS_enum_weapon_flag).
+-- @type ARTY.WeaponType
+-- @field #number Auto Automatic selection of weapon type.
+-- @field #number Cannon Cannons using conventional shells.
+-- @field #number Rockets Unguided rockets.
+-- @field #number CruiseMissile Cruise missiles.
+-- @field #number TacticalNukes Tactical nuclear shells (simulated).
+-- @field #number IlluminationShells Illumination shells (simulated).
+-- @field #number SmokeShells Smoke shells (simulated).
 ARTY.WeaponType={
   Auto=1073741822,
   Cannon=805306368,
@@ -58913,7 +58998,7 @@ ARTY.WeaponType={
 }
 
 --- Database of common artillery unit properties.
--- @list db
+-- @type ARTY.db
 ARTY.db={
   ["2B11 mortar"] = {  -- type "2B11 mortar"
     minrange   = 500,  -- correct?
@@ -58978,7 +59063,7 @@ ARTY.id="ARTY | "
 
 --- Arty script version.
 -- @field #string version
-ARTY.version="1.0.5"
+ARTY.version="1.0.6"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -59492,7 +59577,14 @@ function ARTY:AssignTargetCoord(coord, prio, radius, nshells, maxengage, time, w
   end
   
   -- Time in seconds.
-  local _time=self:_ClockToSeconds(time)
+  local _time
+  if type(time)=="string" then
+    _time=self:_ClockToSeconds(time)
+  elseif type(time)=="number" then
+    _time=timer.getAbsTime()+time
+  else
+    _time=timer.getAbsTime()
+  end
   
   -- Prepare target array.
   local _target={name=_name, coord=coord, radius=radius, nshells=nshells, engaged=0, underfire=false, prio=prio, maxengage=maxengage, time=_time, weapontype=weapontype}
@@ -59543,9 +59635,6 @@ function ARTY:AssignMoveCoord(coord, time, speed, onroad, cancel, name, unique)
     return nil
   end
       
-  -- Default is current time if no time was specified.
-  time=time or self:_SecondsToClock(timer.getAbsTime())
-    
   -- Set speed.
   if speed then
     -- Make sure, given speed is less than max physiaclly possible speed of group.
@@ -59567,7 +59656,14 @@ function ARTY:AssignMoveCoord(coord, time, speed, onroad, cancel, name, unique)
   end
   
   -- Time in seconds.
-  local _time=self:_ClockToSeconds(time)
+  local _time
+  if type(time)=="string" then
+    _time=self:_ClockToSeconds(time)
+  elseif type(time)=="number" then
+    _time=timer.getAbsTime()+time
+  else
+    _time=timer.getAbsTime()
+  end
   
   -- Prepare move array.
   local _move={name=_name, coord=coord, time=_time, speed=speed, onroad=onroad, cancel=cancel}
@@ -66158,7 +66254,7 @@ end
 -- ### Co-author: FlightControl (cargo dispatcher classes)
 --
 -- @module Functional.Warehouse
--- @image Warehouse.JPG
+-- @image MOOSE.JPG
 
 --- WAREHOUSE class.
 -- @type WAREHOUSE
@@ -66193,6 +66289,8 @@ end
 --- Have your assets at the right place at the right time - or not!
 --
 -- ===
+--
+-- ![Banner Image](..\Presentations\WAREHOUSE\Warehouse_Main.png)
 --
 -- # The Warehouse Concept
 -- 
@@ -66738,6 +66836,7 @@ end
 -- * "Attacked" --> "Captured" --> "Running" (warehouse was captured by the enemy)
 -- * "*" --> "AirbaseCaptured" --> "*" (airbase belonging to the warehouse was captured by the enemy)
 -- * "*" --> "AirbaseRecaptured" --> "*" (airbase was re-captured)
+-- * "*" --> "AssetDead" --> "*" (a whole asset group is dead)
 -- * "*" --> "Destroyed" --> "Destroyed" (warehouse was destroyed)
 -- * "Running" --> "Pause" --> "Paused" (warehouse is paused)
 -- * "Paused" --> "Unpause" --> "Running" (warehouse is unpaused)
@@ -67004,7 +67103,7 @@ end
 --     
 --     -- Big explosion at the warehose. It has a very nice damage model by the way :)
 --     local function DestroyWarehouse()
---       warehouse.Batumi.warehouse:GetCoordinate():Explosion(999)
+--       warehouse.Batumi:GetCoordinate():Explosion(999)
 --     end
 --     SCHEDULER:New(nil, DestroyWarehouse, {}, 30)
 --     
@@ -67067,9 +67166,9 @@ end
 --     -- Get Number of ships at Batumi.
 --     local nships=warehouse.Batumi:GetNumberOfAssets(WAREHOUSE.Descriptor.CATEGORY, Group.Category.SHIP)
 --     
---     -- Send one ship every 5 minutes.
+--     -- Send one ship every 3 minutes (ships do not evade each other well, so we need a bit space between them).
 --     for i=1, nships do
---       warehouse.Batumi:__AddRequest(300*(i-1)+10, warehouse.Kobuleti, WAREHOUSE.Descriptor.CATEGORY, Group.Category.SHIP, 1)
+--       warehouse.Batumi:__AddRequest(180*(i-1)+10, warehouse.Kobuleti, WAREHOUSE.Descriptor.CATEGORY, Group.Category.SHIP, 1)
 --     end
 --
 -- ## Example 10: Warehouse on Aircraft Carrier
@@ -67132,8 +67231,7 @@ end
 --     warehouse.Stennis:__AddRequest(45, warehouse.Stennis, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.NAVAL_ARMEDSHIP, 5, nil, nil, nil, "Speedboats Right")
 --     
 --     --- Function called after self request
---     function warehouse.Stennis:OnAfterSelfRequest(From, Event, To,_groupset, request)
---     
+--     function warehouse.Stennis:OnAfterSelfRequest(From, Event, To,_groupset, request)    
 --       local groupset=_groupset --Core.Set#SET_GROUP
 --       local request=request   --Functional.Warehouse#WAREHOUSE.Pendingitem
 --       
@@ -67348,15 +67446,14 @@ end
 --         for _,_group in pairs(groupset:GetSet()) do
 --           local group=_group --Wrapper.Group#GROUP
 --           
+--           -- Start uncontrolled aircraft.
 --           group:StartUncontrolled()
---           group:SmokeBlue()
 --           
 --           -- Target coordinate!
---           local ToCoord=warehouse.Sukhumi:GetCoordinate()
---           ToCoord.y=5000  -- Adjust altitude
+--           local ToCoord=warehouse.Sukhumi:GetCoordinate():SetAltitude(5000)
 --           
---           local FoCoord=warehouse.Kobuleti:GetCoordinate()
---           FoCoord.y=3000  -- Ajust altitude.
+--           -- Home coordinate.
+--           local HomeCoord=warehouse.Kobuleti:GetCoordinate():SetAltitude(3000)
 --           
 --           -- Task bomb Sukhumi warehouse using all bombs (2032) from direction 180 at altitude 5000 m.
 --           local task=group:TaskBombing(warehouse.Sukhumi:GetCoordinate():GetVec2(), false, "All", nil , 180, 5000, 2032)
@@ -67369,7 +67466,7 @@ end
 --           -- Begin bombing run 20 km south of target.
 --           WayPoints[2]=ToCoord:Translate(20*1000, 180):WaypointAirTurningPoint(nil, 600, {task}, "Bombing Run")
 --           -- Return to base.
---           WayPoints[3]=FoCoord:WaypointAirTurningPoint()
+--           WayPoints[3]=HomeCoord:WaypointAirTurningPoint()
 --           -- Land at homebase. Bombers are added back to stock and can be employed in later assignments.
 --           WayPoints[4]=warehouse.Kobuleti:GetCoordinate():WaypointAirLanding()
 --           
@@ -67394,6 +67491,7 @@ end
 --     -- Define a polygon zone as spawn zone at Kobuleti.
 --     warehouse.Kobuleti:SetSpawnZone(ZONE_POLYGON:New("Warehouse Kobuleti Spawn Zone", GROUP:FindByName("Warehouse Kobuleti Spawn Zone")))
 --     
+--     -- Add assets.
 --     warehouse.Kobuleti:AddAsset("M978", 20)
 --     warehouse.London:AddAsset("M818", 20)
 --     
@@ -67407,6 +67505,70 @@ end
 --     -- Kobuleti requests all available trucks from London.
 --     warehouse.London:AddRequest(warehouse.Kobuleti, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.GROUND_TRUCK, WAREHOUSE.Quantity.HALF)
 --
+--## Example 16 Resupply of Dead Assets
+--
+-- Warehouse at FARP Berlin is located at the front line and sends infantry groups to the battle zone.
+-- Whenever a group dies, a new group is send from the warehouse to the battle zone.
+-- Additionally, for each dead group, Berlin requests resupply from Batumi.
+-- 
+--     -- Start warehouses.
+--     warehouse.Batumi:Start()
+--     warehouse.Berlin:Start()
+--     
+--     -- Front line warehouse.
+--     warehouse.Berlin:AddAsset("Infantry Platoon Alpha", 6)
+--     
+--     -- Resupply warehouse.
+--     warehouse.Batumi:AddAsset("Infantry Platoon Alpha", 50)
+--     
+--     -- Battle zone near FARP Berlin. This is where the action is!
+--     local BattleZone=ZONE:New("Virtual Battle Zone")
+--     
+--     -- Send infantry groups to the battle zone. Two groups every ~60 seconds.
+--     for i=1,2 do
+--       local time=(i-1)*60+10
+--       warehouse.Berlin:__AddRequest(time, warehouse.Berlin, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.GROUND_INFANTRY, 2, nil, nil, nil, "To Battle Zone")
+--     end
+--     
+--     -- Take care of the spawned units.
+--     function warehouse.Berlin:OnAfterSelfRequest(From,Event,To,groupset,request)
+--       local groupset=groupset --Core.Set#SET_GROUP
+--       local request=request   --Functional.Warehouse#WAREHOUSE.Pendingitem
+--       
+--       -- Get assignment of this request.
+--       local assignment=warehouse.Berlin:GetAssignment(request)
+--       
+--       if assignment=="To Battle Zone" then
+--         
+--         for _,group in pairs(groupset:GetSet()) do
+--           local group=group --Wrapper.Group#GROUP
+--           
+--           -- Route group to Battle zone.
+--           local ToCoord=BattleZone:GetRandomCoordinate()
+--           group:RouteGroundOnRoad(ToCoord, group:GetSpeedMax()*0.8)
+--           
+--           -- After 3-5 minutes we create an explosion to destroy the group.
+--           SCHEDULER:New(nil, Explosion, {group, 50}, math.random(180, 300))
+--         end
+--             
+--       end
+--       
+--     end
+--     
+--     -- An asset has died ==> request resupply for it.
+--     function warehouse.Berlin:OnAfterAssetDead(From, Event, To, asset, request)
+--       local asset=asset       --Functional.Warehouse#WAREHOUSE.Assetitem
+--       local request=request   --Functional.Warehouse#WAREHOUSE.Pendingitem
+--       
+--       -- Get assignment.
+--       local assignment=warehouse.Berlin:GetAssignment(request)
+--     
+--       -- Request resupply for dead asset from Batumi.
+--       warehouse.Batumi:AddRequest(warehouse.Berlin, WAREHOUSE.Descriptor.ATTRIBUTE, asset.attribute, nil, nil, nil, nil, "Resupply")
+--       
+--       -- Send asset to Battle zone either now or when they arrive.
+--       warehouse.Berlin:AddRequest(warehouse.Berlin, WAREHOUSE.Descriptor.ATTRIBUTE, asset.attribute, 1, nil, nil, nil, assignment)
+--     end
 --
 -- @field #WAREHOUSE
 WAREHOUSE = {
@@ -67482,6 +67644,7 @@ WAREHOUSE = {
 --- Item of the warehouse pending queue table.
 -- @type WAREHOUSE.Pendingitem
 -- @field #number timestamp Absolute mission time in seconds when the request was processed.
+-- @field #table assetproblem Table with assets that might have problems (damage or stuck).
 -- @field Core.Set#SET_GROUP cargogroupset Set of cargo groups do be delivered.
 -- @field #number ndelivered Number of groups delivered to destination.
 -- @field Core.Set#SET_GROUP transportgroupset Set of cargo transport carrier groups.
@@ -67603,7 +67766,7 @@ WAREHOUSE.db = {
 
 --- Warehouse class version.
 -- @field #string version
-WAREHOUSE.version="0.5.5"
+WAREHOUSE.version="0.5.8"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- TODO: Warehouse todo list.
@@ -68718,6 +68881,8 @@ function WAREHOUSE:onafterStart(From, Event, To)
   self.spawnzone:BoundZone(30, self.country)
   ]]
   
+  --self.spawnzone:GetCoordinate():MarkToCoalition(string.format("Warehouse %s spawn zone", self.alias), self:GetCoalition())
+  
   -- Get the closest point on road wrt spawnzone of ground assets.
   local _road=self.spawnzone:GetCoordinate():GetClosestPointToRoad()
   if _road and self.road==nil then
@@ -68764,7 +68929,6 @@ function WAREHOUSE:onafterStart(From, Event, To)
   
   -- Start the status monitoring.
   self:__Status(-1)
-
 end
 
 --- On after "Stop" event. Stops the warehouse, unhandles all events.
@@ -69046,6 +69210,84 @@ function WAREHOUSE:_JobDone()
     self:_DeleteQueueItem(request, self.pending)
   end
 end
+
+--- Function that checks if an asset group is still okay.
+-- @param #WAREHOUSE self
+function WAREHOUSE:_CheckAssetStatus()
+
+  -- Check if a unit of the group has problems.
+  local function _CheckGroup(_request, _group)
+    local request=_request --#WAREHOUSE.Pendingitem
+    local group=_group     --Wrapper.Group#GROUP
+    
+    if group and group:IsAlive() then
+    
+      -- Category of group.
+      local category=group:GetCategory()
+      
+      for _,_unit in pairs(group:GetUnits()) do
+        local unit=_unit --Wrapper.Unit#UNIT
+        
+        if unit and unit:IsAlive() then
+          local unitid=unit:GetID()
+          local life9=unit:GetLife()
+          local life0=unit:GetLife0()
+          local life=life9/life0*100
+          local speed=unit:GetVelocityMPS()
+          local onground=unit:InAir()
+    
+          local problem=false
+          if life<10 then
+            self:T(string.format("Unit %s is heavily damaged!", unit:GetName()))           
+          end
+          if speed<1 and unit:GetSpeedMax()>1 and onground then
+            self:T(string.format("Unit %s is not moving!", unit:GetName()))
+            problem=true
+          end
+          
+          if problem then
+            if request.assetproblem[unitid] then
+              local deltaT=timer.getAbsTime()-request.assetproblem[unitid]
+              if deltaT>300 then
+                --Todo: which event to generate? Removeunit or Dead/Creash or both?
+                unit:Destroy()
+              end
+            else
+              request.assetproblem[unitid]=timer.getAbsTime()
+            end
+          end
+        end
+             
+      end
+    end
+  end
+
+  
+  for _,request in pairs(self.pending) do
+    local request=request --#WAREHOUSE.Pendingitem
+    
+    -- Cargo groups.
+    if request.cargogroupset then
+      for _,_group in pairs(request.cargogroupset:GetSet()) do
+        local group=_group --Wrapper.Group#GROUP
+        
+        _CheckGroup(request, group)
+  
+      end
+    end
+    
+    -- Transport groups.
+    if request.transportgroupset then
+      for _,group in pairs(request.transportgroupset:GetSet()) do
+                
+        _CheckGroup(request, group)  
+      end
+    end
+            
+  end
+
+end
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- On after "AddAsset" event. Add a group to the warehouse stock. If the group is alive, it is destroyed.
@@ -69521,6 +69763,9 @@ function WAREHOUSE:onafterRequest(From, Event, To, Request)
   
   -- Set time stamp.
   Pending.timestamp=timer.getAbsTime()
+  
+  -- Init problem table.
+  Pending.assetproblem={}
   
   -- Spawn assets of this request.
   local _spawngroups=self:_SpawnAssetRequest(Pending) --Core.Set#SET_GROUP
@@ -71368,6 +71613,11 @@ function WAREHOUSE:_CheckConquered()
     end
   elseif self:GetCoalition()==coalition.side.NEUTRAL then
     -- Neutrals dont attack!
+    if self:IsRunning() and Nred>0 then
+      self:Attacked(coalition.side.RED, CountryRed)
+    elseif self:IsRunning() and Nblue>0 then
+      self:Attacked(coalition.side.BLUE, CountryBlue)
+    end
   end
   
 end
@@ -71573,13 +71823,21 @@ function WAREHOUSE:_CheckRequestValid(request)
       end
       
     elseif asset_ground then
+    
+      -- Check that both spawn zones are not in water.
+      local inwater=self.spawnzone:GetCoordinate():IsSurfaceTypeWater() or request.warehouse.spawnzone:GetCoordinate():IsSurfaceTypeWater()
+      
+      if inwater then
+        self:E("ERROR: Incorrect request. Ground asset requested but at least one spawn zone is in water!")
+        valid=false
+      end
       
       -- No ground assets directly to or from ships.
       -- TODO: May needs refinement if warehouse is on land and requestor is ship in harbour?!
-      if (requestcategory==Airbase.Category.SHIP or self:GetAirbaseCategory()==Airbase.Category.SHIP) then
-        self:E("ERROR: Incorrect request. Ground asset requested but warehouse or requestor is SHIP!")
-        valid=false
-      end
+      --if (requestcategory==Airbase.Category.SHIP or self:GetAirbaseCategory()==Airbase.Category.SHIP) then
+      --  self:E("ERROR: Incorrect request. Ground asset requested but warehouse or requestor is SHIP!")
+      --  valid=false
+      --end
       
       if asset_train then
       
@@ -71767,7 +72025,6 @@ function WAREHOUSE:_CheckRequestNow(request)
   -- Check if number of requested assets is in stock.
   local _assets,_nassets,_enough=self:_FilterStock(self.stock, request.assetdesc, request.assetdescval, request.nasset, onlymobile)
   
-  local _transports
   
   -- Check if enough assets are in stock.
   if not _enough then
@@ -71777,13 +72034,17 @@ function WAREHOUSE:_CheckRequestNow(request)
     self:T(self.wid..text)
     return false
   end
-
+  
+  local _transports
+  local _assetattribute
+  local _assetcategory
+  
   -- Check if at least one (cargo) asset is available.
   if _nassets>0 then
 
     -- Get the attibute of the requested asset.
-    local _assetattribute=_assets[1].attribute
-    local _assetcategory=_assets[1].category  
+    _assetattribute=_assets[1].attribute
+    _assetcategory=_assets[1].category  
     
     -- Check available parking for air asset units.    
     if self.airbase and (_assetcategory==Group.Category.AIRPLANE or _assetcategory==Group.Category.HELICOPTER) then
@@ -71841,7 +72102,23 @@ function WAREHOUSE:_CheckRequestNow(request)
   else
   
     -- Self propelled case. Nothing to do for now.
-  
+    
+    -- Ground asset checks.
+    if _assetcategory==Group.Category.GROUND then
+    
+      -- Distance between warehouse and spawn zone.
+      local dist=self.warehouse:GetCoordinate():Get2DDistance(request.warehouse.spawnzone:GetCoordinate())
+          
+      -- Check min dist to spawn zone.
+      if dist>5000 then
+        -- Not close enough to spawn zone.
+        local text=string.format("Warehouse %s: Request denied! Not close enough to spawn zone. Distance = %d m. We need to be at least within 5000 m range to spawn.", self.alias, dist)
+        self:_InfoMessage(text, 5)      
+        return false
+      end
+      
+    end
+      
   end
 
 
