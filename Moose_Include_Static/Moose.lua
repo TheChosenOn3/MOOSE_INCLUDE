@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-02T19:52:00.0000000Z-1b0f9d0a858b1e0b9e33245e41da9c505e0b9071 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-06T05:58:01.0000000Z-c823cfed186b2414e3b00255177c09a73295e8ab ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -7294,7 +7294,7 @@ end
 ---
 -- @param Wrapper.Group#GROUP Group
 function MENU_INDEX:PrepareGroup( Group )
-  if Group and Group:IsAlive()  then
+  if Group and Group:IsAlive() ~= nil  then -- something was changed here!
     local GroupName = Group:GetName()
     self.Group[GroupName] = self.Group[GroupName] or {}
     self.Group[GroupName].Menus = self.Group[GroupName].Menus or {}
@@ -7348,6 +7348,7 @@ end
 function MENU_INDEX:SetGroupMenu( Group, Path, Menu )
 
   local MenuGroupName = Group:GetName()
+  Group:F({MenuGroupName=MenuGroupName,Path=Path})
   self.Group[MenuGroupName].Menus[Path] = Menu
 end
 
@@ -36773,7 +36774,7 @@ do -- CARGO_GROUP
   -- @param #CARGO_GROUP self
   -- @param Wrapper.Group#GROUP CargoGroup Group to be transported as cargo.
   -- @param #string Type Cargo type, e.g. "Infantry". This is the type used in SET_CARGO:New():FilterTypes("Infantry") to define the valid cargo groups of the set.
-  -- @param #string Name Some user defined name of the cargo group.
+  -- @param #string Name A user defined name of the cargo group. This name CAN be the same as the group object but can also have a different name. This name MUST be unique!
   -- @param #number LoadRadius (optional) Distance in meters until which a cargo is loaded into the carrier. Cargo outside this radius has to be routed by other means to within the radius to be loaded.
   -- @param #number NearRadius (optional) Once the units are within this radius of the carrier, they are actually loaded, i.e. disappear from the scene.
   -- @return #CARGO_GROUP Cargo group object.
@@ -39377,26 +39378,19 @@ function SCORING:CloseCSV()
   end
 end
 
---- **Functional** -- The CLEANUP_AIRBASE class keeps an area clean of crashing or colliding airplanes. It also prevents airplanes from firing within this area.
+--- **Functional** -- Keep airbases clean of crashing or colliding airplanes, and kill missiles when being fired at airbases.
 -- 
 -- ===
 -- 
--- ### Author: **FlightControl**
--- ### Contributions: 
+-- ### Features:
+-- 
+-- 
+--  * Try to keep the airbase clean and operational.
+--  * Prevent airplanes from crashing.
+--  * Clean up obstructing airplanes from the runway that are standing still for a period of time.
+--  * Prevent airplanes firing missiles within the airbase zone.
 -- 
 -- ===
--- 
--- @module Functional.CleanUp
--- @image CleanUp_Airbases.JPG
-
---- @type CLEANUP_AIRBASE.__ Methods which are not intended for mission designers, but which are used interally by the moose designer :-)
--- @field #map<#string,Wrapper.Airbase#AIRBASE> Airbases Map of Airbases.
--- @extends Core.Base#BASE
-
---- @type CLEANUP_AIRBASE
--- @extends #CLEANUP_AIRBASE.__
-
---- Keeps airbases clean, and tries to guarantee continuous airbase operations, even under combat.
 -- 
 -- Specific airbases need to be provided that need to be guarded. Each airbase registered, will be guarded within a zone of 8 km around the airbase.
 -- Any unit that fires a missile, or shoots within the zone of an airbase, will be monitored by CLEANUP_AIRBASE.
@@ -39422,7 +39416,30 @@ end
 --     
 -- By following the above guidelines, you can add airbase cleanup with acceptable CPU overhead.
 -- 
--- ## 1. CLEANUP_AIRBASE Constructor
+-- ===
+-- 
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/CLA%20-%20CleanUp%20Airbase)
+-- 
+-- ===
+-- 
+-- ### Author: **FlightControl**
+-- ### Contributions: 
+-- 
+-- ===
+-- 
+-- @module Functional.CleanUp
+-- @image CleanUp_Airbases.JPG
+
+--- @type CLEANUP_AIRBASE.__ Methods which are not intended for mission designers, but which are used interally by the moose designer :-)
+-- @field #map<#string,Wrapper.Airbase#AIRBASE> Airbases Map of Airbases.
+-- @extends Core.Base#BASE
+
+--- @type CLEANUP_AIRBASE
+-- @extends #CLEANUP_AIRBASE.__
+
+--- Keeps airbases clean, and tries to guarantee continuous airbase operations, even under combat.
+-- 
+-- # 1. CLEANUP_AIRBASE Constructor
 -- 
 -- Creates the main object which is preventing the airbase to get polluted with debris on the runway, which halts the airbase.
 -- 
@@ -39433,12 +39450,12 @@ end
 --      CleanUpTbilisi = CLEANUP_AIRBASE:New( AIRBASE.Caucasus.Tbilisi )
 --      CleanUpKutaisi = CLEANUP_AIRBASE:New( AIRBASE.Caucasus.Kutaisi )
 -- 
--- ## 2. Add or Remove airbases
+-- # 2. Add or Remove airbases
 -- 
 -- The method @{#CLEANUP_AIRBASE.AddAirbase}() to add an airbase to the cleanup validation process.
 -- The method @{#CLEANUP_AIRBASE.RemoveAirbase}() removes an airbase from the cleanup validation process.
 -- 
--- ## 3. Clean missiles and bombs within the airbase zone.
+-- # 3. Clean missiles and bombs within the airbase zone.
 -- 
 -- When missiles or bombs hit the runway, the airbase operations stop.
 -- Use the method @{#CLEANUP_AIRBASE.SetCleanMissiles}() to control the cleaning of missiles, which will prevent airbases to stop.
@@ -42171,12 +42188,20 @@ function MISSILETRAINER:_TrackMissiles()
 
   return true
 end
---- **Functional** -- The ATC\_GROUND classes monitor airbase traffic and regulate speed while taxiing.
+--- **Functional** -- Monitor airbase traffic and regulate speed while taxiing.
 --
 -- ===
+--
+-- ### Features:
 -- 
--- ![Banner Image](..\Presentations\ATC_GROUND\Dia1.JPG)
+--   * Monitor speed of the airplanes of players during taxi.
+--   * Communicate ATC ground operations.
+--   * Kick speeding players during taxi.
 -- 
+-- ===
+-- 
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/ABP%20-%20Airbase%20Police)
+--
 -- ===
 --
 -- ### Contributions: Dutch Baron - Concept & Testing
@@ -44485,18 +44510,23 @@ end
 -- 
 -- ===
 -- 
--- Facilitate the detection of enemy units within the battle zone executed by FACs (Forward Air Controllers) or RECCEs (Reconnassance Units).
--- DETECTION uses the in-built detection capabilities of DCS World, but adds new functionalities.
+-- ### Features:
 -- 
--- Find the DETECTION classes documentation further in this document in the globals section.
+--   * Detection of targets by recce units.
+--   * Group detected targets per unit, type or area (zone).
+--   * Keep persistency of detected targets, if when detection is lost.
+--   * Provide an indication of detected targets.
+--   * Report detected targets.
+--   * Refresh detection upon specified time intervals.
+-- 
+-- ===
+-- 
+-- Facilitate the detection of enemy units within the battle zone executed by FACs (Forward Air Controllers) or RECCEs (Reconnassance Units).
+-- It uses the in-built detection capabilities of DCS World, but adds new functionalities.
 -- 
 -- ===
 -- 
 -- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/DET%20-%20Detection)
--- 
--- ===
--- 
--- ### [YouTube Playlist](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl3Cf5jpI6BS0sBOVWK__tji)
 -- 
 -- ===
 -- 
@@ -44508,13 +44538,11 @@ end
 -- 
 --   * FlightControl : Analysis, Design, Programming, Testing
 -- 
+-- ===
+-- 
 -- @module Functional.Detection
 -- @image Detection.JPG
 
-----BASE:TraceClass("DETECTION_BASE")
-----BASE:TraceClass("DETECTION_AREAS")
-----BASE:TraceClass("DETECTION_UNITS")
-----BASE:TraceClass("DETECTION_TYPES")
 
 do -- DETECTION_BASE
 
@@ -47301,31 +47329,178 @@ end
 --
 -- ===
 --
--- Orchestrate the designation of potential targets executed by a Recce group, 
--- and communicates these to a dedicated attacking group of players, 
--- so that following a dynamically generated menu system, 
--- each detected set of potential targets can be lased or smoked...
+-- ### Features:
 -- 
--- Targets can be:
+--   * Faciliate the communication of detected targets to players.
+--   * Designate targets using lasers, through a menu system.
+--   * Designate targets using smoking, through a menu system.
+--   * Designate targets using illumination, through a menu system.
+--   * Auto lase targets.
+--   * Refresh detection upon specified time intervals.
+--   * Prioritization on threat levels.
+--   * Reporting system of threats.
+--  
+-- ===
+--
+-- Targets detected by recce will be communicated to a group of attacking players.  
+-- A menu system is made available that allows to: 
 -- 
 --   * **Lased** for a period of time.
 --   * **Smoked**. Artillery or airplanes with Illuminatino ordonance need to be present. (WIP, but early demo ready.)
 --   * **Illuminated** through an illumination bomb. Artillery or airplanes with Illuminatino ordonance need to be present. (WIP, but early demo ready.
 -- 
+-- The following terminology is being used throughout this document:
+-- 
+--   * The **DesignateObject** is the object of the DESIGNATE class, which is this class explained in the document.
+--   * The **DetectionObject** is the object of a DETECTION_ class (DETECTION_TYPES, DETECTION_AREAS, DETECTION_UNITS), which is executing the detection and grouping of Targets into _DetectionItems_.
+--   * **TargetGroups** is the list of detected target groupings by the _DetectionObject_. Each _TargetGroup_ contains a _TargetSet_.
+--   * **TargetGroup** is one element of the __TargetGroups__ list, and contains a _TargetSet_.
+--   * The **TargetSet** is a SET_UNITS collection of _Targets_, that have been detected by the _DetectionObject_.
+--   * A **Target** is a detected UNIT object by the _DetectionObject_.
+--   * A **Threat Level** is a number from 0 to 10 that is calculated based on the threat of the Target in an Air to Ground battle scenario.
+--   * The **RecceSet** is a SET_GROUP collection that contains the **RecceGroups**.
+--   * A **RecceGroup** is a GROUP object containing the **Recces**.
+--   * A **Recce** is a UNIT object executing the reconnaissance as part the _DetectionObject_. A Recce can be of any UNIT type.
+--   * An **AttackGroup** is a GROUP object that contain _Players_.
+--   * A **Player** is an active CLIENT object containing a human player.
+--   * A **Designate Menu** is the menu that is dynamically created during the designation process for each _AttackGroup_.
+-- 
+-- # Player Manual
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia3.JPG)
+-- 
+-- A typical mission setup would require Recce (a @{Set} of Recce) to be detecting potential targets.
+-- The DetectionObject will group the detected targets based on the detection method being used.
+-- Possible detection methods could be by Area, by Type or by Unit.
+-- Each grouping will result in a **TargetGroup**, for terminology and clarity we will use this term throughout the document.
+-- 
+-- **Recce** require to have Line of Sight (LOS) towards the targets.
+-- The **Recce** will report any detected targets to the Players (on the picture Observers).
+-- When targets are detected, a menu will be made available that allows those **TargetGroups** to be designated.
+-- Designation can be done by Lasing, Smoking and Illumination.
+-- Smoking is useful during the day, while illumination is recommended to be used during the night.
+-- Smoking can designate specific targets, but not very precise, while lasing is very accurate and allows to
+-- players to attack the targets using laser guided bombs or rockets.
+-- Illumination will lighten up the Target Area.
+-- 
+-- **Recce** can be ground based or airborne. Airborne **Recce** (AFAC) can be really useful to designate a large amount of targets
+-- in a wide open area, as airborne **Recce** has a large LOS.
+-- However, ground based **Recce** are very useful to smoke or illuminate targets, as they can be much closer
+-- to the Target Area.
+-- 
+-- It is recommended to make the **Recce** invisible and immortal using the Mission Editor in DCS World.
+-- This will ensure that the detection process won't be interrupted and that targets can be designated.
+-- However, you don't have to, so to simulate a more real-word situation or simulation, **Recce can also be destroyed**!
+--  
+-- ## 1. Player View (Observer)
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia4.JPG)
+-- 
+-- The RecceSet is continuously detecting for potential Targets, 
+-- executing its task as part of the DetectionObject.
+-- Once Targets have been detected, the DesignateObject will trigger the **Detect Event**.
+-- 
+-- In order to prevent an overflow in the DesignateObject of detected targets, 
+-- there is a maximum amount of TargetGroups 
+-- that can be put in **scope** of the DesignateObject.
+-- We call this the **MaximumDesignations** term.
+-- 
+-- ## 2. Designate Menu
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia5.JPG)
+-- 
+-- For each detected TargetGroup, there is:
+-- 
+--   * A **Designate Menu** are created and continuously refreshed, containing the **DesignationID** and the **Designation Status**.
+--   * The RecceGroups are reporting to each AttackGroup, sending **Messages** containing the Threat Level and the TargetSet composition.
+-- 
+-- A Player can then select an action from the **Designate Menu**. 
+-- The Designation Status is shown between the (   ).
+-- 
+-- It indicates for each TargetGroup the current active designation action applied:
+-- 
+--   * An "I" for Illumnation designation.
+--   * An "S" for Smoking designation.
+--   * An "L" for Lasing designation.
+--
+-- Note that multiple designation methods can be active at the same time!
+-- Note the **Auto Lase** option. When switched on, the available **Recce** will lase 
+-- Targets when detected.
+-- 
+-- Targets are designated per **Threat Level**. 
+-- The most threatening targets from an Air to Ground perspective, are designated first!
+-- This is for all designation methods.
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia6.JPG)
+-- 
+-- Each Designate Menu has a sub menu structure, which allows specific actions to be triggered:
+-- 
+--   * Lase Targets using a specific laser code.
+--   * Smoke Targets using a specific smoke color.
+--   * Illuminate areas.
+-- 
+-- ## 3. Lasing Targets
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia7.JPG)
+-- 
+-- Lasing targets is done as expected. Each available Recce can lase only ONE target through!
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia8.JPG)
+-- 
+-- Lasing can be done for specific laser codes. The Su-25T requires laser code 1113, while the A-10A requires laser code 1680.
+-- For those, specific menu options can be made available for players to lase with these codes.
+-- Auto Lase (as explained above), will ensure continuous lasing of available targets.
+-- The status report shows which targets are being designated.
+-- 
+-- The following logic is executed when a TargetGroup is selected to be *lased* from the Designation Menu:
+-- 
+--   * The RecceSet is searched for any Recce that is within *designation distance* from a Target in the TargetGroup that is currently not being designated.
+--   * If there is a Recce found that is currently no designating a target, and is within designation distance from the Target, then that Target will be designated.
+--   * During designation, any Recce that does not have Line of Sight (LOS) and is not within disignation distance from the Target, will stop designating the Target, and a report is given.
+--   * When a Recce is designating a Target, and that Target is destroyed, then the Recce will stop designating the Target, and will report the event.
+--   * When a Recce is designating a Target, and that Recce is destroyed, then the Recce will be removed from the RecceSet and designation will stop without reporting.
+--   * When all RecceGroups are destroyed from the RecceSet, then the DesignationObject will stop functioning, and nothing will be reported.
+--   
+-- In this way, DESIGNATE assists players to designate ground targets for a coordinated attack!
+-- 
+-- ## 4. Illuminating Targets
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia9.JPG)
+-- 
+-- Illumination bombs are fired between 500 and 700 meters altitude and will burn about 2 minutes, while slowly decending.
+-- Each available recce within range will fire an illumination bomb.
+-- Illumination bombs can be fired in while lasing targets.
+-- When illumination bombs are fired, it will take about 2 minutes until a sequent bomb run can be requested using the menus.
+-- 
+-- ## 5. Smoking Targets
+-- 
+-- ![Banner Image](..\Presentations\DESIGNATE\Dia10.JPG)
+-- 
+-- Smoke will fire for 5 minutes.
+-- Each available recce within range will smoke a target.
+-- Smoking can be requested while lasing targets.
+-- Smoke will appear "around" the targets, because of accuracy limitations.
+-- 
+-- 
+-- Have FUN!
+-- 
 -- ===
 -- 
--- # **AUTHORS and CONTRIBUTIONS**
+-- ### [Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/DES%20-%20Designation)
+-- 
+-- ===
 -- 
 -- ### Contributions: 
 -- 
 --   * [**Ciribob**](https://forums.eagle.ru/member.php?u=112175): Showing the way how to lase targets + how laser codes work!!! Explained the autolase script.
 --   * [**EasyEB**](https://forums.eagle.ru/member.php?u=112055): Ideas and Beta Testing
 --   * [**Wingthor**](https://forums.eagle.ru/member.php?u=123698): Beta Testing
---   
 -- 
 -- ### Authors: 
 -- 
 --   * **FlightControl**: Design & Programming
+-- 
+-- ===
 -- 
 -- @module Functional.Designate
 -- @image Designation.JPG
@@ -47337,161 +47512,20 @@ do -- DESIGNATE
 
   --- Manage the designation of detected targets.
   -- 
-  -- Targets detected by recce will be communicated to a group of attacking players.  
-  -- A menu system is made available that allows to: 
   -- 
-  --   * **Lased** for a period of time.
-  --   * **Smoked**. Artillery or airplanes with Illuminatino ordonance need to be present. (WIP, but early demo ready.)
-  --   * **Illuminated** through an illumination bomb. Artillery or airplanes with Illuminatino ordonance need to be present. (WIP, but early demo ready.
-  -- 
-  -- The following terminology is being used throughout this document:
-  -- 
-  --   * The **DesignateObject** is the object of the DESIGNATE class, which is this class explained in the document.
-  --   * The **DetectionObject** is the object of a DETECTION_ class (DETECTION_TYPES, DETECTION_AREAS, DETECTION_UNITS), which is executing the detection and grouping of Targets into _DetectionItems_.
-  --   * **TargetGroups** is the list of detected target groupings by the _DetectionObject_. Each _TargetGroup_ contains a _TargetSet_.
-  --   * **TargetGroup** is one element of the __TargetGroups__ list, and contains a _TargetSet_.
-  --   * The **TargetSet** is a SET_UNITS collection of _Targets_, that have been detected by the _DetectionObject_.
-  --   * A **Target** is a detected UNIT object by the _DetectionObject_.
-  --   * A **Threat Level** is a number from 0 to 10 that is calculated based on the threat of the Target in an Air to Ground battle scenario.
-  --   * The **RecceSet** is a SET_GROUP collection that contains the **RecceGroups**.
-  --   * A **RecceGroup** is a GROUP object containing the **Recces**.
-  --   * A **Recce** is a UNIT object executing the reconnaissance as part the _DetectionObject_. A Recce can be of any UNIT type.
-  --   * An **AttackGroup** is a GROUP object that contain _Players_.
-  --   * A **Player** is an active CLIENT object containing a human player.
-  --   * A **Designate Menu** is the menu that is dynamically created during the designation process for each _AttackGroup_.
-  -- 
-  -- ## 0. Player Manual
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia3.JPG)
-  -- 
-  -- A typical mission setup would require Recce (a @{Set} of Recce) to be detecting potential targets.
-  -- The DetectionObject will group the detected targets based on the detection method being used.
-  -- Possible detection methods could be by Area, by Type or by Unit.
-  -- Each grouping will result in a **TargetGroup**, for terminology and clarity we will use this term throughout the document.
-  -- 
-  -- **Recce** require to have Line of Sight (LOS) towards the targets.
-  -- The **Recce** will report any detected targets to the Players (on the picture Observers).
-  -- When targets are detected, a menu will be made available that allows those **TargetGroups** to be designated.
-  -- Designation can be done by Lasing, Smoking and Illumination.
-  -- Smoking is useful during the day, while illumination is recommended to be used during the night.
-  -- Smoking can designate specific targets, but not very precise, while lasing is very accurate and allows to
-  -- players to attack the targets using laser guided bombs or rockets.
-  -- Illumination will lighten up the Target Area.
-  -- 
-  -- **Recce** can be ground based or airborne. Airborne **Recce** (AFAC) can be really useful to designate a large amount of targets
-  -- in a wide open area, as airborne **Recce** has a large LOS.
-  -- However, ground based **Recce** are very useful to smoke or illuminate targets, as they can be much closer
-  -- to the Target Area.
-  -- 
-  -- It is recommended to make the **Recce** invisible and immortal using the Mission Editor in DCS World.
-  -- This will ensure that the detection process won't be interrupted and that targets can be designated.
-  -- However, you don't have to, so to simulate a more real-word situation or simulation, **Recce can also be destroyed**!
-  --  
-  -- ### 0.1. Player View (Observer)
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia4.JPG)
-  -- 
-  -- The RecceSet is continuously detecting for potential Targets, 
-  -- executing its task as part of the DetectionObject.
-  -- Once Targets have been detected, the DesignateObject will trigger the **Detect Event**.
-  -- 
-  -- In order to prevent an overflow in the DesignateObject of detected targets, 
-  -- there is a maximum amount of TargetGroups 
-  -- that can be put in **scope** of the DesignateObject.
-  -- We call this the **MaximumDesignations** term.
-  -- 
-  -- ### 0.2. Designate Menu
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia5.JPG)
-  -- 
-  -- For each detected TargetGroup, there is:
-  -- 
-  --   * A **Designate Menu** are created and continuously refreshed, containing the **DesignationID** and the **Designation Status**.
-  --   * The RecceGroups are reporting to each AttackGroup, sending **Messages** containing the Threat Level and the TargetSet composition.
-  -- 
-  -- A Player can then select an action from the **Designate Menu**. 
-  -- The Designation Status is shown between the (   ).
-  -- 
-  -- It indicates for each TargetGroup the current active designation action applied:
-  -- 
-  --   * An "I" for Illumnation designation.
-  --   * An "S" for Smoking designation.
-  --   * An "L" for Lasing designation.
-  --
-  -- Note that multiple designation methods can be active at the same time!
-  -- Note the **Auto Lase** option. When switched on, the available **Recce** will lase 
-  -- Targets when detected.
-  -- 
-  -- Targets are designated per **Threat Level**. 
-  -- The most threatening targets from an Air to Ground perspective, are designated first!
-  -- This is for all designation methods.
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia6.JPG)
-  -- 
-  -- Each Designate Menu has a sub menu structure, which allows specific actions to be triggered:
-  -- 
-  --   * Lase Targets using a specific laser code.
-  --   * Smoke Targets using a specific smoke color.
-  --   * Illuminate areas.
-  -- 
-  -- ### 0.3. Lasing Targets
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia7.JPG)
-  -- 
-  -- Lasing targets is done as expected. Each available Recce can lase only ONE target through!
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia8.JPG)
-  -- 
-  -- Lasing can be done for specific laser codes. The Su-25T requires laser code 1113, while the A-10A requires laser code 1680.
-  -- For those, specific menu options can be made available for players to lase with these codes.
-  -- Auto Lase (as explained above), will ensure continuous lasing of available targets.
-  -- The status report shows which targets are being designated.
-  -- 
-  -- The following logic is executed when a TargetGroup is selected to be *lased* from the Designation Menu:
-  -- 
-  --   * The RecceSet is searched for any Recce that is within *designation distance* from a Target in the TargetGroup that is currently not being designated.
-  --   * If there is a Recce found that is currently no designating a target, and is within designation distance from the Target, then that Target will be designated.
-  --   * During designation, any Recce that does not have Line of Sight (LOS) and is not within disignation distance from the Target, will stop designating the Target, and a report is given.
-  --   * When a Recce is designating a Target, and that Target is destroyed, then the Recce will stop designating the Target, and will report the event.
-  --   * When a Recce is designating a Target, and that Recce is destroyed, then the Recce will be removed from the RecceSet and designation will stop without reporting.
-  --   * When all RecceGroups are destroyed from the RecceSet, then the DesignationObject will stop functioning, and nothing will be reported.
-  --   
-  -- In this way, DESIGNATE assists players to designate ground targets for a coordinated attack!
-  -- 
-  -- ### 0.4. Illuminating Targets
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia9.JPG)
-  -- 
-  -- Illumination bombs are fired between 500 and 700 meters altitude and will burn about 2 minutes, while slowly decending.
-  -- Each available recce within range will fire an illumination bomb.
-  -- Illumination bombs can be fired in while lasing targets.
-  -- When illumination bombs are fired, it will take about 2 minutes until a sequent bomb run can be requested using the menus.
-  -- 
-  -- ### 0.5. Smoking Targets
-  -- 
-  -- ![Banner Image](..\Presentations\DESIGNATE\Dia10.JPG)
-  -- 
-  -- Smoke will fire for 5 minutes.
-  -- Each available recce within range will smoke a target.
-  -- Smoking can be requested while lasing targets.
-  -- Smoke will appear "around" the targets, because of accuracy limitations.
-  -- 
-  -- 
-  -- Have FUN!
-  -- 
-  -- ## 1. DESIGNATE constructor
+  -- # 1. DESIGNATE constructor
   --   
   --   * @{#DESIGNATE.New}(): Creates a new DESIGNATE object.
   -- 
-  -- ## 2. DESIGNATE is a FSM
+  -- # 2. DESIGNATE is a FSM
   -- 
   -- Designate is a finite state machine, which allows for controlled transitions of states.
   -- 
-  -- ### 2.1 DESIGNATE States
+  -- ## 2.1 DESIGNATE States
   -- 
   --   * **Designating** ( Group ): The designation process.
   -- 
-  -- ### 2.2 DESIGNATE Events
+  -- ## 2.2 DESIGNATE Events
   -- 
   --   * **@{#DESIGNATE.Detect}**: Detect targets.
   --   * **@{#DESIGNATE.LaseOn}**: Lase the targets with the specified Index.
@@ -47499,7 +47533,7 @@ do -- DESIGNATE
   --   * **@{#DESIGNATE.Smoke}**: Smoke the targets with the specified Index.
   --   * **@{#DESIGNATE.Status}**: Report designation status.
   -- 
-  -- ## 3. Maximum Designations
+  -- # 3. Maximum Designations
   -- 
   -- In order to prevent an overflow of designations due to many Detected Targets, there is a 
   -- Maximum Designations scope that is set in the DesignationObject.
@@ -47507,9 +47541,9 @@ do -- DESIGNATE
   -- The method @{#DESIGNATE.SetMaximumDesignations}() will put a limit on the amount of designations put in scope of the DesignationObject.
   -- Using the menu system, the player can "forget" a designation, so that gradually a new designation can be put in scope when detected.
   -- 
-  -- ## 4. Laser codes
+  -- # 4. Laser codes
   -- 
-  -- ### 4.1. Set possible laser codes
+  -- ## 4.1. Set possible laser codes
   -- 
   -- An array of laser codes can be provided, that will be used by the DESIGNATE when lasing.
   -- The laser code is communicated by the Recce when it is lasing a larget.
@@ -47527,11 +47561,11 @@ do -- DESIGNATE
   --     
   -- The above sets a collection of possible laser codes that can be assigned. **Note the { } notation!**
   -- 
-  -- ### 4.2. Auto generate laser codes
+  -- ## 4.2. Auto generate laser codes
   -- 
   -- Use the method @{#DESIGNATE.GenerateLaserCodes}() to generate all possible laser codes. Logic implemented and advised by Ciribob!
   -- 
-  -- ### 4.3. Add specific lase codes to the lase menu
+  -- ## 4.3. Add specific lase codes to the lase menu
   -- 
   -- Certain plane types can only drop laser guided ordonnance when targets are lased with specific laser codes.
   -- The SU-25T needs targets to be lased using laser code 1113.
@@ -47540,7 +47574,7 @@ do -- DESIGNATE
   -- The method @{#DESIGNATE.AddMenuLaserCode}() to allow a player to lase a target using a specific laser code.
   -- Remove such a lase menu option using @{#DESIGNATE.RemoveMenuLaserCode}().
   -- 
-  -- ## 5. Autolase to automatically lase detected targets.
+  -- # 5. Autolase to automatically lase detected targets.
   -- 
   -- DetectionItems can be auto lased once detected by Recces. As such, there is almost no action required from the Players using the Designate Menu.
   -- The **auto lase** function can be activated through the Designation Menu.
@@ -47551,7 +47585,7 @@ do -- DESIGNATE
   -- 
   -- Activate the auto lasing.
   -- 
-  -- ## 6. Target prioritization on threat level
+  -- # 6. Target prioritization on threat level
   -- 
   -- Targets can be detected of different types in one DetectionItem. Depending on the type of the Target, a different threat level applies in an Air to Ground combat context.
   -- SAMs are of a higher threat than normal tanks. So, if the Target type was recognized, the Recces will select those targets that form the biggest threat first,
@@ -47564,12 +47598,12 @@ do -- DESIGNATE
   --     
   -- The example will activate the threat level prioritization for this the Designate object. Threats will be marked based on the threat level of the Target.
   -- 
-  -- ## 6. Designate Menu Location for a Mission
+  -- # 7. Designate Menu Location for a Mission
   -- 
   -- You can make DESIGNATE work for a @{Tasking.Mission#MISSION} object. In this way, the designate menu will not appear in the root of the radio menu, but in the menu of the Mission.
   -- Use the method @{#DESIGNATE.SetMission}() to set the @{Mission} object for the designate function.
   -- 
-  -- ## 7. Status Report
+  -- # 8. Status Report
   -- 
   -- A status report is available that displays the current Targets detected, grouped per DetectionItem, and a list of which Targets are currently being marked.
   -- 
@@ -66284,6 +66318,7 @@ end
 -- @field #table shippinglanes Table holding the user defined shipping between warehouses.
 -- @field #table offroadpaths Table holding user defined paths from one warehouse to another. 
 -- @field #boolean autodefence When the warehouse is under attack, automatically spawn assets to defend the warehouse.
+-- @field #number spawnzonemaxdist Max distance between warehouse and spawn zone. Default 5000 meters.
 -- @extends Core.Fsm#FSM
 
 --- Have your assets at the right place at the right time - or not!
@@ -66367,7 +66402,7 @@ end
 -- 
 -- # Adding Assets
 -- 
--- Assets can be added to the warehouse stock by using the @{#WAREHOUSE.AddAsset}(*group*, *ngroups*, *forceattribute*, *forcecargobay*, *forceweight*, *loadradius*) function.
+-- Assets can be added to the warehouse stock by using the @{#WAREHOUSE.AddAsset}(*group*, *ngroups*, *forceattribute*, *forcecargobay*, *forceweight*, *loadradius*, *skill*, *liveries*, *assignment*) function.
 -- The parameter *group* has to be a MOOSE @{Wrapper.Group#GROUP}. This is also the only mandatory parameters. All other parameters are optional and can be used for fine tuning if
 -- nessary. The parameter *ngroups* specifies how many clones of this group are added to the stock.
 -- 
@@ -66380,8 +66415,8 @@ end
 -- Also note that the coalition of the template group (red, blue or neutral) does not matter. The coalition of the assets is determined by the coalition of the warehouse owner.
 -- In other words, it is no problem to add red groups to blue warehouses and vice versa. The assets will automatically have the coalition of the warehouse.   
 -- 
--- You can add assets with a delay by using the @{#WAREHOUSE.__AddAsset}(*delay*, *group*, *ngroups*, *foceattribute*, *forcecargobay*, *forceweight*, *loadradius*), where *delay* 
--- is the delay in seconds before the asset is added.
+-- You can add assets with a delay by using the @{#WAREHOUSE.__AddAsset}(*delay*, *group*, *ngroups*, *forceattribute*, *forcecargobay*, *forceweight*, *loadradius*,  *skill*, *liveries*, *assignment*),
+-- where *delay* is the delay in seconds before the asset is added.
 -- 
 -- In game, the warehouse will get a mark which is regularly updated and showing the currently available assets in stock.
 -- 
@@ -66434,6 +66469,54 @@ end
 --     warehouseBatumi:AddAsset("Leopard 2", nil, nil, nil, nil, 250)
 --  
 -- Adding the asset like this will cause the units to be loaded into the carrier already at a distance of 250 meters.
+-- 
+-- ### Setting the AI Skill
+-- 
+-- By default, the asset has the skill of its template group. The optional parameter *skill* allows to set a different skill when the asset is added. See the 
+-- [hoggit page](https://wiki.hoggitworld.com/view/DCS_enum_AI) possible values of this enumerator.
+-- For example you can use
+-- 
+--     warehouseBatumi:AddAsset("Leopard 2", nil, nil, nil, nil, nil, AI.Skill.EXCELLENT)
+--     
+-- do set the skill of the asset to excellent.
+--  
+-- ### Setting Liveries
+--  
+-- By default ,the asset uses the livery of its template group. The optional parameter *liveries* allows to define one or multiple liveries.
+-- If multiple liveries are given in form of a table of livery names, each asset gets a random one.
+--  
+-- For example
+--  
+--     warehouseBatumi:AddAsset("Mi-8", nil, nil, nil, nil, nil, nil, "China UN")
+--     
+-- would spawn the asset with a chinese UN livery.
+--  
+-- Or
+--  
+--     warehouseBatumi:AddAsset("Mi-8", nil, nil, nil, nil, nil, nil, {"China UN", "German"})
+--     
+-- would spawn the asset with either a chinese UN or German livery. Mind the curly brackets **{}** when you want to specify multiple liveries.
+--  
+-- Four each unit type, the livery names can be found in the DCS root folder under Bazar\Liveries. You have to use the name of the livery subdirectory. The names of the liveries
+-- as displayed in the mission editor might be different and won't work in general.
+--  
+-- ### Setting an Assignment
+--  
+-- Assets can be added with a specific assignment given as a text, e.g.
+--  
+--     warehouseBatumi:AddAsset("Mi-8", nil, nil, nil, nil, nil, nil, nil, "Go to Warehouse Kobuleti")
+--     
+-- This is helpful to establish supply chains once an asset has arrived at its (first) destination and is meant to be forwarded to another warehouse.
+-- 
+-- ## Retrieving the Asset
+-- 
+-- Once a an asset is added to a warehouse, the @{#WAREHOUSE.NewAsset} event is triggered. You can hook into this event with the @{#WAREHOUSE.OnAfterNewAsset}(*asset*, *assignment*) function.
+-- 
+-- The first parameter *asset* is a table of type @{#WAREHOUSE.Assetitem} and contains a lot of information about the asset. The seconed parameter *assignment* is optional and is the specific
+-- assignment the asset got when it was added.
+-- 
+-- Note that the assignment is can also be the assignment that was specified when adding a request (see next section). Once an asset that was requested from another warehouse and an assignment
+-- was specified in the @{#WAREHOUSE.AddRequest} function, the assignment can be checked when the asset has arrived and is added to the receiving warehouse.
 --  
 -- ===
 --
@@ -66891,7 +66974,7 @@ end
 -- 
 -- Ground troops are taken from the Batumi warehouse stock and spawned in its spawn zone. After a short delay, they are added back to the warehouse stock.
 -- Also a new request is made. Hence, the groups will be spawned, added back to the warehouse, spawned again and so on and so forth...
---      
+--     
 --     -- Start warehouse Batumi.
 --     warehouse.Batumi:Start()
 --     
@@ -67505,7 +67588,7 @@ end
 --     -- Kobuleti requests all available trucks from London.
 --     warehouse.London:AddRequest(warehouse.Kobuleti, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.GROUND_TRUCK, WAREHOUSE.Quantity.HALF)
 --
---## Example 16 Resupply of Dead Assets
+-- ## Example 16: Resupply of Dead Assets
 --
 -- Warehouse at FARP Berlin is located at the front line and sends infantry groups to the battle zone.
 -- Whenever a group dies, a new group is send from the warehouse to the battle zone.
@@ -67570,6 +67653,65 @@ end
 --       warehouse.Berlin:AddRequest(warehouse.Berlin, WAREHOUSE.Descriptor.ATTRIBUTE, asset.attribute, 1, nil, nil, nil, assignment)
 --     end
 --
+-- ## Example 17: Supply Chains
+--
+-- Our remote warehouse "Pampa" south of Batumi needs assets but does not have any air infrastructure (FARP or airdrome).
+-- Leopard 2 tanks are transported from Kobuleti to Batumi using two C-17As. From there they go be themselfs to Pampa.
+-- Eight infantry groups and two mortar groups are also being transferred from Kobuleti to Batumi by helicopter.
+-- The infantry has a higher priority and will be transported first using all available Mi-8 helicopters.
+-- Once infantry has arrived at Batumi, it will walk by itself to warehouse Pampa.
+-- The mortars can only be transported once the Mi-8 helos are available again, i.e. when the infantry has been delivered.
+-- Once the mortars arrive at Batumi, they will be transported by APCs to Pampa.
+-- 
+--     -- Start warehouses.
+--     warehouse.Kobuleti:Start()
+--     warehouse.Batumi:Start()
+--     warehouse.Pampa:Start()
+--     
+--     -- Add assets to Kobuleti warehouse, which is our main hub.
+--     warehouse.Kobuleti:AddAsset("C-130",  2)
+--     warehouse.Kobuleti:AddAsset("C-17A",  2, nil, 77000)
+--     warehouse.Kobuleti:AddAsset("Mi-8",  2, WAREHOUSE.Attribute.AIR_TRANSPORTHELO, nil, nil, nil, AI.Skill.EXCELLENT, {"Germany", "United Kingdom"})
+--     warehouse.Kobuleti:AddAsset("Leopard 2", 10, nil, nil, 62000, 500)
+--     warehouse.Kobuleti:AddAsset("Mortar Alpha", 10, nil, nil, 210)
+--     warehouse.Kobuleti:AddAsset("Infantry Platoon Alpha", 20)
+--     
+--     -- Transports at Batumi.
+--     warehouse.Batumi:AddAsset("SPz Marder", 2)
+--     warehouse.Batumi:AddAsset("TPz Fuchs", 2)
+--     
+--     -- Tanks transported by plane from from Kobuleti to Batumi.
+--     warehouse.Kobuleti:AddRequest(warehouse.Batumi, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.GROUND_TANK, 2, WAREHOUSE.TransportType.AIRPLANE, 2, 10, "Assets for Pampa")
+--     -- Artillery transported by helicopter from Kobuleti to Batumi.
+--     warehouse.Kobuleti:AddRequest(warehouse.Batumi, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.GROUND_ARTILLERY, 2, WAREHOUSE.TransportType.HELICOPTER, 2, 30, "Assets for Pampa via APC")
+--     -- Infantry transported by helicopter from Kobuleti to Batumi.
+--     warehouse.Kobuleti:AddRequest(warehouse.Batumi, WAREHOUSE.Descriptor.ATTRIBUTE, WAREHOUSE.Attribute.GROUND_INFANTRY, 8, WAREHOUSE.TransportType.HELICOPTER, 2, 20, "Assets for Pampa")
+--     
+--     --- Function handling assets delivered from Kobuleti warehouse.
+--     function warehouse.Kobuleti:OnAfterDelivered(From, Event, To, request)
+--       local request=request --Functional.Warehouse#WAREHOUSE.Pendingitem
+--       
+--       -- Get assignment.
+--       local assignment=warehouse.Kobuleti:GetAssignment(request)
+--       
+--       -- Check if these assets were meant for Warehouse Pampa.
+--       if assignment=="Assets for Pampa via APC" then
+--         -- Forward everything that arrived at Batumi to Pampa via APC.
+--         warehouse.Batumi:AddRequest(warehouse.Pampa, WAREHOUSE.Descriptor.ATTRIBUTE, request.cargoattribute, request.ndelivered, WAREHOUSE.TransportType.APC, WAREHOUSE.Quantity.ALL)
+--       end
+--     end
+--     
+--     -- Forward all mobile ground assets to Pampa once they arrived.
+--     function warehouse.Batumi:OnAfterNewAsset(From, Event, To, asset, assignment)
+--       local asset=asset --Functional.Warehouse#WAREHOUSE.Assetitem
+--       if assignment=="Assets for Pampa" then
+--         if asset.category==Group.Category.GROUND and asset.speedmax>0 then
+--           warehouse.Batumi:AddRequest(warehouse.Pampa, WAREHOUSE.Descriptor.GROUPNAME, asset.templatename)
+--         end
+--       end
+--     end
+--
+--
 -- @field #WAREHOUSE
 WAREHOUSE = {
   ClassName     = "WAREHOUSE",
@@ -67597,7 +67739,8 @@ WAREHOUSE = {
   portzone      =   nil,
   shippinglanes =    {},
   offroadpaths  =    {},
-  autodefence   = false,  
+  autodefence   = false,
+  spawnzonemaxdist = 5000,
 }
 
 --- Item of the warehouse stock table.
@@ -67618,6 +67761,8 @@ WAREHOUSE = {
 -- @field #number cargobaytot Total weight in kg that fits in the cargo bay of all asset group units.
 -- @field #number cargobaymax Largest cargo bay of all units in the group.
 -- @field #number loadradius Distance when cargo is loaded into the carrier.
+-- @field DCS#AI.Skill skill Skill of AI unit.
+-- @field #string livery Livery of the asset.
 
 --- Item of the warehouse queue table.
 -- @type WAREHOUSE.Queueitem
@@ -67766,7 +67911,7 @@ WAREHOUSE.db = {
 
 --- Warehouse class version.
 -- @field #string version
-WAREHOUSE.version="0.5.8"
+WAREHOUSE.version="0.6.1"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- TODO: Warehouse todo list.
@@ -67968,6 +68113,9 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #number forcecargobay (Optional) Explicitly force cargobay weight limit in kg for cargo carriers. This is for each *unit* of the group.
   -- @param #number forceweight (Optional) Explicitly force weight in kg of each unit in the group.
   -- @param #number loadradius (Optional) The distance in meters when the cargo is loaded into the carrier. Default is the bounding box size of the carrier.
+  -- @param DCS#AI.Skill skill Skill of the asset.
+  -- @param #table liveries Table of livery names. When the asset is spawned one livery is chosen randomly.
+  -- @param #string assignment A free to choose string specifying an assignment for the asset. This can be used with the @{#WAREHOUSE.OnAfterNewAsset} function.
 
   --- Trigger the FSM event "AddAsset" with a delay. Add a group to the warehouse stock.
   -- @function [parent=#WAREHOUSE] __AddAsset
@@ -67979,18 +68127,23 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #number forcecargobay (Optional) Explicitly force cargobay weight limit in kg for cargo carriers. This is for each *unit* of the group.
   -- @param #number forceweight (Optional) Explicitly force weight in kg of each unit in the group.
   -- @param #number loadradius (Optional) The distance in meters when the cargo is loaded into the carrier. Default is the bounding box size of the carrier.
+  -- @param DCS#AI.Skill skill Skill of the asset.
+  -- @param #table liveries Table of livery names. When the asset is spawned one livery is chosen randomly.
+  -- @param #string assignment A free to choose string specifying an assignment for the asset. This can be used with the @{#WAREHOUSE.OnAfterNewAsset} function.
 
-
-  --- Triggers the FSM event "NewAsset" when a new asset has been added to the warehouse stock.
-  -- @function [parent=#WAREHOUSE] NewAsset
-  -- @param #WAREHOUSE self
-  -- @param #number delay Delay in seconds.
-  -- @param #WAREHOUSE.Assetitem asset The new asset.
 
   --- Triggers the FSM delayed event "NewAsset" when a new asset has been added to the warehouse stock.
   -- @function [parent=#WAREHOUSE] NewAsset
   -- @param #WAREHOUSE self
   -- @param #WAREHOUSE.Assetitem asset The new asset.
+  -- @param #string assignment (Optional) Assignment text for the asset.
+
+  --- Triggers the FSM delayed event "NewAsset" when a new asset has been added to the warehouse stock.
+  -- @function [parent=#WAREHOUSE] __NewAsset
+  -- @param #WAREHOUSE self
+  -- @param #number delay Delay in seconds.
+  -- @param #WAREHOUSE.Assetitem asset The new asset.
+  -- @param #string assignment (Optional) Assignment text for the asset.
 
   --- On after "NewAsset" event user function. A new asset has been added to the warehouse stock.
   -- @function [parent=#WAREHOUSE] OnAfterNewAsset
@@ -67998,7 +68151,8 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #string From From state.
   -- @param #string Event Event.
   -- @param #string To To state.
-  -- @param #WAREHOUSE.Assetitem asset The asset that has just been added
+  -- @param #WAREHOUSE.Assetitem asset The asset that has just been added.
+  -- @param #string assignment (Optional) Assignment text for the asset.
 
 
   --- Triggers the FSM event "AddRequest". Add a request to the warehouse queue, which is processed when possible.
@@ -68326,11 +68480,14 @@ end
 --- Set a zone where the (ground) assets of the warehouse are spawned once requested.
 -- @param #WAREHOUSE self
 -- @param Core.Zone#ZONE zone The spawn zone.
+-- @param #number maxdist (Optional) Maximum distance in meters between spawn zone and warehouse. Units are not spawned if distance is larger. Default is 5000 m.
 -- @return #WAREHOUSE self
-function WAREHOUSE:SetSpawnZone(zone)
+function WAREHOUSE:SetSpawnZone(zone, maxdist)
   self.spawnzone=zone
+  self.spawnzonemaxdist=maxdist or 5000
   return self
 end
+
 
 --- Set a warehouse zone. If this zone is captured, the warehouse and all its assets fall into the hands of the enemy.
 -- @param #WAREHOUSE self
@@ -68720,20 +68877,21 @@ function WAREHOUSE:HasConnectionOffRoad(warehouse, markpath, smokepath)
 end
 
 
---- Get number of assets in warehouse stock.
+--- Get number of assets in warehouse stock. Optionally, only specific assets can be counted.
 -- @param #WAREHOUSE self
 -- @param #string Descriptor (Optional) Descriptor return the number of a specifc asset type. See @{#WAREHOUSE.Descriptor} for possible values.
 -- @param DescriptorValue (Optional) Descriptor value selecting the type of assets.
+-- @param #boolean OnlyMobile (Optional) If true only mobile units are considered.
 -- @return #number Number of assets in stock.
-function WAREHOUSE:GetNumberOfAssets(Descriptor, DescriptorValue)
+function WAREHOUSE:GetNumberOfAssets(Descriptor, DescriptorValue, OnlyMobile)
 
   if Descriptor==nil or DescriptorValue==nil then
-    -- Selected assets.
-    local _stock,_nstock=self:_FilterStock(self.stock, Descriptor, DescriptorValue)
-    return _nstock
-  else
     -- All assets.
     return #self.stock
+  else
+    -- Selected assets.
+    local _stock,_nstock=self:_FilterStock(self.stock, Descriptor, DescriptorValue, nil, OnlyMobile)
+    return _nstock
   end
 
 end
@@ -68827,6 +68985,87 @@ end
 function WAREHOUSE:FindWarehouseInDB(uid)
   return WAREHOUSE.db.Warehouses[uid]
 end
+
+--- Find nearest warehouse in service, i.e. warehouses which are not started, stopped or destroyed are not considered.
+-- Optionally, only warehouses with (specific) assets can be included in the search or warehouses of a certain coalition.
+-- @param #WAREHOUSE self
+-- @param MinAssets (Optional) Minimum number of assets the warehouse should have. Default 0.
+-- @param #string Descriptor (Optional) Descriptor describing the selected assets which should be in stock. See @{#WAREHOUSE.Descriptor} for possible values.
+-- @param DescriptorValue (Optional) Descriptor value selecting the type of assets which should be in stock.
+-- @param DCS#Coalition.side Coalition (Optional) Coalition side of the warehouse. Default is the same coaliton as the present warehouse. Set to false for any coalition.
+-- @param Core.Point#COORDINATE RefCoordinate (Optional) Coordinate to which the closest warehouse is searched. Default is the warehouse calling this function.  
+-- @return #WAREHOUSE The the nearest warehouse object. Or nil if no warehouse is found.
+-- @return #number The distance to the nearest warehouse in meters. Or nil if no warehouse is found.
+function WAREHOUSE:FindNearestWarehouse(MinAssets, Descriptor, DescriptorValue, Coalition, RefCoordinate)
+
+  -- Defaults
+  if Descriptor~=nil and DescriptorValue~=nil then
+    MinAssets=MinAssets or 1
+  else
+    MinAssets=MinAssets or 0
+  end
+  
+  -- Coalition - default only the same as this warehouse.
+  local anycoalition=nil
+  if Coalition~=nil then
+    if Coalition==false then
+      anycoalition=true
+    else
+      -- Nothing to do
+    end
+  else
+    if self~=nil then
+      Coalition=self:GetCoalition()
+    else
+      anycoalition=true
+    end 
+  end
+
+  -- Coordinate of this warehouse or user specified reference.
+  local coord=RefCoordinate or self:GetCoordinate()
+
+  -- Loop over all warehouses.
+  local nearest=nil
+  local distmin=nil  
+  for wid,warehouse in pairs(WAREHOUSE.db.Warehouses) do
+    local warehouse=warehouse --#WAREHOUSE
+    
+    -- Distance from this warehouse to the other warehouse.
+    local dist=coord:Get2DDistance(warehouse:GetCoordinate())
+    
+    if dist>0 then
+      
+      -- Check if coalition is right.
+      local samecoalition=anycoalition or Coalition==warehouse:GetCoalition()
+      
+      -- Check that warehouse is in service.
+      if samecoalition and not (warehouse:IsNotReadyYet() or warehouse:IsStopped() or warehouse:IsDestroyed()) then
+      
+        -- Get number of assets. Whole stock is returned if no descriptor/value is given.
+        local nassets=warehouse:GetNumberOfAssets(Descriptor, DescriptorValue)
+        
+        --env.info(string.format("   FF warehouse %s nassets = %d  for %s=%s", warehouse.alias, nassets, tostring(Descriptor), tostring(DescriptorValue)))
+        
+        -- Assume we have enough.
+        local enough=true
+        -- If specifc assets need to be present...
+        if Descriptor and DescriptorValue then
+          -- Check that enough assets (default 1) are available.
+          enough = nassets>=MinAssets
+        end    
+      
+        -- Check distance.
+        if enough and (distmin==nil or dist<distmin) then
+          distmin=dist
+          nearest=warehouse
+        end
+      end
+    end  
+  end
+
+  return nearest, distmin
+end
+
 
 --- Find an asset in the the global warehouse data base. Parameter is the MOOSE group object.
 -- Note that the group name must contain they "AID" keyword. 
@@ -69091,8 +69330,8 @@ function WAREHOUSE:_JobDone()
         ---------------
         
         -- Info on job.
-        local text=string.format("Warehouse %s: Job on request id=%d done!\n", self.alias, request.uid)
-        text=text..string.format("- %d of %d assets delivered to %s. Casualties %d.", ncargodelivered, ncargotot, request.warehouse.alias, ncargodead)
+        local text=string.format("Warehouse %s: Job on request id=%d for warehouse %s done!\n", self.alias, request.uid, request.warehouse.alias)
+        text=text..string.format("- %d of %d assets delivered. Casualties %d.", ncargodelivered, ncargotot, ncargodead)
         if request.ntransport>0 then
           text=text..string.format("\n- %d of %d transports returned home. Casualties %d.", ntransporthome, ntransporttot, ntransportdead)
         end
@@ -69173,9 +69412,8 @@ function WAREHOUSE:_JobDone()
         -- Still cargo but no transports --
         -----------------------------------
         
-        -- Info message.
-        self:_InfoMessage(string.format("Warehouse %s: All transports of request id=%s dead! Putting remaining %s cargo assets back into warehouse!", self.alias, request.uid, ncargo))
-      
+        local ncargoalive=0
+              
         -- All transports are dead but there is still cargo left ==> Put cargo back into stock.
         for _,_group in pairs(request.cargogroupset:GetSetObjects()) do
           --local group=group --Wrapper.Group#GROUP
@@ -69195,12 +69433,16 @@ function WAREHOUSE:_JobDone()
               end            
               -- Add asset group back to stock.
               self:AddAsset(group)
+              ncargoalive=ncargoalive+1
             end
           end
           
         end
+
+        -- Info message.
+        self:_InfoMessage(string.format("Warehouse %s: All transports of request id=%s dead! Putting remaining %s cargo assets back into warehouse!", self.alias, request.uid, ncargoalive))        
       end
-            
+
     end
   
   end -- loop over requests
@@ -69301,7 +69543,10 @@ end
 -- @param #number forcecargobay (Optional) Explicitly force cargobay weight limit in kg for cargo carriers. This is for each *unit* of the group.
 -- @param #number forceweight (Optional) Explicitly force weight in kg of each unit in the group.
 -- @param #number loadradius (Optional) Radius in meters when the cargo is loaded into the carrier.
-function WAREHOUSE:onafterAddAsset(From, Event, To, group, ngroups, forceattribute, forcecargobay, forceweight, loadradius)
+-- @param DCS#AI.Skill skill Skill of the asset.
+-- @param #table liveries Table of livery names. When the asset is spawned one livery is chosen randomly.
+-- @param #string assignment A free to choose string specifying an assignment for the asset. This can be used with the @{#WAREHOUSE.OnAfterNewAsset} function.
+function WAREHOUSE:onafterAddAsset(From, Event, To, group, ngroups, forceattribute, forcecargobay, forceweight, loadradius, skill, liveries, assignment)
   self:T({group=group, ngroups=ngroups, forceattribute=forceattribute, forcecargobay=forcecargobay, forceweight=forceweight})
 
   -- Set default.
@@ -69312,6 +69557,9 @@ function WAREHOUSE:onafterAddAsset(From, Event, To, group, ngroups, forceattribu
     group=GROUP:FindByName(group)
   end
   
+  if liveries and type(liveries)=="string" then
+    liveries={liveries}
+  end
     
   if group then
   
@@ -69344,17 +69592,30 @@ function WAREHOUSE:onafterAddAsset(From, Event, To, group, ngroups, forceattribu
           end
           
         end
+        
+        -- If no assignment was given we take the assignment of the request if there is any.
+        if assignment==nil and request.assignment~=nil then
+          assignment=request.assignment
+        end
       end
 
       -- Get the asset from the global DB.
       local asset=self:FindAssetInDB(group)
+
+      -- Set livery.      
+      if liveries then
+        asset.livery=liveries[math.random(#liveries)]
+      end
+      
+      -- Set skill.
+      asset.skill=skill
         
       -- Note the group is only added once, i.e. the ngroups parameter is ignored here.
       -- This is because usually these request comes from an asset that has been transfered from another warehouse and hence should only be added once.
       if asset~=nil then        
         self:_DebugMessage(string.format("Warehouse %s: Adding KNOWN asset uid=%d with attribute=%s to stock.", self.alias, asset.uid, asset.attribute), 5)
         table.insert(self.stock, asset)
-        self:NewAsset(asset)
+        self:NewAsset(asset, assignment or "")
       else
         self:_ErrorMessage(string.format("ERROR: Known asset could not be found in global warehouse db!"), 0)
       end      
@@ -69368,12 +69629,12 @@ function WAREHOUSE:onafterAddAsset(From, Event, To, group, ngroups, forceattribu
       self:_DebugMessage(string.format("Warehouse %s: Adding %d NEW assets of group %s to stock.", self.alias, n, tostring(group:GetName())), 5)
        
       -- This is a group that is not in the db yet. Add it n times.
-      local assets=self:_RegisterAsset(group, n, forceattribute, forcecargobay, forceweight, loadradius)
+      local assets=self:_RegisterAsset(group, n, forceattribute, forcecargobay, forceweight, loadradius, liveries, skill)
       
       -- Add created assets to stock of this warehouse.
       for _,asset in pairs(assets) do
         table.insert(self.stock, asset)
-        self:NewAsset(asset)
+        self:NewAsset(asset, assignment or "")
       end      
       
     end   
@@ -69390,7 +69651,7 @@ function WAREHOUSE:onafterAddAsset(From, Event, To, group, ngroups, forceattribu
   end
   
   -- Update status.
-  self:__Status(-1)
+  --self:__Status(-1)
 end
 
 --- Register new asset in globase warehouse data base.
@@ -69401,8 +69662,10 @@ end
 -- @param #number forcecargobay Cargo bay weight limit in kg.
 -- @param #number forceweight Weight of units in kg.
 -- @param #number loadradius Radius in meters when cargo is loaded into the carrier.
+-- @param #table liveries Table of liveries.
+-- @param DCS#AI.Skill skill Skill of AI.
 -- @return #table A table containing all registered assets.
-function WAREHOUSE:_RegisterAsset(group, ngroups, forceattribute, forcecargobay, forceweight, loadradius)
+function WAREHOUSE:_RegisterAsset(group, ngroups, forceattribute, forcecargobay, forceweight, loadradius, liveries, skill)
   self:F({groupname=group:GetName(), ngroups=ngroups, forceattribute=forceattribute, forcecargobay=forcecargobay, forceweight=forceweight})
 
   -- Set default.
@@ -69498,6 +69761,10 @@ function WAREHOUSE:_RegisterAsset(group, ngroups, forceattribute, forcecargobay,
     asset.cargobaytot=cargobaytot
     asset.cargobaymax=cargobaymax
     asset.loadradius=loadradius
+    if liveries then
+      asset.livery=liveries[math.random(#liveries)]
+    end
+    asset.skill=skill
     
     if i==1 then
       self:_AssetItemInfo(asset)
@@ -69530,7 +69797,9 @@ function WAREHOUSE:_AssetItemInfo(asset)
   text=text..string.format("Weight total  = %5.2f kg\n", asset.weight)
   text=text..string.format("Cargo bay tot = %5.2f kg\n", asset.cargobaytot)
   text=text..string.format("Cargo bay max = %5.2f kg\n", asset.cargobaymax)
-  text=text..string.format("Load radius   = %s m", tostring(asset.loadradius))
+  text=text..string.format("Load radius   = %s m\n", tostring(asset.loadradius))
+  text=text..string.format("Skill         = %s\n", tostring(asset.skill))
+  text=text..string.format("Livery        = %s", tostring(asset.livery))
   self:T(self.wid..text)
   self:T({DCSdesc=asset.DCSdesc})
   self:T3({Template=asset.template})
@@ -69541,8 +69810,10 @@ end
 -- @param #string From From state.
 -- @param #string Event Event.
 -- @param #string To To state.
--- @param #WAREHOUSE.Assetitem asset The asset that has just been added
-function WAREHOUSE:onafterNewAsset(From, Event, To, asset)
+-- @param #WAREHOUSE.Assetitem asset The asset that has just been added.
+-- @parma #string assignment The (optional) assignment for the asset.
+function WAREHOUSE:onafterNewAsset(From, Event, To, asset, assignment)
+  self:T(self.wid..string.format("New asset %s id=%d with assignment %s.", asset.templatename, asset.uid, assignment))
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -69691,7 +69962,7 @@ function WAREHOUSE:onafterAddRequest(From, Event, To, warehouse, AssetDescriptor
   self:_DebugMessage(text, 5)
 
   -- Update status
-  self:__Status(-1)
+  --self:__Status(-1)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70153,7 +70424,7 @@ function WAREHOUSE:onafterRequest(From, Event, To, Request)
     local warehouse=Carrier:GetState(Carrier, "WAREHOUSE") --#WAREHOUSE
   
     -- Debug message.
-    local text=string.format("Carrier group %s loaded cargo %s into unit %s in pickup zone %s", Carrier:GetName(), Cargo:GetObject():GetName(), CarrierUnit:GetName(), PickupZone:GetName())
+    local text=string.format("Carrier group %s loaded cargo %s into unit %s in pickup zone %s", Carrier:GetName(), Cargo:GetName(), CarrierUnit:GetName(), PickupZone:GetName())
     warehouse:T(warehouse.wid..text)
     
     -- Get cargo group object.
@@ -70163,7 +70434,7 @@ function WAREHOUSE:onafterRequest(From, Event, To, Request)
     local request=warehouse:_GetRequestOfGroup(group, warehouse.pending)
     
     -- Add cargo group to this carrier.
-    table.insert(request.carriercargo[CarrierUnit:GetName()], group)
+    table.insert(request.carriercargo[CarrierUnit:GetName()], warehouse:_GetNameWithOut(Cargo:GetName()))
     
   end
 
@@ -70330,7 +70601,9 @@ function WAREHOUSE:onafterDelivered(From, Event, To, request)
   self:_InfoMessage(text, 5)
 
   -- Make some noise :)
-  self:_Fireworks(request.warehouse:GetCoordinate())
+  if self.Debug then
+    self:_Fireworks(request.warehouse:GetCoordinate())
+  end
   
   -- Set delivered status for this request uid.
   self.delivered[request.uid]=true
@@ -70732,7 +71005,14 @@ function WAREHOUSE:_SpawnAssetGroundNaval(alias, asset, request, spawnzone, aiof
       
       template.units[i].x = TX
       template.units[i].y = TY
-             
+      
+      if asset.livery then
+        unit.livery_id = asset.livery
+      end
+      if asset.skill then
+        unit.skill= asset.skill
+      end
+         
     end
     
     template.route.points[1].x = coord.x
@@ -70852,6 +71132,14 @@ function WAREHOUSE:_SpawnAssetAircraft(alias, asset, request, parking, uncontrol
         unit.parking    = terminal
         
       end
+      
+      if asset.livery then
+        unit.livery_id = asset.livery
+      end
+      if asset.skill then
+        unit.skill= asset.skill
+      end
+      
     end
     
     -- And template position.
@@ -71395,7 +71683,7 @@ function WAREHOUSE:_UnitDead(deadunit, request)
    
   
   -- Not sure what this does actually and if it would be better to set it to true.
-  local NoTriggerEvent=false  
+  local NoTriggerEvent=true
   
   if request.transporttype==WAREHOUSE.TransportType.SELFPROPELLED then
   
@@ -71423,13 +71711,12 @@ function WAREHOUSE:_UnitDead(deadunit, request)
     if istransport==true then
     
       -- Get the carrier unit table holding the cargo groups inside this carrier.
-      local cargogroups=request.carriercargo[unitname]
+      local cargogroupnames=request.carriercargo[unitname]
       
-      if cargogroups then
+      if cargogroupnames then
       
         -- Loop over all groups inside the destroyed carrier ==> all dead.
-        for _,cargogroup in pairs(cargogroups) do
-          local cargoname=self:_GetNameWithOut(cargogroup)
+        for _,cargoname in pairs(cargogroupnames) do
           request.cargogroupset:Remove(cargoname, NoTriggerEvent)
           self:T(self.wid..string.format("Removed transported cargo %s inside dead carrier %s: ncargo=%d", cargoname, unitname, request.cargogroupset:Count()))
         end
@@ -72107,12 +72394,12 @@ function WAREHOUSE:_CheckRequestNow(request)
     if _assetcategory==Group.Category.GROUND then
     
       -- Distance between warehouse and spawn zone.
-      local dist=self.warehouse:GetCoordinate():Get2DDistance(request.warehouse.spawnzone:GetCoordinate())
+      local dist=self.warehouse:GetCoordinate():Get2DDistance(self.spawnzone:GetCoordinate())
           
       -- Check min dist to spawn zone.
-      if dist>5000 then
+      if dist>self.spawnzonemaxdist then
         -- Not close enough to spawn zone.
-        local text=string.format("Warehouse %s: Request denied! Not close enough to spawn zone. Distance = %d m. We need to be at least within 5000 m range to spawn.", self.alias, dist)
+        local text=string.format("Warehouse %s: Request denied! Not close enough to spawn zone. Distance = %d m. We need to be at least within %d m range to spawn.", self.alias, dist, self.spawnzonemaxdist)
         self:_InfoMessage(text, 5)      
         return false
       end
@@ -72698,7 +72985,12 @@ end
 -- @return #string Name of the object without trailing #...
 function WAREHOUSE:_GetNameWithOut(group)
   if group then
-    local name=group:GetName()
+    local name
+    if type(group)=="string" then
+      name=group
+    else
+      name=group:GetName()
+    end
     local namewithout=UTILS.Split(name, "#")[1]
     if namewithout then
       return namewithout
@@ -72706,7 +72998,11 @@ function WAREHOUSE:_GetNameWithOut(group)
       return name
     end
   end
-  return group:GetName()
+  if type(group)=="string" then
+    return group
+  else
+    return group:GetName()
+  end
 end
 
 
