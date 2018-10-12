@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-11T17:26:54.0000000Z-439c27a05bdcc05462c5ee0d1430997973620f5c ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-11T17:47:41.0000000Z-c2e2d455ba9e77f78fcdcdcf53e2c1d2d0dcde32 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -18671,7 +18671,8 @@ do -- COORDINATE
 
   --- Return a BR string from a COORDINATE to the COORDINATE.
   -- @param #COORDINATE self
-  -- @param #COORDINATE TargetCoordinate The target COORDINATE.
+  -- @param #COORDINATE FromCoordinate The coordinate to measure the distance and the bearing from.
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The BR text.
   function COORDINATE:ToStringBR( FromCoordinate, Settings )
     local DirectionVec3 = FromCoordinate:GetDirectionVec3( self )
@@ -18682,7 +18683,8 @@ do -- COORDINATE
 
   --- Return a BRAA string from a COORDINATE to the COORDINATE.
   -- @param #COORDINATE self
-  -- @param #COORDINATE TargetCoordinate The target COORDINATE.
+  -- @param #COORDINATE FromCoordinate The coordinate to measure the distance and the bearing from.
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The BR text.
   function COORDINATE:ToStringBRA( FromCoordinate, Settings )
     local DirectionVec3 = FromCoordinate:GetDirectionVec3( self )
@@ -18695,6 +18697,7 @@ do -- COORDINATE
   --- Return a BULLS string out of the BULLS of the coalition to the COORDINATE.
   -- @param #COORDINATE self
   -- @param DCS#coalition.side Coalition The coalition.
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The BR text.
   function COORDINATE:ToStringBULLS( Coalition, Settings )
     local BullsCoordinate = COORDINATE:NewFromVec3( coalition.getMainRefPoint( Coalition ) )
@@ -18734,7 +18737,7 @@ do -- COORDINATE
 
   --- Provides a Lat Lon string in Degree Minute Second format.
   -- @param #COORDINATE self
-  -- @param Core.Settings#SETTINGS Settings (optional) Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The LL DMS Text
   function COORDINATE:ToStringLLDMS( Settings ) 
 
@@ -18745,7 +18748,7 @@ do -- COORDINATE
 
   --- Provides a Lat Lon string in Degree Decimal Minute format.
   -- @param #COORDINATE self
-  -- @param Core.Settings#SETTINGS Settings (optional) Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The LL DDM Text
   function COORDINATE:ToStringLLDDM( Settings )
 
@@ -18756,7 +18759,7 @@ do -- COORDINATE
 
   --- Provides a MGRS string
   -- @param #COORDINATE self
-  -- @param Core.Settings#SETTINGS Settings (optional) Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The MGRS Text
   function COORDINATE:ToStringMGRS( Settings ) --R2.1 Fixes issue #424.
 
@@ -18770,10 +18773,12 @@ do -- COORDINATE
   --   * Uses default settings in COORDINATE.
   --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
   -- @param #COORDINATE self
+  -- @param #COORDINATE ReferenceCoord The refrence coordinate.
+  -- @param #string ReferenceName The refrence name.
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The coordinate Text in the configured coordinate system.
-  function COORDINATE:ToStringFromRP( ReferenceCoord, ReferenceName, Controllable, Settings ) -- R2.2
+  function COORDINATE:ToStringFromRP( ReferenceCoord, ReferenceName, Controllable, Settings )
   
     self:F2( { ReferenceCoord = ReferenceCoord, ReferenceName = ReferenceName } )
 
@@ -18800,9 +18805,9 @@ do -- COORDINATE
   --- Provides a coordinate string of the point, based on the A2G coordinate format system.
   -- @param #COORDINATE self
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The coordinate Text in the configured coordinate system.
-  function COORDINATE:ToStringA2G( Controllable, Settings ) -- R2.2
+  function COORDINATE:ToStringA2G( Controllable, Settings ) 
   
     self:F2( { Controllable = Controllable and Controllable:GetName() } )
 
@@ -18835,7 +18840,7 @@ do -- COORDINATE
   --- Provides a coordinate string of the point, based on the A2A coordinate format system.
   -- @param #COORDINATE self
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The coordinate Text in the configured coordinate system.
   function COORDINATE:ToStringA2A( Controllable, Settings ) -- R2.2
   
@@ -18874,7 +18879,7 @@ do -- COORDINATE
   --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
   -- @param #COORDINATE self
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @param Tasking.Task#TASK Task The task for which coordinates need to be calculated.
   -- @return #string The coordinate Text in the configured coordinate system.
   function COORDINATE:ToString( Controllable, Settings, Task )
@@ -18927,7 +18932,7 @@ do -- COORDINATE
   --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
   -- @param #COORDINATE self
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The pressure text in the configured measurement system.
   function COORDINATE:ToStringPressure( Controllable, Settings ) -- R2.3
   
@@ -18943,9 +18948,9 @@ do -- COORDINATE
   --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
   -- @param #COORDINATE self
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS Settings (optional) The settings. Can be nil, and in this case the default settings are used. If you want to specify your own settings, use the _SETTINGS object.
   -- @return #string The wind text in the configured measurement system.
-  function COORDINATE:ToStringWind( Controllable, Settings ) -- R2.3
+  function COORDINATE:ToStringWind( Controllable, Settings )
   
     self:F2( { Controllable = Controllable and Controllable:GetName() } )
 
@@ -18959,9 +18964,9 @@ do -- COORDINATE
   --   * Can be overridden if for a GROUP containing x clients, a menu was selected to override the default.
   -- @param #COORDINATE self
   -- @param Wrapper.Controllable#CONTROLLABLE Controllable
-  -- @param Core.Settings#SETTINGS Settings
+  -- @param Core.Settings#SETTINGS 
   -- @return #string The temperature text in the configured measurement system.
-  function COORDINATE:ToStringTemperature( Controllable, Settings ) -- R2.3
+  function COORDINATE:ToStringTemperature( Controllable, Settings )
   
     self:F2( { Controllable = Controllable and Controllable:GetName() } )
 
@@ -32829,10 +32834,18 @@ end
 function UNIT:InAir()
   self:F2( self.UnitName )
 
-  local DCSUnit = self:GetDCSObject()
+  local DCSUnit = self:GetDCSObject() --DCS#Unit
   
   if DCSUnit then
-    local UnitInAir = DCSUnit:inAir()
+--    Implementation of workaround. The original code is below.
+--    This to simulate the landing on buildings.
+--    local UnitInAir = DCSUnit:inAir()
+    local UnitInAir = false
+    local VelocityVec3 = DCSUnit:getVelocity()
+    local Velocity = ( VelocityVec3.x ^ 2 + VelocityVec3.y ^ 2 + VelocityVec3.z ^ 2 ) ^ 0.5 -- in meters / sec
+    if Velocity < 1 and DCSUnit:getPoint().y <= 30 then
+      UnitInAir = true
+    end
     self:T3( UnitInAir )
     return UnitInAir
   end
