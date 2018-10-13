@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-12T19:38:16.0000000Z-2d85004646ffd04cc1624387e84408ebaa7afe73 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-13T05:40:42.0000000Z-b0d8dd187d846e9ef32170f86111d29cc0e6ad4a ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -33952,7 +33952,7 @@ end
 --- Find a AIRBASE in the _DATABASE using the name of an existing DCS Airbase.
 -- @param #AIRBASE self
 -- @param #string AirbaseName The Airbase Name.
--- @return Wrapper.Airbase#AIRBASE self
+-- @return #AIRBASE self
 function AIRBASE:FindByName( AirbaseName )
   
   local AirbaseFound = _DATABASE:FindAirbase( AirbaseName )
@@ -76660,6 +76660,7 @@ function AI_A2A_GCI:OnEventDead( EventData )
 end
 --- **AI** - (R2.2) - Manages the process of an automatic A2A defense system based on an EWR network targets and coordinating CAP and GCI.
 -- 
+-- ===
 -- 
 -- Features:
 -- 
@@ -76678,6 +76679,19 @@ end
 --    * Quickly setup an A2A defense system using @{#AI_A2A_GCICAP}.
 --    * Setup a more advanced defense system using @{#AI_A2A_DISPATCHER}.
 -- 
+-- ===
+-- 
+-- ## Missions:
+-- 
+-- [AID-A2A - AI A2A Dispatching](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/master/AID%20-%20AI%20Dispatching/AID-A2A%20-%20AI%20A2A%20Dispatching)
+-- 
+-- ===
+-- 
+-- ## YouTube Channel:
+-- 
+-- [DCS WORLD - MOOSE - A2A GCICAP - Build an automatic A2A Defense System](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl0S4KMNUUJpaUs6zZHjLKNx)
+-- 
+-- ===
 -- 
 -- # QUICK START GUIDE
 -- 
@@ -76840,18 +76854,6 @@ do -- AI_A2A_DISPATCHER
   -- @extends Tasking.DetectionManager#DETECTION_MANAGER
 
   --- Create an automatic air defence system for a coalition. 
-  -- 
-  -- ===
-  -- 
-  -- # Demo Missions
-  -- 
-  -- ### [AI\_A2A\_DISPATCHER Demo Missions](https://github.com/FlightControl-Master/MOOSE_MISSIONS/tree/release-2-2-pre/AID%20-%20AI%20Dispatching)
-  -- 
-  -- ===
-  -- 
-  -- # YouTube Channel
-  -- 
-  -- ### [DCS WORLD - MOOSE - A2A GCICAP - Build an automatic A2A Defense System](https://www.youtube.com/playlist?list=PL7ZUrU4zZUl0S4KMNUUJpaUs6zZHjLKNx)
   -- 
   -- ===
   -- 
@@ -77683,11 +77685,14 @@ do -- AI_A2A_DISPATCHER
 
     local AirbaseName = EventData.PlaceName -- The name of the airbase that was captured.
     
+    self:I( "Captured " .. AirbaseName )
+    
     -- Now search for all squadrons located at the airbase, and sanatize them.
     for SquadronName, Squadron in pairs( self.DefenderSquadrons ) do
       if Squadron.AirbaseName == AirbaseName then
         Squadron.Resources = -999 -- The base has been captured, and the resources are eliminated. No more spawning.
         Squadron.Captured = true
+        self:I( "Squadron " .. SquadronName .. " captured." )
       end
     end
   end
@@ -78167,6 +78172,7 @@ do -- AI_A2A_DISPATCHER
     
     DefenderSquadron.Name = SquadronName
     DefenderSquadron.Airbase = AIRBASE:FindByName( AirbaseName )
+    DefenderSquadron.AirbaseName = DefenderSquadron.Airbase:GetName()
     if not DefenderSquadron.Airbase then
       error( "Cannot find airbase with name:" .. AirbaseName )
     end
