@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-14T12:12:29.0000000Z-08c3530da9b4d7e0970b0fc5d329769b90b13c01 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-14T15:13:18.0000000Z-f537fbb07e6d4a1d35f117123d2614b52449ba08 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -4417,8 +4417,6 @@ do -- UserFlag
   --   
   function USERFLAG:Set( Number ) --R2.3
   
-    self:F( { Number = Number } )
-    
     trigger.action.setUserFlag( self.UserFlagName, Number )
     
     return self
@@ -36507,8 +36505,8 @@ do -- CARGO_UNIT
     local MaxSpeed = Desc.speedMaxOffRoad
     local TypeName = Desc.typeName
     
-    self:T( self.CargoInAir )
-  
+    --self:F({Unit=self.CargoObject:GetName()})
+    
     -- Only move the group to the carrier when the cargo is not in the air
     -- (eg. cargo can be on a oil derrick, moving the cargo on the oil derrick will drop the cargo on the sea).
     if not self.CargoInAir then
@@ -36562,18 +36560,19 @@ do -- CARGO_UNIT
   function CARGO_UNIT:onafterBoarding( From, Event, To, CargoCarrier, NearRadius, ... )
     self:F( { From, Event, To, CargoCarrier:GetName(), NearRadius = NearRadius } )
     
+    --self:F({Unit=self.CargoObject:GetName()})
     
-    if CargoCarrier and CargoCarrier:IsAlive() and self.CargoObject and self.CargoObject:IsAlive() then 
+    if CargoCarrier and CargoCarrier:IsAlive() then -- and self.CargoObject and self.CargoObject:IsAlive() then 
       if (CargoCarrier:IsAir() and not CargoCarrier:InAir()) or true then
         local NearRadius = NearRadius or CargoCarrier:GetBoundingRadius( NearRadius ) + 5
         if self:IsNear( CargoCarrier:GetPointVec2(), NearRadius ) then
           self:__Load( 1, CargoCarrier, ... )
         else
           if self:IsNear( CargoCarrier:GetPointVec2(), 20 ) then
-            self:__Boarding( -1, CargoCarrier, NearRadius, ... )
+            self:__Boarding( 1, CargoCarrier, NearRadius, ... )
             self.RunCount = self.RunCount + 1
           else
-            self:__Boarding( -2, CargoCarrier, NearRadius, ... )
+            self:__Boarding( 2, CargoCarrier, NearRadius, ... )
             self.RunCount = self.RunCount + 2
           end
           if self.RunCount >= 40 then
@@ -36582,6 +36581,8 @@ do -- CARGO_UNIT
             local Angle = 180
             local Distance = 0
             
+            --self:F({Unit=self.CargoObject:GetName()})
+
             local CargoCarrierPointVec2 = CargoCarrier:GetPointVec2()
             local CargoCarrierHeading = CargoCarrier:GetHeading() -- Get Heading of object in degrees.
             local CargoDeployHeading = ( ( CargoCarrierHeading + Angle ) >= 360 ) and ( CargoCarrierHeading + Angle - 360 ) or ( CargoCarrierHeading + Angle )
@@ -36644,10 +36645,11 @@ do -- CARGO_UNIT
   
     self.CargoCarrier = CargoCarrier
     
-    -- Only destroy the CargoObject is if there is a CargoObject (packages don't have CargoObjects).
+    --self:F({Unit=self.CargoObject:GetName()})
+    
+    -- Only destroy the CargoObject if there is a CargoObject (packages don't have CargoObjects).
     if self.CargoObject then
-      self:T("Destroying")
-      self.CargoObject:Destroy()
+      self.CargoObject:Destroy( false )
       --self.CargoObject:ReSpawnAt( COORDINATE:NewFromVec2( {x=0,y=0} ), 0 )
     end
   end
@@ -66017,7 +66019,7 @@ PSEUDOATC.id="PseudoATC | "
 
 --- PSEUDOATC version.
 -- @field #number version
-PSEUDOATC.version="0.9.0"
+PSEUDOATC.version="0.9.1"
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -66662,9 +66664,9 @@ function PSEUDOATC:ReportBR(id, position, location)
   local coord=unit:GetCoordinate()
   
   -- Direction vector from current position (coord) to target (position).
-  local pos=coord:Translate(30,90)
-  local vec3=coord:GetDirectionVec3(pos)
-  local angle=coord:GetAngleDegrees(vec3)
+  local angle=coord:HeadingTo(position)
+  
+  -- Range from current to 
   local range=coord:Get2DDistance(position)
   
   -- Bearing string.
@@ -66925,6 +66927,7 @@ end
 --    * Strategic components such as capturing, defending and destroying warehouses and their associated infrastructure.
 --    * Intelligent spawning of aircraft on airports (only if enough parking spots are available).
 --    * Possibility to hook into events and customize actions.
+--    * Persistance of assets. Warehouse assets can be saved and loaded from file.
 --    * Can be easily interfaced to other MOOSE classes.
 --
 -- === 
@@ -66963,7 +66966,7 @@ end
 -- @field Core.Point#COORDINATE rail Closest point to warehouse on rail.
 -- @field Core.Zone#ZONE spawnzone Zone in which assets are spawned.
 -- @field #string wid Identifier of the warehouse printed before other output to DCS.log file.
--- @field #number uid Unit identifier of the warehouse. Derived from the associated airbase.
+-- @field #number uid Unit identifier of the warehouse. Derived from id of warehouse static element.
 -- @field #number markerid ID of the warehouse marker at the airbase.
 -- @field #number dTstatus Time interval in seconds of updating the warehouse status and processing new events. Default 30 seconds.
 -- @field #number queueid Unit id of each request in the queue. Essentially a running number starting at one and incremented when a new request is added.
@@ -67586,6 +67589,63 @@ end
 -- Some transitions, however, are only allowed from certain "From States". For example, no requests can be processed if the warehouse is in "Paused" or "Destroyed" or "Stopped" state.
 --
 -- Mission designers can capture the events with OnAfterEvent functions, e.g. @{#WAREHOUSE.OnAfterDelivered} or @{#WAREHOUSE.OnAfterAirbaseCaptured}.
+-- 
+-- ===
+-- 
+-- # Persistance of Assets
+-- 
+-- Assets in stock of a warehouse can be saved to a file on your hard drive and then loaded from that file at a later point. This enables to restart the mission
+-- and restore the warehouse stock.
+-- 
+-- ## Prerequisites
+-- 
+-- **Important** By default, DCS does not allow for writing data to files. Therefore, one first has to comment out the line "sanitizeModule('io')", i.e.
+-- 
+--     do
+--       sanitizeModule('os')
+--       --sanitizeModule('io')
+--       sanitizeModule('lfs')
+--       require = nil
+--       loadlib = nil
+--     end
+--
+-- in the file "MissionScripting.lua", which is located in the subdirectory "Scripts" of your DCS installation root directory.
+-- 
+-- ### Don'ts
+-- 
+-- Do not use **semi-colons** or **equal signs** in the group names of your assets as these are used as separators in the saved and loaded files texts.
+-- If you do, it will cause problems and give you a headache!
+-- 
+-- ## Save Assets
+-- 
+-- Saving asset data to file is achieved by the @{WAREHOUSE.Save}(*path*, *filename*) function. The parameter *path* specifies the path on the file system where the
+-- warehouse data is saved. If you do not specify a path, the file is saved your the DCS installation root directory.
+-- The parameter *filename* is optional and defines the name of the saved file. By default this is automatically created from the warehouse id and name, for example
+-- "Warehouse-1234_Batumi.txt".
+-- 
+--      warehouseBatumi:Save("D:\\My Warehouse Data\\")
+--      
+-- This will save all asset data to in "D:\\My Warehouse Data\\Warehouse-1234_Batumi.txt".
+-- 
+-- ## Load Assets
+-- 
+-- Loading assets data from file is achieved by the @{WAREHOUSE.Load}(*path*, *filename*) function. The parameter *path* specifies the path on the file system where the
+-- warehouse data is loaded from. If you do not specify a path, the file is loaded from your the DCS installation root directory.
+-- The parameter *filename* is optional and defines the name of the file to load. By default this is automatically generated from the warehouse id and name, for example
+-- "Warehouse-1234_Batumi.txt".
+-- 
+-- Note that the warehouse **must not be started** and in the *Running* state in order to load the assets. In other words, loading should happen after the
+-- @{#WAREHOUSE.New} command is specified in the code but before the @{#WAREHOUSE.Start} command is given.
+-- 
+-- Loading the assets is done by
+-- 
+--      warehouseBatumi:New(STATIC:FindByName("Warehouse Batumi"))
+--      warehouseBatumi:Load("D:\\My Warehouse Data\\")
+--      warehouseBatumi:Start()
+--      
+-- This sequence loads all assets from file. If a warehouse was captured in the last mission, it also respawns the static warehouse structure with the right coaliton.
+-- However, it due to DCS limitations it is not possible to set the airbase coalition. This has to be done manually in the mission editor. Or alternatively, one could
+-- spawn some ground units via a self request and let them capture the airbase.
 -- 
 -- ===
 --
@@ -68420,6 +68480,7 @@ WAREHOUSE = {
 -- @field #number loadradius Distance when cargo is loaded into the carrier.
 -- @field DCS#AI.Skill skill Skill of AI unit.
 -- @field #string livery Livery of the asset.
+-- @field #string assignment Assignment of the asset. This could, e.g., be used in the @{#WAREHOUSE.OnAfterNewAsset) funktion.
 
 --- Item of the warehouse queue table.
 -- @type WAREHOUSE.Queueitem
@@ -68568,7 +68629,7 @@ WAREHOUSE.db = {
 
 --- Warehouse class version.
 -- @field #string version
-WAREHOUSE.version="0.6.1"
+WAREHOUSE.version="0.6.3"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- TODO: Warehouse todo list.
@@ -68684,9 +68745,10 @@ function WAREHOUSE:New(warehouse, alias)
 
   -- Add FSM transitions.
   --                 From State   -->   Event        -->     To State
-  self:AddTransition("NotReadyYet",     "Load",              "Loaded")      -- TODO Load the warehouse state. No sure if it should be in stopped state.
+  self:AddTransition("NotReadyYet",     "Load",              "Loaded")      -- Load the warehouse state from scatch.
+  self:AddTransition("Stopped",         "Load",              "Loaded")      -- Load the warehouse state stopped state.
   self:AddTransition("NotReadyYet",     "Start",             "Running")     -- Start the warehouse from scratch.
-  self:AddTransition("Loaded",          "Start",             "Running")     -- TODO Start the warehouse when loaded from disk.  
+  self:AddTransition("Loaded",          "Start",             "Running")     -- Start the warehouse when loaded from disk.  
   self:AddTransition("*",               "Status",            "*")           -- Status update.
   self:AddTransition("*",               "AddAsset",          "*")           -- Add asset to warehouse stock.
   self:AddTransition("*",               "NewAsset",          "*")           -- New asset was added to warehouse stock.
@@ -68701,9 +68763,12 @@ function WAREHOUSE:New(warehouse, alias)
   self:AddTransition("Running",         "Pause",             "Paused")      -- Pause the processing of new requests. Still possible to add assets and requests. 
   self:AddTransition("Paused",          "Unpause",           "Running")     -- Unpause the warehouse. Queued requests are processed again. 
   self:AddTransition("*",               "Stop",              "Stopped")     -- Stop the warehouse.
+  self:AddTransition("Stopped",         "Restart",           "Running")     -- Restart the warehouse when it was stopped before.
+  self:AddTransition("Loaded",          "Restart",           "Running")     -- Restart the warehouse when assets were loaded from file before.
   self:AddTransition("*",               "Save",              "*")           -- TODO Save the warehouse state to disk.
   self:AddTransition("*",               "Attacked",          "Attacked")    -- Warehouse is under attack by enemy coalition.
   self:AddTransition("Attacked",        "Defeated",          "Running")     -- Attack by other coalition was defeated!
+  self:AddTransition("*",               "ChangeCountry",     "*")           -- Change country (and coalition) of the warehouse. Warehouse is respawned! 
   self:AddTransition("Attacked",        "Captured",          "Running")     -- Warehouse was captured by another coalition. It must have been attacked first.
   self:AddTransition("*",               "AirbaseCaptured",   "*")           -- Airbase was captured by other coalition.
   self:AddTransition("*",               "AirbaseRecaptured", "*")           -- Airbase was re-captured from other coalition.
@@ -68723,12 +68788,21 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #WAREHOUSE self
   -- @param #number delay Delay in seconds.
 
-  --- Triggers the FSM event "Stop". Stops the warehouse and all its event handlers.
+  --- Triggers the FSM event "Stop". Stops the warehouse and all its event handlers. All waiting and pending queue items are deleted as well and all assets are removed from stock.
   -- @function [parent=#WAREHOUSE] Stop
   -- @param #WAREHOUSE self
 
-  --- Triggers the FSM event "Stop" after a delay. Stops the warehouse and all its event handlers.
+  --- Triggers the FSM event "Stop" after a delay. Stops the warehouse and all its event handlers. All waiting and pending queue items are deleted as well and all assets are removed from stock.
   -- @function [parent=#WAREHOUSE] __Stop
+  -- @param #WAREHOUSE self
+  -- @param #number delay Delay in seconds.
+
+  --- Triggers the FSM event "Restart". Restarts the warehouse from stopped state by reactivating the event handlers *only*.
+  -- @function [parent=#WAREHOUSE] Restart
+  -- @param #WAREHOUSE self
+
+  --- Triggers the FSM event "Restart" after a delay. Restarts the warehouse from stopped state by reactivating the event handlers *only*.
+  -- @function [parent=#WAREHOUSE] __Restart
   -- @param #WAREHOUSE self
   -- @param #number delay Delay in seconds.
 
@@ -68984,6 +69058,26 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #string To To state.
 
 
+  --- Triggers the FSM event "ChangeCountry" so the warehouse is respawned with the new country.
+  -- @function [parent=#WAREHOUSE] ChangeCountry
+  -- @param #WAREHOUSE self
+  -- @param DCS#country.id Country New country id of the warehouse.
+  
+  --- Triggers the FSM event "ChangeCountry" after a delay so the warehouse is respawned with the new country.
+  -- @function [parent=#WAREHOUSE] __ChangeCountry
+  -- @param #WAREHOUSE self
+  -- @param #number delay Delay in seconds.
+  -- @param DCS#country.id Country Country id which has captured the warehouse.
+
+  --- On after "ChangeCountry" event user function. Called when the warehouse has changed its country.
+  -- @function [parent=#WAREHOUSE] OnAfterChangeCountry
+  -- @param #WAREHOUSE self
+  -- @param #string From From state.
+  -- @param #string Event Event.
+  -- @param #string To To state.
+  -- @param DCS#country.id Country New country id of the warehouse, i.e. a number @{DCS#country.id} enumerator.
+
+
   --- Triggers the FSM event "Captured" when a warehouse has been captured by another coalition.
   -- @function [parent=#WAREHOUSE] Captured
   -- @param #WAREHOUSE self
@@ -69075,7 +69169,7 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #WAREHOUSE self
   
   --- Triggers the FSM event "Destroyed" with a delay when the warehouse was destroyed. Services are stopped.
-  -- @function [parent=#WAREHOUSE] Destroyed
+  -- @function [parent=#WAREHOUSE] __Destroyed
   -- @param #WAREHOUSE self
   -- @param #number delay Delay in seconds.
 
@@ -69085,6 +69179,53 @@ function WAREHOUSE:New(warehouse, alias)
   -- @param #string From From state.
   -- @param #string Event Event.
   -- @param #string To To state.
+
+
+  --- Triggers the FSM event "Save" when the warehouse assets are saved to file on disk.
+  -- @function [parent=#WAREHOUSE] Save
+  -- @param #WAREHOUSE self
+  -- @param #string path Path where the file is saved. Default is the DCS installation root directory.
+  -- @param #string filename (Optional) File name. Default is WAREHOUSE-<UID>_<ALIAS>.txt.
+  
+  --- Triggers the FSM event "Save" with a delay when the warehouse assets are saved to a file.
+  -- @function [parent=#WAREHOUSE] __Save
+  -- @param #WAREHOUSE self
+  -- @param #number delay Delay in seconds.
+  -- @param #string path Path where the file is saved. Default is the DCS installation root directory.
+  -- @param #string filename (Optional) File name. Default is WAREHOUSE-<UID>_<ALIAS>.txt.
+
+  --- On after "Save" event user function. Called when the warehouse assets are saved to disk.
+  -- @function [parent=#WAREHOUSE] OnAfterSave
+  -- @param #WAREHOUSE self
+  -- @param #string From From state.
+  -- @param #string Event Event.
+  -- @param #string To To state.
+  -- @param #string path Path where the file is saved. Default is the DCS installation root directory.
+  -- @param #string filename (Optional) File name. Default is WAREHOUSE-<UID>_<ALIAS>.txt.
+
+
+  --- Triggers the FSM event "Load" when the warehouse is loaded from a file on disk.
+  -- @function [parent=#WAREHOUSE] Load
+  -- @param #WAREHOUSE self
+  -- @param #string path Path where the file is located. Default is the DCS installation root directory.
+  -- @param #string filename (Optional) File name. Default is WAREHOUSE-<UID>_<ALIAS>.txt.
+  
+  --- Triggers the FSM event "Load" with a delay when the warehouse assets are loaded from disk.
+  -- @function [parent=#WAREHOUSE] __Load
+  -- @param #WAREHOUSE self
+  -- @param #number delay Delay in seconds.
+  -- @param #string path Path where the file is located. Default is the DCS installation root directory.
+  -- @param #string filename (Optional) File name. Default is WAREHOUSE-<UID>_<ALIAS>.txt.
+
+  --- On after "Load" event user function. Called when the warehouse assets are loaded from disk.
+  -- @function [parent=#WAREHOUSE] OnAfterLoad
+  -- @param #WAREHOUSE self
+  -- @param #string From From state.
+  -- @param #string Event Event.
+  -- @param #string To To state.
+  -- @param #string path Path where the file is located. Default is the DCS installation root directory.
+  -- @param #string filename (Optional) File name. Default is WAREHOUSE-<UID>_<ALIAS>.txt.
+
 
   return self
 end
@@ -69827,6 +69968,36 @@ function WAREHOUSE:onafterStart(From, Event, To)
   self:__Status(-1)
 end
 
+--- On after "Restart" event. Restarts the warehouse when it was in stopped state by reactivating the event handlers *only*.
+-- @param #WAREHOUSE self
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+function WAREHOUSE:onafterRestart(From, Event, To)
+
+  self:I(self.wid..string.format("Restarting Warehouse %s.", self.alias))
+
+  -- Handle events:
+  self:HandleEvent(EVENTS.Birth,          self._OnEventBirth)
+  self:HandleEvent(EVENTS.EngineStartup,  self._OnEventEngineStartup)
+  self:HandleEvent(EVENTS.Takeoff,        self._OnEventTakeOff)
+  self:HandleEvent(EVENTS.Land,           self._OnEventLanding)
+  self:HandleEvent(EVENTS.EngineShutdown, self._OnEventEngineShutdown)
+  self:HandleEvent(EVENTS.Crash,          self._OnEventCrashOrDead)
+  self:HandleEvent(EVENTS.Dead,           self._OnEventCrashOrDead)
+  self:HandleEvent(EVENTS.BaseCaptured,   self._OnEventBaseCaptured)
+  
+  -- This event triggers the arrived event for air assets.
+  -- TODO Might need to make this landing or optional!
+  -- In fact, it would be better if the type could be defined for only for the warehouse which receives stuff,
+  -- since there will be warehouses with small airbases and little space or other problems!
+  self:HandleEvent(EVENTS.EngineShutdown, self._OnEventArrived)
+  
+  -- Start the status monitoring.
+  self:__Status(-1)
+
+end
+
 --- On after "Stop" event. Stops the warehouse, unhandles all events.
 -- @param #WAREHOUSE self
 -- @param #string From From state.
@@ -69854,8 +70025,10 @@ function WAREHOUSE:onafterStop(From, Event, To)
   self.stock=nil
   self.stock={}
   
+  self:_UpdateWarehouseMarkText()
+  
   -- Clear all pending schedules.
-  self.CallScheduler:Clear()  
+  --self.CallScheduler:Clear()  
 end
 
 --- On after "Pause" event. Pauses the warehouse, i.e. no requests are processed. However, new requests and new assets can be added in this state.
@@ -71389,6 +71562,73 @@ function WAREHOUSE:onafterDefeated(From, Event, To)
   end
 end
 
+
+--- On before "ChangeCountry" event. Checks whether a change of country is necessary by comparing the actual country to the the requested one.
+-- @param #WAREHOUSE self
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param DCS#country.id Country which has captured the warehouse.
+function WAREHOUSE:onbeforeChangeCountry(From, Event, To, Country)
+
+  local currentCountry=self:GetCountry()
+
+  -- Message.
+  local text=string.format("Warehouse %s: request to change country %d-->%d", self.alias, currentCountry, Country)
+  self:_DebugMessage(text, 10)
+  
+  -- Check if current or requested coalition or country match. 
+  if currentCountry~=Country then
+    return true
+  end
+
+  return false
+end
+
+
+--- On after "ChangeCountry" event. Warehouse is respawned with the specified country. All queued requests are deleted and the owned airbase is reset if the coalition is changed by changing the
+-- country.
+-- @param #WAREHOUSE self
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param DCS#country.id Country which has captured the warehouse.
+function WAREHOUSE:onafterChangeCountry(From, Event, To, Country)
+
+  local CoalitionOld=self:GetCoalition()
+
+  -- Respawn warehouse with new coalition/country.
+  self.warehouse:ReSpawn(Country)
+  
+  local CoalitionNew=self:GetCoalition()
+  
+  -- Delete all waiting requests because they are not valid any more.
+  self.queue=nil
+  self.queue={}
+    
+  -- Airbase could have been captured before and already belongs to the new coalition.
+  local airbase=AIRBASE:FindByName(self.airbasename)
+  local airbasecoaltion=airbase:GetCoalition()
+  
+  if CoalitionNew==airbasecoaltion then
+    -- Airbase already owned by the coalition that captured the warehouse. Airbase can be used by this warehouse.
+    self.airbase=airbase
+  else
+    -- Airbase is owned by other coalition. So this warehouse does not have an airbase unil it is captured.
+    self.airbase=nil
+  end
+  
+  -- Debug smoke.
+  if self.Debug then
+    if CoalitionNew==coalition.side.RED then
+      self:GetCoordinate():SmokeRed()
+    elseif CoalitionNew==coalition.side.BLUE then
+      self:GetCoordinate():SmokeBlue()
+    end
+  end
+    
+end
+
 --- On after "Captured" event. Warehouse has been captured by another coalition.
 -- @param #WAREHOUSE self
 -- @param #string From From state.
@@ -71399,38 +71639,14 @@ end
 function WAREHOUSE:onafterCaptured(From, Event, To, Coalition, Country)
 
   -- Message.
-  local text=string.format("Warehouse %s: We were captured by enemy coalition (ID=%d)!", self.alias, Coalition)
+  local text=string.format("Warehouse %s: We were captured by enemy coalition (side=%d)!", self.alias, Coalition)
   self:_InfoMessage(text)
-  
-  -- Respawn warehouse with new coalition/country.
-  self.warehouse:ReSpawn(Country)
-  
-  -- Delete all waiting requests because they are not valid any more
-  self.queue=nil
-  self.queue={}
-    
-  -- Airbase could have been captured before and already belongs to the new coalition.
-  local airbase=AIRBASE:FindByName(self.airbasename)
-  local airbasecoaltion=airbase:GetCoalition()
-  
-  if Coalition==airbasecoaltion then
-    -- Airbase already owned by the coalition that captured the warehouse. Airbase can be used by this warehouse.
-    self.airbase=airbase
-  else
-    -- Airbase is owned by other coalition. So this warehouse does not have an airbase unil it is captured.
-    self.airbase=nil
-  end
-  
-  -- Debug smoke.
-  if self.Debug then
-    if Coalition==coalition.side.RED then
-      self:GetCoordinate():SmokeRed()
-    elseif Coalition==coalition.side.BLUE then
-      self:GetCoordinate():SmokeBlue()
-    end
-  end
-    
+
+  -- Change coalition and country of warehouse static.
+  self:ChangeCoaliton(Coalition, Country)
+
 end
+
 
 --- On after "AirbaseCaptured" event. Airbase of warehouse has been captured by another coalition.
 -- @param #WAREHOUSE self
@@ -71522,6 +71738,214 @@ function WAREHOUSE:onafterDestroyed(From, Event, To)
 
   --self.stock=nil
   --self.stock={}
+
+end
+
+
+--- On after "Save" event. Warehouse assets are saved to file on disk.
+-- @param #WAREHOUSE self
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param #string path Path where the file is saved. If nil, file is saved in the DCS root installtion directory.
+-- @param #string filename (Optional) Name of the file containing the asset data.
+function WAREHOUSE:onafterSave(From, Event, To, path, filename)
+
+  local function _savefile(filename, data)
+    local f = assert(io.open(filename, "wb"))
+    f:write(data)
+    f:close()
+  end
+  
+  -- Set file name.
+  filename=filename or string.format("WAREHOUSE-%d_%s.txt", self.uid, self.alias)
+  
+  -- Set path.
+  if path~=nil then
+    filename=path.."\\"..filename
+  end
+  
+  -- Info
+  local text=string.format("Saving warehouse assets to file %s", filename)
+  MESSAGE:New(text,30):ToAllIf(self.Debug or self.Report)
+  self:I(self.wid..text)
+  
+  local warehouseassets=""
+  warehouseassets=warehouseassets..string.format("coalition=%d\n", self:GetCoalition())
+  warehouseassets=warehouseassets..string.format("country=%d\n", self:GetCountry())
+  
+  -- Loop over all assets in stock.
+  for _,_asset in pairs(self.stock) do
+    local asset=_asset -- #WAREHOUSE.Assetitem
+     
+    -- Loop over asset parameters.
+    local assetstring=""
+    for key,value in pairs(asset) do
+    
+      -- Only save keys which are needed to restore the asset.
+      if key=="templatename" or key=="attribute" or key=="cargobay" or key=="weight" or key=="loadradius" or key=="livery" or key=="skill" or key=="assignment" then
+        local name
+        if type(value)=="table" then
+          name=string.format("%s=%s;", key, value[1])
+        else
+          name=string.format("%s=%s;", key, value)
+        end
+        assetstring=assetstring..name
+      end
+      self:I(string.format("Loaded asset: %s", assetstring))
+    end
+    
+    -- Add asset string.
+    warehouseassets=warehouseassets..assetstring.."\n"
+  end
+
+  -- Save file.
+  _savefile(filename, warehouseassets)  
+
+end
+
+
+--- On before "Load" event. Checks if the file the warehouse data should be loaded from exists.
+-- @param #WAREHOUSE self
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param #string path Path where the file is loaded from.
+-- @param #string filename (Optional) Name of the file containing the asset data.
+function WAREHOUSE:onbeforeLoad(From, Event, To, path, filename)
+
+
+  local function _fileexists(name)
+     local f=io.open(name,"r")
+     if f~=nil then 
+      io.close(f)
+      return true 
+    else 
+      return false
+    end
+  end
+
+  -- Set file name.
+  filename=filename or string.format("WAREHOUSE-%d_%s.txt", self.uid, self.alias)
+  
+  -- Set path.
+  if path~=nil then
+    filename=path.."\\"..filename
+  end
+  
+  -- Check if file exists.
+  local exists=_fileexists(filename)
+  
+  if exists then
+    return true
+  else
+    self:_ErrorMessage(string.format("ERROR: file %s does not exist! Cannot load assets.", filename), 60)
+  end
+
+end
+
+
+--- On after "Load" event. Warehouse assets are loaded from file on disk.
+-- @param #WAREHOUSE self
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param #string path Path where the file is loaded from.
+-- @param #string filename (Optional) Name of the file containing the asset data.
+function WAREHOUSE:onafterLoad(From, Event, To, path, filename)
+
+  local function _loadfile(filename)
+    local f = assert(io.open(filename, "rb"))
+    local data = f:read("*all")
+    f:close()
+    return data
+  end
+
+  -- Set file name.
+  filename=filename or string.format("WAREHOUSE-%d_%s.txt", self.uid, self.alias)
+  
+  -- Set path.
+  if path~=nil then
+    filename=path.."\\"..filename
+  end
+  
+  -- Info
+  local text=string.format("Loading warehouse assets from file %s", filename)
+  MESSAGE:New(text,30):ToAllIf(self.Debug or self.Report)
+  self:I(self.wid..text)  
+
+  -- Load asset data from file.
+  local data=_loadfile(filename)
+
+  -- Split by line break.
+  local assetdata=UTILS.Split(data,"\n")
+  
+  -- Coalition and coutrny.
+  local Coalition
+  local Country
+  
+  -- Loop over asset lines.
+  local assets={}
+  for _,asset in pairs(assetdata) do
+  
+    -- Parameters are separated by semi-colons
+    local descriptors=UTILS.Split(asset,";")
+    
+    local asset={}
+    for _,descriptor in pairs(descriptors) do
+    
+      local keyval=UTILS.Split(descriptor,"=")
+      
+      if #keyval==2 then
+
+        if keyval[1]=="coalition" then
+          -- Get coalition side.
+          Coalition=tonumber(keyval[2])
+        elseif keyval[1]=="country" then
+          -- Get country id.
+          Country=tonumber(keyval[2])
+        elseif #keyval==2 then      
+        
+          local key=keyval[1]
+          local val=keyval[2]    
+          
+          -- Livery or skill could be "nil".
+          if val=="nil" then
+            val=nil
+          end
+          
+          -- Convert string to number where necessary.
+          if key=="cargobay" or key=="weight" or key=="loadradius" then
+            asset[key]=tonumber(val)
+          else
+            asset[key]=val
+          end
+        end
+        
+      end
+    end
+    
+    -- Add to table.
+    table.insert(assets, asset)
+  end
+  
+  -- Respawn warehouse with prev coalition if necessary.
+  self:E(string.format("Changing country %d-->%d (before)", self:GetCountry(), Country))
+  if Country~=self:GetCountry() then
+    self:E(string.format("Changing country %d-->%d (after)", self:GetCountry(), Country))
+    self:ChangeCountry(Country)
+  end
+  
+  for _,_asset in pairs(assets) do
+    local asset=_asset --#WAREHOUSE.Assetitem
+    
+    local group=GROUP:FindByName(asset.templatename)
+    if group then
+      self:AddAsset(group, 1, asset.attribute, asset.cargobay, asset.weight, asset.loadradius, asset.skill, asset.livery, asset.assignment)
+    else
+      self:E(string.format("ERROR: Group %s doest not exit. Cannot be loaded as asset.", tostring(asset.templatename)))
+    end
+  end
 
 end
 
@@ -84666,8 +85090,8 @@ function AI_CARGO:onbeforeLoad( Carrier, From, Event, To, PickupZone )
 
   local Boarding = false
 
-  local LoadInterval = 5
-  local LoadDelay = 0
+  local LoadInterval = 2
+  local LoadDelay = 1
   local Carrier_List = {}
   local Carrier_Weight = {}
 
@@ -84715,9 +85139,10 @@ function AI_CARGO:onbeforeLoad( Carrier, From, Event, To, PickupZone )
               Carrier:RouteStop()
               --Cargo:Ungroup()
               Cargo:__Board( -LoadDelay, CarrierUnit )
-              LoadDelay = LoadDelay + Cargo:GetCount() * LoadInterval
               self:__Board( LoadDelay, Cargo, CarrierUnit, PickupZone )
-  
+
+              LoadDelay = LoadDelay + Cargo:GetCount() * LoadInterval
+
               -- So now this CarrierUnit has Cargo that is being loaded.
               -- This will be used further in the logic to follow and to check cargo status.
               self.Carrier_Cargo[Cargo] = CarrierUnit
@@ -84732,8 +85157,7 @@ function AI_CARGO:onbeforeLoad( Carrier, From, Event, To, PickupZone )
         end
         
       end
-      
-      
+
     end
     
     if not Loaded == true then
@@ -84812,7 +85236,7 @@ function AI_CARGO:onafterPickedUp( Carrier, From, Event, To, PickupZone )
   Carrier:RouteResume()
 
   local HasCargo = false
-  if Carrier and Carrier :IsAlive() then
+  if Carrier and Carrier:IsAlive() then
     for Cargo, CarrierUnit in pairs( self.Carrier_Cargo ) do
       HasCargo = true
       break
@@ -84821,6 +85245,7 @@ function AI_CARGO:onafterPickedUp( Carrier, From, Event, To, PickupZone )
 
   self.Relocating = false
   if HasCargo then
+    self:F( "Transporting" )
     self.Transporting = true
   end
   
@@ -84836,11 +85261,11 @@ end
 -- @param #string Event Event.
 -- @param #string To To state.
 -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-function AI_CARGO:onafterUnload( Carrier, From, Event, To, DeployZone )
-  self:F( { Carrier, From, Event, To, DeployZone } )
+function AI_CARGO:onafterUnload( Carrier, From, Event, To, DeployZone, Defend )
+  self:F( { Carrier, From, Event, To, DeployZone, Defend = Defend } )
 
-  local UnboardInterval = 10
-  local UnboardDelay = 10
+  local UnboardInterval = 5
+  local UnboardDelay = 5
 
   if Carrier and Carrier:IsAlive() then
     for _, CarrierUnit in pairs( Carrier:GetUnits() ) do
@@ -84851,8 +85276,10 @@ function AI_CARGO:onafterUnload( Carrier, From, Event, To, DeployZone )
         if Cargo:IsLoaded() then
           Cargo:__UnBoard( UnboardDelay )
           UnboardDelay = UnboardDelay + Cargo:GetCount() * UnboardInterval
-          Cargo:SetDeployed( true )
-          self:__Unboard( UnboardDelay, Cargo, CarrierUnit, DeployZone )
+          self:__Unboard( UnboardDelay, Cargo, CarrierUnit, DeployZone, Defend )
+          if not Defend == true then
+            Cargo:SetDeployed( true )
+          end
         end 
       end
     end
@@ -84868,17 +85295,17 @@ end
 -- @param #string To To state.
 -- @param #string Cargo.Cargo#CARGO Cargo Cargo object.
 -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-function AI_CARGO:onafterUnboard( Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone )
-  self:F( { Carrier, From, Event, To, Cargo:GetName() } )
+function AI_CARGO:onafterUnboard( Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone, Defend )
+  self:F( { Carrier, From, Event, To, Cargo:GetName(), DeployZone = DeployZone, Defend = Defend } )
 
   if Carrier and Carrier:IsAlive() then
     if not Cargo:IsUnLoaded() then
-      self:__Unboard( 10, Cargo, CarrierUnit, DeployZone ) 
+      self:__Unboard( 10, Cargo, CarrierUnit, DeployZone, Defend ) 
       return
     end
   end
 
-  self:Unloaded( Cargo, CarrierUnit, DeployZone )
+  self:Unloaded( Cargo, CarrierUnit, DeployZone, Defend )
   
 end
 
@@ -84891,8 +85318,8 @@ end
 -- @param #string Cargo.Cargo#CARGO Cargo Cargo object.
 -- @param #boolean Deployed Cargo is deployed.
 -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-function AI_CARGO:onafterUnloaded( Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone )
-  self:F( { Carrier, From, Event, To, Cargo:GetName(), DeployZone = DeployZone } )
+function AI_CARGO:onafterUnloaded( Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone, Defend )
+  self:F( { Carrier, From, Event, To, Cargo:GetName(), DeployZone = DeployZone, Defend = Defend } )
 
   local AllUnloaded = true
 
@@ -84918,7 +85345,7 @@ function AI_CARGO:onafterUnloaded( Carrier, From, Event, To, Cargo, CarrierUnit,
   end
 
   if AllUnloaded == true then
-    self:__Deployed( 5, DeployZone )
+    self:__Deployed( 5, DeployZone, Defend )
   end
   
 end
@@ -84930,10 +85357,14 @@ end
 -- @param #string Event Event.
 -- @param #string To To state.
 -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-function AI_CARGO:onafterDeployed( Carrier, From, Event, To, DeployZone )
-  self:F( { Carrier, From, Event, To, DeployZone = DeployZone } )
+function AI_CARGO:onafterDeployed( Carrier, From, Event, To, DeployZone, Defend )
+  self:F( { Carrier, From, Event, To, DeployZone = DeployZone, Defend = Defend } )
 
+  if not Defend == true then
     self.Transporting = false
+  else
+    self:F( "Defending" )
+  end
 
 end
 
@@ -85224,7 +85655,7 @@ function AI_CARGO_APC:onafterMonitor( APC, From, Event, To )
           else
             if self:Is( "Loaded" ) then
               -- There are enemies within combat radius. Unload the CargoCarrier.
-              self:__Unload( 1 )
+              self:__Unload( 1, nil, true ) -- The 2nd parameter is true, which means that the unload is for defending the carrier, not to deploy!
             else
               if self:Is( "Unloaded" ) then
                 self:Follow()
@@ -85388,12 +85819,12 @@ end
 -- @param #string Event Event.
 -- @param #string To To state.
 -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-function AI_CARGO_APC:onafterDeployed( APC, From, Event, To, DeployZone )
-  self:F( { APC, From, Event, To, DeployZone = DeployZone } )
+function AI_CARGO_APC:onafterDeployed( APC, From, Event, To, DeployZone, Defend )
+  self:F( { APC, From, Event, To, DeployZone = DeployZone, Defend = Defend } )
 
   self:__Guard( 0.1 )
 
-  self:GetParent( self, AI_CARGO_APC ).onafterDeployed( self, APC, From, Event, To, DeployZone )
+  self:GetParent( self, AI_CARGO_APC ).onafterDeployed( self, APC, From, Event, To, DeployZone, Defend )
 
 end
 
@@ -87430,275 +87861,280 @@ end
 -- @param #AI_CARGO_DISPATCHER self
 function AI_CARGO_DISPATCHER:onafterMonitor()
 
+  self:F("Carriers")
+  self.SetCarrier:Flush()
+  
   for CarrierGroupName, Carrier in pairs( self.SetCarrier:GetSet() ) do
     local Carrier = Carrier -- Wrapper.Group#GROUP
-    local AI_Cargo = self.AI_Cargo[Carrier]
-    if not AI_Cargo then
-    
-      -- ok, so this Carrier does not have yet an AI_CARGO handling object...
-      -- let's create one and also declare the Loaded and UnLoaded handlers.
-      self.AI_Cargo[Carrier] = self:AICargo( Carrier, self.SetCargo, self.CombatRadius )
-      AI_Cargo = self.AI_Cargo[Carrier]
+    if Carrier:IsAlive() == true then
+      local AI_Cargo = self.AI_Cargo[Carrier]
+      if not AI_Cargo then
       
-      --- Pickup event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierGroup is routed towards a new pickup Coordinate and a specified Speed.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterPickup
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Point#COORDINATE Coordinate The coordinate of the pickup location.
-      -- @param #number Speed The velocity in meters per second on which the CarrierGroup is routed towards the pickup Coordinate.
-      -- @param #number Height Height in meters to move to the pickup coordinate.
-      -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
-      function AI_Cargo.OnAfterPickup( AI_Cargo, CarrierGroup, From, Event, To, Coordinate, Speed, Height, PickupZone )
-        self:Pickup( CarrierGroup, Coordinate, Speed, Height, PickupZone )
+        -- ok, so this Carrier does not have yet an AI_CARGO handling object...
+        -- let's create one and also declare the Loaded and UnLoaded handlers.
+        self.AI_Cargo[Carrier] = self:AICargo( Carrier, self.SetCargo, self.CombatRadius )
+        AI_Cargo = self.AI_Cargo[Carrier]
+        
+        --- Pickup event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierGroup is routed towards a new pickup Coordinate and a specified Speed.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterPickup
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Point#COORDINATE Coordinate The coordinate of the pickup location.
+        -- @param #number Speed The velocity in meters per second on which the CarrierGroup is routed towards the pickup Coordinate.
+        -- @param #number Height Height in meters to move to the pickup coordinate.
+        -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
+        function AI_Cargo.OnAfterPickup( AI_Cargo, CarrierGroup, From, Event, To, Coordinate, Speed, Height, PickupZone )
+          self:Pickup( CarrierGroup, Coordinate, Speed, Height, PickupZone )
+        end
+        
+        --- Load event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierGroup has initiated the loading or boarding of cargo within reporting or near range.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterLoad
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
+        
+        function AI_Cargo.OnAfterLoad( AI_Cargo, CarrierGroup, From, Event, To, PickupZone )
+          self:Load( CarrierGroup, PickupZone )
+        end
+  
+        --- Loading event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup is in the process of loading or boarding of a cargo object.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- Note that this event is triggered repeatedly until all cargo (units) have been boarded into the carrier.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterLoading
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Cargo.Cargo#CARGO Cargo The cargo object.
+        -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo loading operation.
+        -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
+        
+        function AI_Cargo.OnAfterBoard( AI_Cargo, CarrierGroup, From, Event, To, Cargo, CarrierUnit, PickupZone )
+          self:Loading( CarrierGroup, Cargo, CarrierUnit, PickupZone )
+        end
+  
+        --- Loaded event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup has loaded a cargo object.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- Note that if more cargo objects were loading or boarding into the CarrierUnit, then this event can be triggered multiple times for each different Cargo/CarrierUnit.
+        -- A CarrierUnit can be part of the larger CarrierGroup.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterLoaded
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Cargo.Cargo#CARGO Cargo The cargo object.
+        -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo loading operation.
+        -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
+        
+        function AI_Cargo.OnAfterLoaded( AI_Cargo, CarrierGroup, From, Event, To, Cargo, CarrierUnit, PickupZone )
+          self:Loaded( CarrierGroup, Cargo, CarrierUnit, PickupZone )
+        end
+  
+        --- PickedUp event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a carrier has picked up all cargo objects into the CarrierGroup.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterPickedUp
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
+        
+        function AI_Cargo.OnAfterPickedUp( AI_Cargo, CarrierGroup, From, Event, To, PickupZone )
+          self:PickedUp( CarrierGroup, PickupZone )
+          self:Transport( CarrierGroup )
+        end
+  
+  
+        --- Deploy event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierGroup is routed to a deploy coordinate, to Unload all cargo objects in each CarrierUnit.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterDeploy
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Point#COORDINATE Coordinate The deploy coordinate.
+        -- @param #number Speed The velocity in meters per second on which the CarrierGroup is routed towards the deploy Coordinate.
+        -- @param #number Height Height in meters to move to the deploy coordinate.
+        -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+        
+        function AI_Cargo.OnAfterDeploy( AI_Cargo, CarrierGroup, From, Event, To, Coordinate, Speed, Height, DeployZone )
+          self:Deploy( CarrierGroup, Coordinate, Speed, Height, DeployZone )
+        end      
+  
+  
+        --- Unload event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierGroup has initiated the unloading or unboarding of cargo.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterUnload
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+        
+        function AI_Cargo.OnAfterUnload( AI_Cargo, Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone )
+          self:Unloading( Carrier, Cargo, CarrierUnit, DeployZone )
+        end      
+  
+        --- UnLoading event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup is in the process of unloading or unboarding of a cargo object.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- Note that this event is triggered repeatedly until all cargo (units) have been unboarded from the CarrierUnit.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterUnloading
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Cargo.Cargo#CARGO Cargo The cargo object.
+        -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo unloading operation.
+        -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+        
+        function AI_Cargo.OnAfterUnboard( AI_Cargo, CarrierGroup, From, Event, To, Cargo, CarrierUnit, DeployZone )
+          self:Unloading( CarrierGroup, Cargo, CarrierUnit, DeployZone )
+        end
+  
+  
+        --- Unloaded event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup has unloaded a cargo object.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- Note that if more cargo objects were unloading or unboarding from the CarrierUnit, then this event can be triggered multiple times for each different Cargo/CarrierUnit.
+        -- A CarrierUnit can be part of the larger CarrierGroup.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterUnloaded
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Cargo.Cargo#CARGO Cargo The cargo object.
+        -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo unloading operation.
+        -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+        
+        function AI_Cargo.OnAfterUnloaded( AI_Cargo, Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone )
+          self:Unloaded( Carrier, Cargo, CarrierUnit, DeployZone )
+        end      
+  
+        --- Deployed event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a carrier has deployed all cargo objects from the CarrierGroup.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterDeployed
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+        
+        function AI_Cargo.OnAfterDeployed( AI_Cargo, Carrier, From, Event, To, DeployZone )
+          self:Deployed( Carrier, DeployZone )
+        end      
+  
+        --- Home event handler OnAfter for AI_CARGO_DISPATCHER.
+        -- Use this event handler to tailor the event when a CarrierGroup is returning to the HomeZone, after it has deployed all cargo objects from the CarrierGroup.
+        -- You can use this event handler to post messages to players, or provide status updates etc.
+        -- If there is no HomeZone is specified, the CarrierGroup will stay at the current location after having deployed all cargo.
+        -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterHome
+        -- @param #AI_CARGO_DISPATCHER self
+        -- @param #string From A string that contains the "*from state name*" when the event was triggered.
+        -- @param #string Event A string that contains the "*event name*" when the event was triggered.
+        -- @param #string To A string that contains the "*to state name*" when the event was triggered.
+        -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
+        -- @param Core.Point#COORDINATE Coordinate The home coordinate the Carrier will arrive and stop it's activities.
+        -- @param #number Speed The velocity in meters per second on which the CarrierGroup is routed towards the home Coordinate.
+        -- @param #number Height Height in meters to move to the home coordinate.
+        -- @param Core.Zone#ZONE HomeZone The zone wherein the carrier will return when all cargo has been transported. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+        
+        function AI_Cargo.OnAfterHome( AI_Cargo, Carrier, From, Event, To, Coordinate, Speed, Height, HomeZone )
+          self:Home( Carrier, Coordinate, Speed, Height, HomeZone )
+        end      
       end
-      
-      --- Load event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierGroup has initiated the loading or boarding of cargo within reporting or near range.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterLoad
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
-      
-      function AI_Cargo.OnAfterLoad( AI_Cargo, CarrierGroup, From, Event, To, PickupZone )
-        self:Load( CarrierGroup, PickupZone )
-      end
-
-      --- Loading event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup is in the process of loading or boarding of a cargo object.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- Note that this event is triggered repeatedly until all cargo (units) have been boarded into the carrier.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterLoading
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Cargo.Cargo#CARGO Cargo The cargo object.
-      -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo loading operation.
-      -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
-      
-      function AI_Cargo.OnAfterBoard( AI_Cargo, CarrierGroup, From, Event, To, Cargo, CarrierUnit, PickupZone )
-        self:Loading( CarrierGroup, Cargo, CarrierUnit, PickupZone )
-      end
-
-      --- Loaded event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup has loaded a cargo object.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- Note that if more cargo objects were loading or boarding into the CarrierUnit, then this event can be triggered multiple times for each different Cargo/CarrierUnit.
-      -- A CarrierUnit can be part of the larger CarrierGroup.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterLoaded
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Cargo.Cargo#CARGO Cargo The cargo object.
-      -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo loading operation.
-      -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
-      
-      function AI_Cargo.OnAfterLoaded( AI_Cargo, CarrierGroup, From, Event, To, Cargo, CarrierUnit, PickupZone )
-        self:Loaded( CarrierGroup, Cargo, CarrierUnit, PickupZone )
-      end
-
-      --- PickedUp event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a carrier has picked up all cargo objects into the CarrierGroup.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterPickedUp
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Zone#ZONE_AIRBASE PickupZone (optional) The zone from where the cargo is picked up. Note that the zone is optional and may not be provided, but for AI_CARGO_DISPATCHER_AIRBASE there will always be a PickupZone, as the pickup location is an airbase zone.
-      
-      function AI_Cargo.OnAfterPickedUp( AI_Cargo, CarrierGroup, From, Event, To, PickupZone )
-        self:PickedUp( CarrierGroup, PickupZone )
-        self:Transport( CarrierGroup )
-      end
-
-
-      --- Deploy event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierGroup is routed to a deploy coordinate, to Unload all cargo objects in each CarrierUnit.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterDeploy
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Point#COORDINATE Coordinate The deploy coordinate.
-      -- @param #number Speed The velocity in meters per second on which the CarrierGroup is routed towards the deploy Coordinate.
-      -- @param #number Height Height in meters to move to the deploy coordinate.
-      -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-      
-      function AI_Cargo.OnAfterDeploy( AI_Cargo, CarrierGroup, From, Event, To, Coordinate, Speed, Height, DeployZone )
-        self:Deploy( CarrierGroup, Coordinate, Speed, Height, DeployZone )
-      end      
-
-
-      --- Unload event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierGroup has initiated the unloading or unboarding of cargo.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterUnload
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-      
-      function AI_Cargo.OnAfterUnload( AI_Cargo, Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone )
-        self:Unloading( Carrier, Cargo, CarrierUnit, DeployZone )
-      end      
-
-      --- UnLoading event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup is in the process of unloading or unboarding of a cargo object.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- Note that this event is triggered repeatedly until all cargo (units) have been unboarded from the CarrierUnit.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterUnloading
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Cargo.Cargo#CARGO Cargo The cargo object.
-      -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo unloading operation.
-      -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-      
-      function AI_Cargo.OnAfterUnboard( AI_Cargo, CarrierGroup, From, Event, To, Cargo, CarrierUnit, DeployZone )
-        self:Unloading( CarrierGroup, Cargo, CarrierUnit, DeployZone )
-      end
-
-
-      --- Unloaded event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierUnit of a CarrierGroup has unloaded a cargo object.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- Note that if more cargo objects were unloading or unboarding from the CarrierUnit, then this event can be triggered multiple times for each different Cargo/CarrierUnit.
-      -- A CarrierUnit can be part of the larger CarrierGroup.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterUnloaded
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Cargo.Cargo#CARGO Cargo The cargo object.
-      -- @param Wrapper.Unit#UNIT CarrierUnit The carrier unit that is executing the cargo unloading operation.
-      -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-      
-      function AI_Cargo.OnAfterUnloaded( AI_Cargo, Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone )
-        self:Unloaded( Carrier, Cargo, CarrierUnit, DeployZone )
-      end      
-
-      --- Deployed event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a carrier has deployed all cargo objects from the CarrierGroup.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterDeployed
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-      
-      function AI_Cargo.OnAfterDeployed( AI_Cargo, Carrier, From, Event, To, DeployZone )
-        self:Deployed( Carrier, DeployZone )
-      end      
-
-      --- Home event handler OnAfter for AI_CARGO_DISPATCHER.
-      -- Use this event handler to tailor the event when a CarrierGroup is returning to the HomeZone, after it has deployed all cargo objects from the CarrierGroup.
-      -- You can use this event handler to post messages to players, or provide status updates etc.
-      -- If there is no HomeZone is specified, the CarrierGroup will stay at the current location after having deployed all cargo.
-      -- @function [parent=#AI_CARGO_DISPATCHER] OnAfterHome
-      -- @param #AI_CARGO_DISPATCHER self
-      -- @param #string From A string that contains the "*from state name*" when the event was triggered.
-      -- @param #string Event A string that contains the "*event name*" when the event was triggered.
-      -- @param #string To A string that contains the "*to state name*" when the event was triggered.
-      -- @param Wrapper.Group#GROUP CarrierGroup The group object that contains the CarrierUnits.
-      -- @param Core.Point#COORDINATE Coordinate The home coordinate the Carrier will arrive and stop it's activities.
-      -- @param #number Speed The velocity in meters per second on which the CarrierGroup is routed towards the home Coordinate.
-      -- @param #number Height Height in meters to move to the home coordinate.
-      -- @param Core.Zone#ZONE HomeZone The zone wherein the carrier will return when all cargo has been transported. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
-      
-      function AI_Cargo.OnAfterHome( AI_Cargo, Carrier, From, Event, To, Coordinate, Speed, Height, HomeZone )
-        self:Home( Carrier, Coordinate, Speed, Height, HomeZone )
-      end      
-    end
-
-    -- The Pickup sequence ...
-    -- Check if this Carrier need to go and Pickup something...
-    -- So, if the cargo bay is not full yet with cargo to be loaded ...
-    self:I( { Carrier = CarrierGroupName, IsRelocating = AI_Cargo:IsRelocating(), IsTransporting = AI_Cargo:IsTransporting() } )
-    if AI_Cargo:IsRelocating() == false and AI_Cargo:IsTransporting() == false then
-      -- ok, so there is a free Carrier
-      -- now find the first cargo that is Unloaded
-      
-      local PickupCargo = nil
-      local PickupZone = nil
-      
-      --self.SetCargo:Flush()
-      for CargoName, Cargo in UTILS.spairs( self.SetCargo:GetSet(), function( t, a, b ) return t[a]:GetWeight() < t[b]:GetWeight() end ) do
-        local Cargo = Cargo -- Cargo.Cargo#CARGO
-        self:F( { Cargo = Cargo:GetName(), UnLoaded = Cargo:IsUnLoaded(), Deployed = Cargo:IsDeployed(), PickupCargo = self.PickupCargo[Carrier] ~= nil } )
-        if Cargo:IsUnLoaded() == true and Cargo:IsDeployed() == false then
-          local CargoCoordinate = Cargo:GetCoordinate()
-          local CoordinateFree = true
-          --self.PickupZoneSet:Flush()
-          --PickupZone = self.PickupZoneSet:GetRandomZone()
-          PickupZone = self.PickupZoneSet and self.PickupZoneSet:IsCoordinateInZone( CargoCoordinate )
-          if not self.PickupZoneSet or PickupZone then
-            for CarrierPickup, Coordinate in pairs( self.PickupCargo ) do
-              if CarrierPickup:IsAlive() == true then
-                if CargoCoordinate:Get2DDistance( Coordinate ) <= 25 then
-                  self:F( { "Coordinate not free for ", Cargo = Cargo:GetName(), Carrier:GetName(), PickupCargo = self.PickupCargo[Carrier] ~= nil } )
-                  CoordinateFree = false
+  
+      -- The Pickup sequence ...
+      -- Check if this Carrier need to go and Pickup something...
+      -- So, if the cargo bay is not full yet with cargo to be loaded ...
+      self:I( { Carrier = CarrierGroupName, IsRelocating = AI_Cargo:IsRelocating(), IsTransporting = AI_Cargo:IsTransporting() } )
+      if AI_Cargo:IsRelocating() == false and AI_Cargo:IsTransporting() == false then
+        -- ok, so there is a free Carrier
+        -- now find the first cargo that is Unloaded
+        
+        local PickupCargo = nil
+        local PickupZone = nil
+        
+        self.SetCargo:Flush()
+        for CargoName, Cargo in UTILS.spairs( self.SetCargo:GetSet(), function( t, a, b ) return t[a]:GetWeight() < t[b]:GetWeight() end ) do
+          local Cargo = Cargo -- Cargo.Cargo#CARGO
+          self:F( { Cargo = Cargo:GetName(), UnLoaded = Cargo:IsUnLoaded(), Deployed = Cargo:IsDeployed(), PickupCargo = self.PickupCargo[Carrier] ~= nil } )
+          if Cargo:IsUnLoaded() == true and Cargo:IsDeployed() == false then
+            local CargoCoordinate = Cargo:GetCoordinate()
+            local CoordinateFree = true
+            --self.PickupZoneSet:Flush()
+            --PickupZone = self.PickupZoneSet:GetRandomZone()
+            PickupZone = self.PickupZoneSet and self.PickupZoneSet:IsCoordinateInZone( CargoCoordinate )
+            if not self.PickupZoneSet or PickupZone then
+              for CarrierPickup, Coordinate in pairs( self.PickupCargo ) do
+                if CarrierPickup:IsAlive() == true then
+                  if CargoCoordinate:Get2DDistance( Coordinate ) <= 25 then
+                    self:F( { "Coordinate not free for ", Cargo = Cargo:GetName(), Carrier:GetName(), PickupCargo = self.PickupCargo[Carrier] ~= nil } )
+                    CoordinateFree = false
+                    break
+                  end
+                else
+                  self.PickupCargo[CarrierPickup] = nil
+                end
+              end
+              if CoordinateFree == true then
+                -- Check if this cargo can be picked-up by at least one carrier unit of AI_Cargo.
+                local LargestLoadCapacity = 0
+                for _, Carrier in pairs( Carrier:GetUnits() ) do
+                  local LoadCapacity = Carrier:GetCargoBayFreeWeight()
+                  if LargestLoadCapacity < LoadCapacity then
+                    LargestLoadCapacity = LoadCapacity
+                  end
+                end
+                -- So if there is aa carrier that has the required load capacity to load the total weight of the cargo, dispatch the carrier.
+                -- Otherwise break and go to the next carrier.
+                -- This will skip cargo which is too large to be able to be loaded by carriers
+                -- and will secure an efficient dispatching scheme.
+                if LargestLoadCapacity >= Cargo:GetWeight() then
+                  self.PickupCargo[Carrier] = CargoCoordinate
+                  PickupCargo = Cargo
                   break
                 end
-              else
-                self.PickupCargo[CarrierPickup] = nil
-              end
-            end
-            if CoordinateFree == true then
-              -- Check if this cargo can be picked-up by at least one carrier unit of AI_Cargo.
-              local LargestLoadCapacity = 0
-              for _, Carrier in pairs( Carrier:GetUnits() ) do
-                local LoadCapacity = Carrier:GetCargoBayFreeWeight()
-                if LargestLoadCapacity < LoadCapacity then
-                  LargestLoadCapacity = LoadCapacity
-                end
-              end
-              -- So if there is aa carrier that has the required load capacity to load the total weight of the cargo, dispatch the carrier.
-              -- Otherwise break and go to the next carrier.
-              -- This will skip cargo which is too large to be able to be loaded by carriers
-              -- and will secure an efficient dispatching scheme.
-              if LargestLoadCapacity >= Cargo:GetWeight() then
-                self.PickupCargo[Carrier] = CargoCoordinate
-                PickupCargo = Cargo
-                break
               end
             end
           end
         end
-      end
-      
-      if PickupCargo then
-        self.CarrierHome[Carrier] = nil
-        local PickupCoordinate = PickupCargo:GetCoordinate():GetRandomCoordinateInRadius( self.PickupOuterRadius, self.PickupInnerRadius )
-        AI_Cargo:Pickup( PickupCoordinate, math.random( self.PickupMinSpeed, self.PickupMaxSpeed ), math.random( self.PickupMinHeight, self.PickupMaxHeight ), PickupZone )
-        break
-      else
-        if self.HomeZone then
-          if not self.CarrierHome[Carrier] then
-            self.CarrierHome[Carrier] = true
-            AI_Cargo:Home( self.HomeZone:GetRandomPointVec2(), math.random( self.PickupMinSpeed, self.PickupMaxSpeed ), math.random( self.PickupMinHeight, self.PickupMaxHeight ), self.HomeZone )
+        
+        if PickupCargo then
+          self.CarrierHome[Carrier] = nil
+          local PickupCoordinate = PickupCargo:GetCoordinate():GetRandomCoordinateInRadius( self.PickupOuterRadius, self.PickupInnerRadius )
+          AI_Cargo:Pickup( PickupCoordinate, math.random( self.PickupMinSpeed, self.PickupMaxSpeed ), math.random( self.PickupMinHeight, self.PickupMaxHeight ), PickupZone )
+          break
+        else
+          if self.HomeZone then
+            if not self.CarrierHome[Carrier] then
+              self.CarrierHome[Carrier] = true
+              AI_Cargo:Home( self.HomeZone:GetRandomPointVec2(), math.random( self.PickupMinSpeed, self.PickupMaxSpeed ), math.random( self.PickupMinHeight, self.PickupMaxHeight ), self.HomeZone )
+            end
           end
         end
       end
