@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-17T17:32:36.0000000Z-31ea220e0ad68354582239e8ce5995da95b2f257 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-18T05:34:00.0000000Z-e5f46886cba1ec101115a3047a6c664c71f93405 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -36639,26 +36639,6 @@ do -- CARGO_UNIT
     
   end
   
-  
-  --- Enter Boarding State.
-  -- @param #CARGO_UNIT self
-  -- @param #string Event
-  -- @param #string From
-  -- @param #string To
-  -- @param Wrapper.Unit#UNIT CargoCarrier
-  -- @param #number NearRadius Default 25 m.
-  function CARGO_UNIT:onenterBoarding( From, Event, To, CargoCarrier, NearRadius, ... )
-    --self:F( { From, Event, To, CargoCarrier.UnitName, NearRadius } )
-    
-    local Speed = 90
-    local Angle = 180
-    local Distance = 5
-    
-    if From == "UnLoaded" or From == "Boarding" then
-    
-    end
-    
-  end
   
   --- Loaded State.
   -- @param #CARGO_UNIT self
@@ -85869,6 +85849,45 @@ function AI_CARGO_APC:onafterDeploy( APC, From, Event, To, Coordinate, Speed, He
   
 end
 
+--- On after Unloaded event.
+-- @param #AI_CARGO_APC self
+-- @param Wrapper.Group#GROUP Carrier
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param #string Cargo.Cargo#CARGO Cargo Cargo object.
+-- @param #boolean Deployed Cargo is deployed.
+-- @param Core.Zone#ZONE DeployZone The zone wherein the cargo is deployed. This can be any zone type, like a ZONE, ZONE_GROUP, ZONE_AIRBASE.
+function AI_CARGO_APC:onafterUnloaded( Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone, Defend )
+  self:F( { Carrier, From, Event, To, DeployZone = DeployZone, Defend = Defend } )
+
+
+  self:GetParent( self, AI_CARGO_APC ).onafterUnloaded( self, Carrier, From, Event, To, Cargo, CarrierUnit, DeployZone, Defend  )
+
+  -- If Defend == true then we need to scan for possible enemies within combat zone and engage only ground forces.
+  if Defend == true then
+    self.Zone:Scan( { Object.Category.UNIT } )
+    if not self.Zone:IsAllInZoneOfCoalition( self.Coalition ) then
+      -- OK, enemies nearby, now find the enemies and attack them.
+      local AttackUnits = self.Zone:GetScannedUnits() -- #list<DCS#Unit>
+      local Move = {}
+      local CargoGroup = Cargo.CargoObject -- Wrapper.Group#GROUP
+      Move[#Move+1] = CargoGroup:GetCoordinate():WaypointGround( 70, "Custom" )
+      for UnitId, AttackUnit in pairs( AttackUnits ) do
+        local MooseUnit = UNIT:Find( AttackUnit )
+        if MooseUnit:GetCoalition() ~= CargoGroup:GetCoalition() then
+          Move[#Move+1] = MooseUnit:GetCoordinate():WaypointGround( 70, "Line abreast" )
+          --MoveTo.Task = CargoGroup:TaskCombo( CargoGroup:TaskAttackUnit( MooseUnit, true ) )
+          self:F( { MooseUnit = MooseUnit:GetName(), CargoGroup = CargoGroup:GetName() } )
+        end
+      end
+      CargoGroup:RoutePush( Move, 0.1 )
+    end
+  
+  end
+
+end
+
 --- On after Deployed event.
 -- @param #AI_CARGO_APC self
 -- @param Wrapper.Group#GROUP Carrier
@@ -85882,30 +85901,6 @@ function AI_CARGO_APC:onafterDeployed( APC, From, Event, To, DeployZone, Defend 
   self:__Guard( 0.1 )
 
   self:GetParent( self, AI_CARGO_APC ).onafterDeployed( self, APC, From, Event, To, DeployZone, Defend )
-  
-  -- If Defend == true then we need to scan for possible enemies within combat zone and engage only ground forces.
-  if Defend == true then
-    self.Zone:Scan( { Object.Category.UNIT } )
-    if not self.Zone:IsAllInZoneOfCoalition( self.Coalition ) then
-      -- OK, enemies nearby, now find the enemies and attack them.
-      local AttackUnits = self.Zone:GetScannedUnits() -- #list<DCS#Unit>
-      local Move = {}
-      for CargoId, CargoData in pairs( self.CargoSet:GetSet() ) do
-        local CargoGroup = CargoData.CargoObject -- Wrapper.Group#GROUP
-        Move[#Move+1] = CargoGroup:GetCoordinate():WaypointGround( 70, "Custom" )
-        for UnitId, AttackUnit in pairs( AttackUnits ) do
-          local MooseUnit = UNIT:Find( AttackUnit )
-          if MooseUnit:GetCoalition() ~= CargoGroup:GetCoalition() then
-            Move[#Move+1] = MooseUnit:GetCoordinate():WaypointGround( 70, "Line abreast" )
-            --MoveTo.Task = CargoGroup:TaskCombo( CargoGroup:TaskAttackUnit( MooseUnit, true ) )
-            self:F( { MooseUnit = MooseUnit:GetName(), CargoGroup = CargoGroup:GetName() } )
-          end
-        end
-        CargoGroup:RoutePush( Move, 0.1 )
-      end
-    end
-  
-  end
 
 end
 
