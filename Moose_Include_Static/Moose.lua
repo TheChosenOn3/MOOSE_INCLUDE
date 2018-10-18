@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-14T15:13:18.0000000Z-f537fbb07e6d4a1d35f117123d2614b52449ba08 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-17T17:32:36.0000000Z-31ea220e0ad68354582239e8ce5995da95b2f257 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -29109,6 +29109,24 @@ do -- Route methods
     return nil
   end
   
+  --- Make the controllable to push follow a given route.
+  -- @param #CONTROLLABLE self
+  -- @param #table Route A table of Route Points.
+  -- @param #number DelaySeconds (Optional) Wait for the specified seconds before executing the Route. Default is one second.
+  -- @return #CONTROLLABLE The CONTROLLABLE.
+  function CONTROLLABLE:RoutePush( Route, DelaySeconds )
+    self:F2( Route )
+  
+    local DCSControllable = self:GetDCSObject()
+    if DCSControllable then
+      local RouteTask = self:TaskRoute( Route ) -- Create a RouteTask, that will route the CONTROLLABLE to the Route.
+      self:PushTask( RouteTask, DelaySeconds or 1 ) -- Execute the RouteTask after the specified seconds (default is 1).
+      return self
+    end
+  
+    return nil
+  end
+  
   
   --- Stops the movement of the vehicle on the route.
   -- @param #CONTROLLABLE self
@@ -33098,16 +33116,23 @@ function UNIT:InAir()
 --    Implementation of workaround. The original code is below.
 --    This to simulate the landing on buildings.
 
---    local UnitInAir = DCSUnit:inAir()
     local UnitInAir = true
-    local VelocityVec3 = DCSUnit:getVelocity()
-    local Velocity = ( VelocityVec3.x ^ 2 + VelocityVec3.y ^ 2 + VelocityVec3.z ^ 2 ) ^ 0.5 -- in meters / sec
-    local Coordinate = DCSUnit:getPoint()
-    local LandHeight = land.getHeight( { x = Coordinate.x, y = Coordinate.z } )
-    local Height = Coordinate.y - LandHeight
-    if Velocity < 1 and Height <= 60   then
-      UnitInAir = false
+
+    local UnitCategory = DCSUnit:getDesc().category
+    if UnitCategory == Unit.Category.HELICOPTER then
+      local VelocityVec3 = DCSUnit:getVelocity()
+      local Velocity = ( VelocityVec3.x ^ 2 + VelocityVec3.y ^ 2 + VelocityVec3.z ^ 2 ) ^ 0.5 -- in meters / sec
+      local Coordinate = DCSUnit:getPoint()
+      local LandHeight = land.getHeight( { x = Coordinate.x, y = Coordinate.z } )
+      local Height = Coordinate.y - LandHeight
+      if Velocity < 1 and Height <= 60   then
+        UnitInAir = false
+      end
+    else
+      UnitInAir = DCSUnit:inAir()
     end
+
+
     self:T3( UnitInAir )
     return UnitInAir
   end
@@ -36507,46 +36532,47 @@ do -- CARGO_UNIT
     
     --self:F({Unit=self.CargoObject:GetName()})
     
-    -- Only move the group to the carrier when the cargo is not in the air
-    -- (eg. cargo can be on a oil derrick, moving the cargo on the oil derrick will drop the cargo on the sea).
-    if not self.CargoInAir then
-      -- If NearRadius is given, then use the given NearRadius, otherwise calculate the NearRadius 
-      -- based upon the Carrier bounding radius, which is calculated from the bounding rectangle on the Y axis.
-      local NearRadius = NearRadius or CargoCarrier:GetBoundingRadius() + 5
-      if self:IsNear( CargoCarrier:GetPointVec2(), NearRadius ) then
-        self:Load( CargoCarrier, NearRadius, ... )
-      else
-        if MaxSpeed and MaxSpeed == 0 or TypeName and TypeName == "Stinger comm" then
+    -- A cargo unit can only be boarded if it is not dead
+    
+      -- Only move the group to the carrier when the cargo is not in the air
+      -- (eg. cargo can be on a oil derrick, moving the cargo on the oil derrick will drop the cargo on the sea).
+      if not self.CargoInAir then
+        -- If NearRadius is given, then use the given NearRadius, otherwise calculate the NearRadius 
+        -- based upon the Carrier bounding radius, which is calculated from the bounding rectangle on the Y axis.
+        local NearRadius = NearRadius or CargoCarrier:GetBoundingRadius() + 5
+        if self:IsNear( CargoCarrier:GetPointVec2(), NearRadius ) then
           self:Load( CargoCarrier, NearRadius, ... )
         else
+          if MaxSpeed and MaxSpeed == 0 or TypeName and TypeName == "Stinger comm" then
+            self:Load( CargoCarrier, NearRadius, ... )
+          else
+            
+            local Speed = 90
+            local Angle = 180
+            local Distance = 0
+            
+            local CargoCarrierPointVec2 = CargoCarrier:GetPointVec2()
+            local CargoCarrierHeading = CargoCarrier:GetHeading() -- Get Heading of object in degrees.
+            local CargoDeployHeading = ( ( CargoCarrierHeading + Angle ) >= 360 ) and ( CargoCarrierHeading + Angle - 360 ) or ( CargoCarrierHeading + Angle )
+            local CargoDeployPointVec2 = CargoCarrierPointVec2:Translate( Distance, CargoDeployHeading )
+            
+            -- Set the CargoObject to state Green to ensure it is boarding!
+            self.CargoObject:OptionAlarmStateGreen()
+            
+            local Points = {}
           
-          local Speed = 90
-          local Angle = 180
-          local Distance = 0
+            local PointStartVec2 = self.CargoObject:GetPointVec2()
           
-          local CargoCarrierPointVec2 = CargoCarrier:GetPointVec2()
-          local CargoCarrierHeading = CargoCarrier:GetHeading() -- Get Heading of object in degrees.
-          local CargoDeployHeading = ( ( CargoCarrierHeading + Angle ) >= 360 ) and ( CargoCarrierHeading + Angle - 360 ) or ( CargoCarrierHeading + Angle )
-          local CargoDeployPointVec2 = CargoCarrierPointVec2:Translate( Distance, CargoDeployHeading )
-          
-          -- Set the CargoObject to state Green to ensure it is boarding!
-          self.CargoObject:OptionAlarmStateGreen()
-          
-          local Points = {}
-        
-          local PointStartVec2 = self.CargoObject:GetPointVec2()
-        
-          Points[#Points+1] = PointStartVec2:WaypointGround( Speed )
-          Points[#Points+1] = CargoDeployPointVec2:WaypointGround( Speed )
-          
-          local TaskRoute = self.CargoObject:TaskRoute( Points )
-          self.CargoObject:SetTask( TaskRoute, 2 )
-          self:__Boarding( -5, CargoCarrier, NearRadius, ... )
-          self.RunCount = 0
+            Points[#Points+1] = PointStartVec2:WaypointGround( Speed )
+            Points[#Points+1] = CargoDeployPointVec2:WaypointGround( Speed )
+            
+            local TaskRoute = self.CargoObject:TaskRoute( Points )
+            self.CargoObject:SetTask( TaskRoute, 2 )
+            self:__Boarding( -5, CargoCarrier, NearRadius, ... )
+            self.RunCount = 0
+          end
         end
       end
-    end
-    
   end
   
   
@@ -36560,53 +36586,53 @@ do -- CARGO_UNIT
   function CARGO_UNIT:onafterBoarding( From, Event, To, CargoCarrier, NearRadius, ... )
     self:F( { From, Event, To, CargoCarrier:GetName(), NearRadius = NearRadius } )
     
-    --self:F({Unit=self.CargoObject:GetName()})
+    self:F( { IsAlive=self.CargoObject:IsAlive() }  )
     
-    if CargoCarrier and CargoCarrier:IsAlive() then -- and self.CargoObject and self.CargoObject:IsAlive() then 
-      if (CargoCarrier:IsAir() and not CargoCarrier:InAir()) or true then
-        local NearRadius = NearRadius or CargoCarrier:GetBoundingRadius( NearRadius ) + 5
-        if self:IsNear( CargoCarrier:GetPointVec2(), NearRadius ) then
-          self:__Load( 1, CargoCarrier, ... )
-        else
-          if self:IsNear( CargoCarrier:GetPointVec2(), 20 ) then
-            self:__Boarding( 1, CargoCarrier, NearRadius, ... )
-            self.RunCount = self.RunCount + 1
+      if CargoCarrier and CargoCarrier:IsAlive() then -- and self.CargoObject and self.CargoObject:IsAlive() then 
+        if (CargoCarrier:IsAir() and not CargoCarrier:InAir()) or true then
+          local NearRadius = NearRadius or CargoCarrier:GetBoundingRadius( NearRadius ) + 5
+          if self:IsNear( CargoCarrier:GetPointVec2(), NearRadius ) then
+            self:__Load( -1, CargoCarrier, ... )
           else
-            self:__Boarding( 2, CargoCarrier, NearRadius, ... )
-            self.RunCount = self.RunCount + 2
-          end
-          if self.RunCount >= 40 then
-            self.RunCount = 0
-            local Speed = 90
-            local Angle = 180
-            local Distance = 0
+            if self:IsNear( CargoCarrier:GetPointVec2(), 20 ) then
+              self:__Boarding( -1, CargoCarrier, NearRadius, ... )
+              self.RunCount = self.RunCount + 1
+            else
+              self:__Boarding( -2, CargoCarrier, NearRadius, ... )
+              self.RunCount = self.RunCount + 2
+            end
+            if self.RunCount >= 40 then
+              self.RunCount = 0
+              local Speed = 90
+              local Angle = 180
+              local Distance = 0
+              
+              --self:F({Unit=self.CargoObject:GetName()})
+  
+              local CargoCarrierPointVec2 = CargoCarrier:GetPointVec2()
+              local CargoCarrierHeading = CargoCarrier:GetHeading() -- Get Heading of object in degrees.
+              local CargoDeployHeading = ( ( CargoCarrierHeading + Angle ) >= 360 ) and ( CargoCarrierHeading + Angle - 360 ) or ( CargoCarrierHeading + Angle )
+              local CargoDeployPointVec2 = CargoCarrierPointVec2:Translate( Distance, CargoDeployHeading )
             
-            --self:F({Unit=self.CargoObject:GetName()})
-
-            local CargoCarrierPointVec2 = CargoCarrier:GetPointVec2()
-            local CargoCarrierHeading = CargoCarrier:GetHeading() -- Get Heading of object in degrees.
-            local CargoDeployHeading = ( ( CargoCarrierHeading + Angle ) >= 360 ) and ( CargoCarrierHeading + Angle - 360 ) or ( CargoCarrierHeading + Angle )
-            local CargoDeployPointVec2 = CargoCarrierPointVec2:Translate( Distance, CargoDeployHeading )
-          
-            -- Set the CargoObject to state Green to ensure it is boarding!
-            self.CargoObject:OptionAlarmStateGreen()
-
-            local Points = {}
-          
-            local PointStartVec2 = self.CargoObject:GetPointVec2()
-          
-            Points[#Points+1] = PointStartVec2:WaypointGround( Speed, "Off road" )
-            Points[#Points+1] = CargoDeployPointVec2:WaypointGround( Speed, "Off road" )
-          
-            local TaskRoute = self.CargoObject:TaskRoute( Points )
-            self.CargoObject:SetTask( TaskRoute, 0.2 )
+              -- Set the CargoObject to state Green to ensure it is boarding!
+              self.CargoObject:OptionAlarmStateGreen()
+  
+              local Points = {}
+            
+              local PointStartVec2 = self.CargoObject:GetPointVec2()
+            
+              Points[#Points+1] = PointStartVec2:WaypointGround( Speed, "Off road" )
+              Points[#Points+1] = CargoDeployPointVec2:WaypointGround( Speed, "Off road" )
+            
+              local TaskRoute = self.CargoObject:TaskRoute( Points )
+              self.CargoObject:SetTask( TaskRoute, 0.2 )
+            end
           end
+        else
+          self.CargoObject:MessageToGroup( "Cancelling Boarding... Get back on the ground!", 5, CargoCarrier:GetGroup(), self:GetName() )
+          self:CancelBoarding( CargoCarrier, NearRadius, ... )
+          self.CargoObject:SetCommand( self.CargoObject:CommandStopRoute( true ) )
         end
-      else
-        self.CargoObject:MessageToGroup( "Cancelling Boarding... Get back on the ground!", 5, CargoCarrier:GetGroup(), self:GetName() )
-        self:CancelBoarding( CargoCarrier, NearRadius, ... )
-        self.CargoObject:SetCommand( self.CargoObject:CommandStopRoute( true ) )
-      end
     else
       self:E("Something is wrong")
     end
@@ -37297,9 +37323,9 @@ end
 do -- CARGO_GROUP
 
   --- @type CARGO_GROUP
-  -- @extends Cargo.Cargo#CARGO_REPORTABLE
   -- @field Core.Set#SET_CARGO CargoSet The collection of derived CARGO objects.
   -- @field #string GroupName The name of the CargoGroup.
+  -- @extends Cargo.Cargo#CARGO_REPORTABLE
   
   --- Defines a cargo that is represented by a @{Wrapper.Group} object within the simulator.
   -- The cargo can be Loaded, UnLoaded, Boarded, UnBoarded to and from Carriers.
@@ -37568,29 +37594,27 @@ do -- CARGO_GROUP
   
   end
 
-  --- Enter Boarding State.
+  --- After Board Event.
   -- @param #CARGO_GROUP self
   -- @param #string Event
   -- @param #string From
   -- @param #string To
   -- @param Wrapper.Unit#UNIT CargoCarrier
   -- @param #number NearRadius If distance is smaller than this number, cargo is loaded into the carrier.
-  function CARGO_GROUP:onenterBoarding( From, Event, To, CargoCarrier, NearRadius, ... )
+  function CARGO_GROUP:onafterBoard( From, Event, To, CargoCarrier, NearRadius, ... )
     self:F( { CargoCarrier.UnitName, From, Event, To, NearRadius = NearRadius } )
     
     NearRadius = NearRadius or self.NearRadius
     
-    if From == "UnLoaded" then
-  
-      -- For each Cargo object within the CARGO_GROUPED, route each object to the CargoLoadPointVec2
-      self.CargoSet:ForEach(
-        function( Cargo, ... )
-          Cargo:__Board( 1, CargoCarrier, NearRadius, ... )
-        end, ...
-      )
-      
-      self:__Boarding( 1, CargoCarrier, NearRadius, ... )
-    end
+    -- For each Cargo object within the CARGO_GROUPED, route each object to the CargoLoadPointVec2
+    self.CargoSet:ForEach(
+      function( Cargo, ... )
+        self:F( { "Board Unit", Cargo:GetName( ), Cargo:IsDestroyed(), Cargo.CargoObject:IsAlive() } )
+        Cargo:__Board( 1, CargoCarrier, NearRadius, ... )
+      end, ...
+    )
+    
+    self:__Boarding( -1, CargoCarrier, NearRadius, ... )
     
   end
 
@@ -37600,13 +37624,15 @@ do -- CARGO_GROUP
   -- @param #string From
   -- @param #string To
   -- @param Wrapper.Unit#UNIT CargoCarrier
-  function CARGO_GROUP:onenterLoaded( From, Event, To, CargoCarrier, ... )
+  function CARGO_GROUP:onafterLoad( From, Event, To, CargoCarrier, ... )
     --self:F( { From, Event, To, CargoCarrier, ...} )
     
     if From == "UnLoaded" then
       -- For each Cargo object within the CARGO_GROUP, load each cargo to the CargoCarrier.
       for CargoID, Cargo in pairs( self.CargoSet:GetSet() ) do
-        Cargo:Load( CargoCarrier )
+        if not Cargo:IsDestroyed() then
+          Cargo:Load( CargoCarrier )
+        end
       end
     end
     
@@ -37637,7 +37663,7 @@ do -- CARGO_GROUP
       --self:T( { Cargo:GetName(), Cargo.current } )
       
       
-      if not Cargo:is( "Loaded" ) 
+      if not Cargo:is( "Loaded" )
       and (not Cargo:is( "Destroyed" )) then -- If one or more units of a group defined as CARGO_GROUP died, the CARGO_GROUP:Board() command does not trigger the CARGO_GRUOP:OnEnterLoaded() function.
         Boarded = false
       end
@@ -37677,7 +37703,7 @@ do -- CARGO_GROUP
   -- @param #string To
   -- @param Core.Point#POINT_VEC2 ToPointVec2
   -- @param #number NearRadius If distance is smaller than this number, cargo is loaded into the carrier.
-  function CARGO_GROUP:onenterUnBoarding( From, Event, To, ToPointVec2, NearRadius, ... )
+  function CARGO_GROUP:onafterUnBoard( From, Event, To, ToPointVec2, NearRadius, ... )
     self:F( {From, Event, To, ToPointVec2, NearRadius } )
   
     NearRadius = NearRadius or 25
@@ -37720,7 +37746,7 @@ do -- CARGO_GROUP
   -- @param #string To
   -- @param Core.Point#POINT_VEC2 ToPointVec2
   -- @param #number NearRadius If distance is smaller than this number, cargo is loaded into the carrier.
-  function CARGO_GROUP:onleaveUnBoarding( From, Event, To, ToPointVec2, NearRadius, ... )
+  function CARGO_GROUP:onafterUnBoarding( From, Event, To, ToPointVec2, NearRadius, ... )
     --self:F( { From, Event, To, ToPointVec2, NearRadius } )
   
     --local NearRadius = NearRadius or 25
@@ -37741,7 +37767,7 @@ do -- CARGO_GROUP
       end
     
       if UnBoarded then
-        return true
+        self:__UnLoad( 1, ToPointVec2, ... )
       else
         self:__UnBoarding( 1, ToPointVec2, NearRadius, ... )
       end
@@ -37751,30 +37777,13 @@ do -- CARGO_GROUP
     
   end
 
-  --- UnBoard Event.
-  -- @param #CARGO_GROUP self
-  -- @param #string Event
-  -- @param #string From
-  -- @param #string To
-  -- @param Core.Point#POINT_VEC2 ToPointVec2
-  -- @param #number NearRadius If distance is smaller than this number, cargo is loaded into the carrier.
-  function CARGO_GROUP:onafterUnBoarding( From, Event, To, ToPointVec2, NearRadius, ... )
-    --self:F( { From, Event, To, ToPointVec2, NearRadius } )
-  
-    --local NearRadius = NearRadius or 25
-  
-    self:__UnLoad( 1, ToPointVec2, ... )
-  end
-
-
-
   --- Enter UnLoaded State.
   -- @param #CARGO_GROUP self
   -- @param #string Event
   -- @param #string From
   -- @param #string To
   -- @param Core.Point#POINT_VEC2
-  function CARGO_GROUP:onenterUnLoaded( From, Event, To, ToPointVec2, ... )
+  function CARGO_GROUP:onafterUnLoad( From, Event, To, ToPointVec2, ... )
     --self:F( { From, Event, To, ToPointVec2 } )
   
     if From == "Loaded" then
@@ -37784,7 +37793,7 @@ do -- CARGO_GROUP
         function( Cargo )
           --Cargo:UnLoad( ToPointVec2 )
           local RandomVec2=ToPointVec2:GetRandomPointVec2InRadius(20, 10)
-          Cargo:UnLoad( RandomVec2 )
+          Cargo:UnBoard( RandomVec2 )
         end
       )
   
@@ -66927,7 +66936,7 @@ end
 --    * Strategic components such as capturing, defending and destroying warehouses and their associated infrastructure.
 --    * Intelligent spawning of aircraft on airports (only if enough parking spots are available).
 --    * Possibility to hook into events and customize actions.
---    * Persistance of assets. Warehouse assets can be saved and loaded from file.
+--    * Persistence of assets. Warehouse assets can be saved and loaded from file.
 --    * Can be easily interfaced to other MOOSE classes.
 --
 -- === 
@@ -66981,6 +66990,9 @@ end
 -- @field #table offroadpaths Table holding user defined paths from one warehouse to another. 
 -- @field #boolean autodefence When the warehouse is under attack, automatically spawn assets to defend the warehouse.
 -- @field #number spawnzonemaxdist Max distance between warehouse and spawn zone. Default 5000 meters.
+-- @field #boolean autosave Automatically save assets to file when mission ends.
+-- @field #string autosavepath Path where the asset file is saved on auto save.
+-- @field #string autosavefilename File name of the auto asset save file. Default is auto generated from warehouse id and name.
 -- @extends Core.Fsm#FSM
 
 --- Have your assets at the right place at the right time - or not!
@@ -67592,7 +67604,7 @@ end
 -- 
 -- ===
 -- 
--- # Persistance of Assets
+-- # Persistence of Assets
 -- 
 -- Assets in stock of a warehouse can be saved to a file on your hard drive and then loaded from that file at a later point. This enables to restart the mission
 -- and restore the warehouse stock.
@@ -67611,7 +67623,7 @@ end
 --
 -- in the file "MissionScripting.lua", which is located in the subdirectory "Scripts" of your DCS installation root directory.
 -- 
--- ### Don'ts
+-- ### Don't!
 -- 
 -- Do not use **semi-colons** or **equal signs** in the group names of your assets as these are used as separators in the saved and loaded files texts.
 -- If you do, it will cause problems and give you a headache!
@@ -67623,9 +67635,15 @@ end
 -- The parameter *filename* is optional and defines the name of the saved file. By default this is automatically created from the warehouse id and name, for example
 -- "Warehouse-1234_Batumi.txt".
 -- 
---      warehouseBatumi:Save("D:\\My Warehouse Data\\")
+--     warehouseBatumi:Save("D:\\My Warehouse Data\\")
 --      
 -- This will save all asset data to in "D:\\My Warehouse Data\\Warehouse-1234_Batumi.txt".
+-- 
+-- ### Automatic Save at Mission End
+-- 
+-- The assets can be saved automatically when the mission is ended via the @{WAREHOUSE.SetSaveOnMissionEnd}(*path*, *filename*) function, i.e.
+-- 
+--     warehouseBatumi:SetSaveOnMissionEnd("D:\\My Warehouse Data\\")
 -- 
 -- ## Load Assets
 -- 
@@ -67639,9 +67657,9 @@ end
 -- 
 -- Loading the assets is done by
 -- 
---      warehouseBatumi:New(STATIC:FindByName("Warehouse Batumi"))
---      warehouseBatumi:Load("D:\\My Warehouse Data\\")
---      warehouseBatumi:Start()
+--     warehouseBatumi:New(STATIC:FindByName("Warehouse Batumi"))
+--     warehouseBatumi:Load("D:\\My Warehouse Data\\")
+--     warehouseBatumi:Start()
 --      
 -- This sequence loads all assets from file. If a warehouse was captured in the last mission, it also respawns the static warehouse structure with the right coaliton.
 -- However, it due to DCS limitations it is not possible to set the airbase coalition. This has to be done manually in the mission editor. Or alternatively, one could
@@ -68458,6 +68476,9 @@ WAREHOUSE = {
   offroadpaths  =    {},
   autodefence   = false,
   spawnzonemaxdist = 5000,
+  autosave      = false,
+  autosavepath  =   nil,
+  autosavefile  =   nil,
 }
 
 --- Item of the warehouse stock table.
@@ -68629,7 +68650,7 @@ WAREHOUSE.db = {
 
 --- Warehouse class version.
 -- @field #string version
-WAREHOUSE.version="0.6.3"
+WAREHOUSE.version="0.6.4"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- TODO: Warehouse todo list.
@@ -69312,6 +69333,18 @@ function WAREHOUSE:SetAutoDefenceOff()
   return self
 end
 
+--- Set auto defence off. This is the default. 
+-- @param #WAREHOUSE self
+-- @param #string path Path where to save the asset data file.
+-- @param #string filename File name. Default is generated automatically from warehouse id.
+-- @return #WAREHOUSE self
+function WAREHOUSE:SetSaveOnMissionEnd(path, filename)
+  self.autosave=true
+  self.autosavepath=path
+  self.autosavefile=filename
+  return self
+end
+
 
 --- Set the airbase belonging to this warehouse.
 -- Note that it has to be of the same coalition as the warehouse.
@@ -69957,6 +69990,7 @@ function WAREHOUSE:onafterStart(From, Event, To)
   self:HandleEvent(EVENTS.Crash,          self._OnEventCrashOrDead)
   self:HandleEvent(EVENTS.Dead,           self._OnEventCrashOrDead)
   self:HandleEvent(EVENTS.BaseCaptured,   self._OnEventBaseCaptured)
+  self:HandleEvent(EVENTS.MissionEnd,     self._OnEventMissionEnd)
   
   -- This event triggers the arrived event for air assets.
   -- TODO Might need to make this landing or optional!
@@ -71840,6 +71874,7 @@ function WAREHOUSE:onbeforeLoad(From, Event, To, path, filename)
     return true
   else
     self:_ErrorMessage(string.format("ERROR: file %s does not exist! Cannot load assets.", filename), 60)
+    return false
   end
 
 end
@@ -71892,6 +71927,7 @@ function WAREHOUSE:onafterLoad(From, Event, To, path, filename)
     local descriptors=UTILS.Split(asset,";")
     
     local asset={}
+    local isasset=false
     for _,descriptor in pairs(descriptors) do
     
       local keyval=UTILS.Split(descriptor,"=")
@@ -71904,15 +71940,20 @@ function WAREHOUSE:onafterLoad(From, Event, To, path, filename)
         elseif keyval[1]=="country" then
           -- Get country id.
           Country=tonumber(keyval[2])
-        elseif #keyval==2 then      
+        else
+        
+          -- This is an asset.
+          isasset=true
         
           local key=keyval[1]
-          local val=keyval[2]    
+          local val=keyval[2]
+          
+          --env.info(string.format("FF asset key=%s val=%s", key, val))  
           
           -- Livery or skill could be "nil".
           if val=="nil" then
             val=nil
-          end
+          end          
           
           -- Convert string to number where necessary.
           if key=="cargobay" or key=="weight" or key=="loadradius" then
@@ -71926,13 +71967,14 @@ function WAREHOUSE:onafterLoad(From, Event, To, path, filename)
     end
     
     -- Add to table.
-    table.insert(assets, asset)
+    if isasset then
+      table.insert(assets, asset)
+    end
   end
   
   -- Respawn warehouse with prev coalition if necessary.
-  self:E(string.format("Changing country %d-->%d (before)", self:GetCountry(), Country))
   if Country~=self:GetCountry() then
-    self:E(string.format("Changing country %d-->%d (after)", self:GetCountry(), Country))
+    self:T(self.wid..string.format("Changing warehouse country %d-->%d on loading assets.", self:GetCountry(), Country))
     self:ChangeCountry(Country)
   end
   
@@ -72872,6 +72914,18 @@ function WAREHOUSE:_OnEventBaseCaptured(EventData)
       end
         
     end
+  end
+end
+
+--- Warehouse event handling function.
+-- Handles the case when the mission is ended.
+-- @param #WAREHOUSE self
+-- @param Core.Event#EVENTDATA EventData Event data.
+function WAREHOUSE:_OnEventMissionEnd(EventData)
+  self:T3(self.wid..string.format("Warehouse %s captured event mission end!",self.alias))
+  
+  if self.autosave then
+    self:Save(self.autosavepath, self.autosavefile)
   end
 end
 
@@ -74627,7 +74681,7 @@ end
 function WAREHOUSE:_ErrorMessage(text, duration)
   duration=duration or 20
   if duration>0 then
-    MESSAGE:New(text, duration):ToAllIf()
+    MESSAGE:New(text, duration):ToAll()
   end
   self:E(self.wid..text)
 end
@@ -85184,7 +85238,7 @@ function AI_CARGO:onafterBoard( Carrier, From, Event, To, Cargo, CarrierUnit, Pi
 
   if Carrier and Carrier:IsAlive() then
     self:F({ IsLoaded = Cargo:IsLoaded(), Cargo:GetName(), Carrier:GetName() } )
-    if not Cargo:IsLoaded() then
+    if not Cargo:IsLoaded() and not Cargo:IsDestroyed() then
       self:__Board( -10, Cargo, CarrierUnit, PickupZone )
       return
     end
@@ -85364,6 +85418,7 @@ function AI_CARGO:onafterDeployed( Carrier, From, Event, To, DeployZone, Defend 
     self.Transporting = false
   else
     self:F( "Defending" )
+    
   end
 
 end
@@ -85646,34 +85701,36 @@ function AI_CARGO_APC:onafterMonitor( APC, From, Event, To )
       if self.CarrierCoordinate then
         if self:IsTransporting() == true then
           local Coordinate = APC:GetCoordinate()
-          self.Zone:Scan( { Object.Category.UNIT } )
-          if self.Zone:IsAllInZoneOfCoalition( self.Coalition ) then
-            if self:Is( "Unloaded" ) or self:Is( "Following" ) then
-              -- There are no enemies within combat radius. Load the CargoCarrier.
-              self:Load()
-            end
-          else
-            if self:Is( "Loaded" ) then
-              -- There are enemies within combat radius. Unload the CargoCarrier.
-              self:__Unload( 1, nil, true ) -- The 2nd parameter is true, which means that the unload is for defending the carrier, not to deploy!
-            else
+          if self:Is( "Unloaded" ) or self:Is( "Loaded" ) then
+            self.Zone:Scan( { Object.Category.UNIT } )
+            if self.Zone:IsAllInZoneOfCoalition( self.Coalition ) then
               if self:Is( "Unloaded" ) then
-                self:Follow()
+                -- There are no enemies within combat radius. Load the CargoCarrier.
+                self:Load()
               end
-              self:F( "I am here" .. self:GetCurrentState() )
-              if self:Is( "Following" ) then
-                for Cargo, APCUnit in pairs( self.Carrier_Cargo ) do
-                  local Cargo = Cargo -- Cargo.Cargo#CARGO
-                  local APCUnit = APCUnit -- Wrapper.Unit#UNIT
-                  if Cargo:IsAlive() then
-                    if not Cargo:IsNear( APCUnit, 40 ) then
-                      APCUnit:RouteStop()
-                      self.CarrierStopped = true
-                    else
-                      if self.CarrierStopped then
-                        if Cargo:IsNear( APCUnit, 25 ) then
-                          APCUnit:RouteResume()
-                          self.CarrierStopped = nil
+            else
+              if self:Is( "Loaded" ) then
+                -- There are enemies within combat radius. Unload the CargoCarrier.
+                self:__Unload( 1, nil, true ) -- The 2nd parameter is true, which means that the unload is for defending the carrier, not to deploy!
+              else
+                if self:Is( "Unloaded" ) then
+                  --self:Follow()
+                end
+                self:F( "I am here" .. self:GetCurrentState() )
+                if self:Is( "Following" ) then
+                  for Cargo, APCUnit in pairs( self.Carrier_Cargo ) do
+                    local Cargo = Cargo -- Cargo.Cargo#CARGO
+                    local APCUnit = APCUnit -- Wrapper.Unit#UNIT
+                    if Cargo:IsAlive() then
+                      if not Cargo:IsNear( APCUnit, 40 ) then
+                        APCUnit:RouteStop()
+                        self.CarrierStopped = true
+                      else
+                        if self.CarrierStopped then
+                          if Cargo:IsNear( APCUnit, 25 ) then
+                            APCUnit:RouteResume()
+                            self.CarrierStopped = nil
+                          end
                         end
                       end
                     end
@@ -85825,6 +85882,30 @@ function AI_CARGO_APC:onafterDeployed( APC, From, Event, To, DeployZone, Defend 
   self:__Guard( 0.1 )
 
   self:GetParent( self, AI_CARGO_APC ).onafterDeployed( self, APC, From, Event, To, DeployZone, Defend )
+  
+  -- If Defend == true then we need to scan for possible enemies within combat zone and engage only ground forces.
+  if Defend == true then
+    self.Zone:Scan( { Object.Category.UNIT } )
+    if not self.Zone:IsAllInZoneOfCoalition( self.Coalition ) then
+      -- OK, enemies nearby, now find the enemies and attack them.
+      local AttackUnits = self.Zone:GetScannedUnits() -- #list<DCS#Unit>
+      local Move = {}
+      for CargoId, CargoData in pairs( self.CargoSet:GetSet() ) do
+        local CargoGroup = CargoData.CargoObject -- Wrapper.Group#GROUP
+        Move[#Move+1] = CargoGroup:GetCoordinate():WaypointGround( 70, "Custom" )
+        for UnitId, AttackUnit in pairs( AttackUnits ) do
+          local MooseUnit = UNIT:Find( AttackUnit )
+          if MooseUnit:GetCoalition() ~= CargoGroup:GetCoalition() then
+            Move[#Move+1] = MooseUnit:GetCoordinate():WaypointGround( 70, "Line abreast" )
+            --MoveTo.Task = CargoGroup:TaskCombo( CargoGroup:TaskAttackUnit( MooseUnit, true ) )
+            self:F( { MooseUnit = MooseUnit:GetName(), CargoGroup = CargoGroup:GetName() } )
+          end
+        end
+        CargoGroup:RoutePush( Move, 0.1 )
+      end
+    end
+  
+  end
 
 end
 
@@ -88110,7 +88191,7 @@ function AI_CARGO_DISPATCHER:onafterMonitor()
                     LargestLoadCapacity = LoadCapacity
                   end
                 end
-                -- So if there is aa carrier that has the required load capacity to load the total weight of the cargo, dispatch the carrier.
+                -- So if there is a carrier that has the required load capacity to load the total weight of the cargo, dispatch the carrier.
                 -- Otherwise break and go to the next carrier.
                 -- This will skip cargo which is too large to be able to be loaded by carriers
                 -- and will secure an efficient dispatching scheme.
