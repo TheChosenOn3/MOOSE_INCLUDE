@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-18T05:34:00.0000000Z-e5f46886cba1ec101115a3047a6c664c71f93405 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-18T16:34:36.0000000Z-44f4326e8d80df0b3720a758915b798f9abeb148 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -37590,6 +37590,8 @@ do -- CARGO_GROUP
     self.CargoSet:ForEach(
       function( Cargo, ... )
         self:F( { "Board Unit", Cargo:GetName( ), Cargo:IsDestroyed(), Cargo.CargoObject:IsAlive() } )
+        local CargoGroup = Cargo.CargoObject --Wrapper.Group#GROUP
+        CargoGroup:OptionAlarmStateGreen()
         Cargo:__Board( 1, CargoCarrier, NearRadius, ... )
       end, ...
     )
@@ -85204,6 +85206,80 @@ function AI_CARGO:onbeforeLoad( Carrier, From, Event, To, PickupZone )
   
 end
 
+
+--- On before Reload event.
+-- @param #AI_CARGO self
+-- @param Wrapper.Group#GROUP Carrier
+-- @param #string From From state.
+-- @param #string Event Event.
+-- @param #string To To state.
+-- @param Core.Zone#ZONE PickupZone (optional) The zone where the cargo will be picked up. The PickupZone can be nil, if there wasn't any PickupZoneSet provided.
+function AI_CARGO:onbeforeReload( Carrier, From, Event, To )
+  self:F( { Carrier, From, Event, To } )
+
+  local Boarding = false
+
+  local LoadInterval = 2
+  local LoadDelay = 1
+  local Carrier_List = {}
+  local Carrier_Weight = {}
+
+  if Carrier and Carrier:IsAlive() then
+    for _, CarrierUnit in pairs( Carrier:GetUnits() ) do
+      local CarrierUnit = CarrierUnit -- Wrapper.Unit#UNIT
+      
+      Carrier_List[#Carrier_List+1] = CarrierUnit
+    end
+
+    local Carrier_Count = #Carrier_List
+    local Carrier_Index = 1
+      
+    local Loaded = false
+
+    for Cargo, CarrierUnit in pairs( self.Carrier_Cargo ) do
+      local Cargo = Cargo -- Cargo.Cargo#CARGO
+
+      self:F( { IsUnLoaded = Cargo:IsUnLoaded(), IsDeployed = Cargo:IsDeployed(), Cargo:GetName(), Carrier:GetName() } )
+
+      -- Try all Carriers, but start from the one according the Carrier_Index
+      for Carrier_Loop = 1, #Carrier_List do
+
+        local CarrierUnit = Carrier_List[Carrier_Index] -- Wrapper.Unit#UNIT
+
+        -- This counters loop through the available Carriers.
+        Carrier_Index = Carrier_Index + 1
+        if Carrier_Index > Carrier_Count then
+          Carrier_Index = 1
+        end
+        
+        if Cargo:IsUnLoaded() and not Cargo:IsDeployed() then
+          Carrier:RouteStop()
+          Cargo:__Board( -LoadDelay, CarrierUnit )
+          self:__Board( LoadDelay, Cargo, CarrierUnit )
+
+          LoadDelay = LoadDelay + Cargo:GetCount() * LoadInterval
+
+          -- So now this CarrierUnit has Cargo that is being loaded.
+          -- This will be used further in the logic to follow and to check cargo status.
+          self.Carrier_Cargo[Cargo] = CarrierUnit
+          Boarding = true
+          Loaded = true
+        end
+        
+      end
+
+    end
+    
+    if not Loaded == true then
+      -- No loading happened, so we need to pickup something else.
+      self.Relocating = false
+    end
+  end
+
+  return Boarding
+  
+end
+
 --- On after Board event.
 -- @param #AI_CARGO self
 -- @param Wrapper.Group#GROUP Carrier
@@ -85502,6 +85578,7 @@ function AI_CARGO_APC:New( APC, CargoSet, CombatRadius )
   self:AddTransition( "*", "Follow", "Following" )
   self:AddTransition( "*", "Guard", "Unloaded" )
   self:AddTransition( "*", "Home", "*" )
+  self:AddTransition( "*", "Reload", "Boarding" )
   
   self:AddTransition( "*", "Destroyed", "Destroyed" )
 
@@ -85523,7 +85600,6 @@ function AI_CARGO_APC:SetCarrier( CargoCarrier )
   self.CargoCarrier:SetState( self.CargoCarrier, "AI_CARGO_APC", self )
 
   CargoCarrier:HandleEvent( EVENTS.Dead )
-  CargoCarrier:HandleEvent( EVENTS.Hit )
   
   function CargoCarrier:OnEventDead( EventData )
     self:F({"dead"})
@@ -85537,18 +85613,20 @@ function AI_CARGO_APC:SetCarrier( CargoCarrier )
       end
     end
   end
-  
-  function CargoCarrier:OnEventHit( EventData )
-    self:F({"hit"})
-    local AICargoTroops = self:GetState( self, "AI_CARGO_APC" )
-    if AICargoTroops then
-      self:F( { OnHitLoaded = AICargoTroops:Is( "Loaded" ) } )
-      if AICargoTroops:Is( "Loaded" ) or AICargoTroops:Is( "Boarding" ) then
-        -- There are enemies within combat radius. Unload the CargoCarrier.
-        AICargoTroops:Unload( false )
-      end
-    end
-  end
+
+--  CargoCarrier:HandleEvent( EVENTS.Hit )
+--  
+--  function CargoCarrier:OnEventHit( EventData )
+--    self:F({"hit"})
+--    local AICargoTroops = self:GetState( self, "AI_CARGO_APC" )
+--    if AICargoTroops then
+--      self:F( { OnHitLoaded = AICargoTroops:Is( "Loaded" ) } )
+--      if AICargoTroops:Is( "Loaded" ) or AICargoTroops:Is( "Boarding" ) then
+--        -- There are enemies within combat radius. Unload the CargoCarrier.
+--        AICargoTroops:Unload( false )
+--      end
+--    end
+--  end
   
   self.Zone = ZONE_UNIT:New( self.CargoCarrier:GetName() .. "-Zone", self.CargoCarrier, self.CombatRadius )
   self.Coalition = self.CargoCarrier:GetCoalition()
@@ -85685,8 +85763,8 @@ function AI_CARGO_APC:onafterMonitor( APC, From, Event, To )
             self.Zone:Scan( { Object.Category.UNIT } )
             if self.Zone:IsAllInZoneOfCoalition( self.Coalition ) then
               if self:Is( "Unloaded" ) then
-                -- There are no enemies within combat radius. Load the CargoCarrier.
-                self:Load()
+                -- There are no enemies within combat radius. Reload the CargoCarrier.
+                self:Reload()
               end
             else
               if self:Is( "Loaded" ) then
