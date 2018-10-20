@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-18T19:41:39.0000000Z-9ea332975150194729daaed3581fbb88555dd18d ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-19T15:08:18.0000000Z-7de9fded562ab73c3bb2e9d8d662e047eb3d23ba ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -29270,7 +29270,7 @@ do -- Route methods
     local canroad=false
                 
     -- Check if a valid path on road could be found.
-    if PathOnRoad and LengthOffRoad > 1000 then -- if the length of the movement is less than 1 km, drive directly.
+    if PathOnRoad and LengthDirect > 2000 then -- if the length of the movement is less than 1 km, drive directly.
       -- Check whether the road is very long compared to direct path.
       if LongRoad and Shortcut then
 
