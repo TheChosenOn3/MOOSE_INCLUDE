@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-19T15:08:18.0000000Z-7de9fded562ab73c3bb2e9d8d662e047eb3d23ba ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-20T02:33:30.0000000Z-138ba4deb35bb0e7f88b29f29748dc0dde5e8ec2 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -88020,7 +88020,7 @@ function AI_CARGO_DISPATCHER:onafterMonitor()
   
   for CarrierGroupName, Carrier in pairs( self.SetCarrier:GetSet() ) do
     local Carrier = Carrier -- Wrapper.Group#GROUP
-    if Carrier:IsAlive() == true then
+    if Carrier:IsAlive() ~= nil then
       local AI_Cargo = self.AI_Cargo[Carrier]
       if not AI_Cargo then
       
