@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-21T11:20:59.0000000Z-754def797641d0df00b5d589c514aee8f2e52afe ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-21T11:35:09.0000000Z-fca5a0f5295f99cb7f6f90b123707e6c06bdc3dd ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -75972,7 +75972,7 @@ end
 --- @param Wrapper.Group#GROUP AIGroup
 function AI_A2A.Resume( AIGroup, Fsm )
 
-  AIGroup:F( { "AI_A2A.Resume:", AIGroup:GetName() } )
+  AIGroup:I( { "AI_A2A.Resume:", AIGroup:GetName() } )
   if AIGroup:IsAlive() then
     Fsm:__RTB( 0.5 )
   end
@@ -76418,13 +76418,12 @@ function AI_A2A_PATROL:onafterRoute( AIPatrol, From, Event, To )
 end
 
 --- @param Wrapper.Group#GROUP AIPatrol
-function AI_A2A_PATROL.Resume( AIPatrol )
+function AI_A2A_PATROL.Resume( AIPatrol, Fsm )
 
-  AIPatrol:F( { "AI_A2A_PATROL.Resume:", AIPatrol:GetName() } )
+  AIPatrol:I( { "AI_A2A_PATROL.Resume:", AIPatrol:GetName() } )
   if AIPatrol:IsAlive() then
-    local _AI_A2A = AIPatrol:GetState( AIPatrol, "AI_A2A" ) -- AI.AI_A2A#AI_A2A
-      _AI_A2A:__Reset( 1 )
-      _AI_A2A:__Route( 5 )
+    Fsm:__Reset( 1 )
+    Fsm:__Route( 5 )
   end
   
 end
@@ -76906,13 +76905,12 @@ function AI_A2A_CAP:OnEventDead( EventData )
 end
 
 --- @param Wrapper.Group#GROUP AICap
-function AI_A2A_CAP.Resume( AICap )
+function AI_A2A_CAP.Resume( AICap, Fsm )
 
-  AICap:F( { "AI_A2A_CAP.Resume:", AICap:GetName() } )
+  AICap:I( { "AI_A2A_CAP.Resume:", AICap:GetName() } )
   if AICap:IsAlive() then
-    local _AI_A2A = AICap:GetState( AICap, "AI_A2A" ) -- #AI_A2A
-      _AI_A2A:__Reset( 1 )
-      _AI_A2A:__Route( 5 )
+    Fsm:__Reset( 1 )
+    Fsm:__Route( 5 )
   end
   
 end
