@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-21T19:08:28.0000000Z-8b80bd13fa590f9c2c25514b957b7a54c9cf1fdd ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-10-24T04:21:23.0000000Z-e4d69dc8f30623f3f5c1a8d3e02400dd3e27c189 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -23605,7 +23605,7 @@ function SPAWN:SpawnAtAirbase( SpawnAirbase, Takeoff, TakeoffAltitude, TerminalT
       -- When spawned in the air, we need to generate a Takeoff Event.
       if Takeoff == GROUP.Takeoff.Air then
         for UnitID, UnitSpawned in pairs( GroupSpawned:GetUnits() ) do
-          SCHEDULER:New( nil, BASE.CreateEventTakeoff, { GroupSpawned, timer.getTime(), UnitSpawned:GetDCSObject() } , 1 )
+          SCHEDULER:New( nil, BASE.CreateEventTakeoff, { GroupSpawned, timer.getTime(), UnitSpawned:GetDCSObject() } , 5 )
         end
       end
         
@@ -23908,10 +23908,10 @@ end
 function SPAWN:InitUnControlled( UnControlled )
 	self:F2( { self.SpawnTemplatePrefix, UnControlled } )
 	
-	self.SpawnUnControlled = UnControlled
+	self.SpawnUnControlled = UnControlled or true
 	
 	for SpawnGroupID = 1, self.SpawnMaxGroups do
-		self.SpawnGroups[SpawnGroupID].UnControlled = UnControlled
+		self.SpawnGroups[SpawnGroupID].UnControlled = self.SpawnUnControlled
 	end
 	
 	return self
@@ -75775,13 +75775,14 @@ function AI_A2A:onafterStatus()
         RTB = false
       end
     end
-    
-    if self:Is( "Fuel" ) or self:Is( "Damaged" ) or self:Is( "LostControl" ) then
-      if DistanceFromHomeBase < 5000 then
-        self:E( self.Controllable:GetName() .. " is too far from home base, RTB!" )
-        self:Home( "Destroy" )
-      end
-    end
+
+-- I think this code is not requirement anymore after release 2.5.    
+--    if self:Is( "Fuel" ) or self:Is( "Damaged" ) or self:Is( "LostControl" ) then
+--      if DistanceFromHomeBase < 5000 then
+--        self:E( self.Controllable:GetName() .. " is near the home base, RTB!" )
+--        self:Home( "Destroy" )
+--      end
+--    end
     
 
     if not self:Is( "Fuel" ) and not self:Is( "Home" ) then
@@ -75818,9 +75819,12 @@ function AI_A2A:onafterStatus()
     end
 
     -- Check if planes went RTB and are out of control.
+    -- We only check if planes are out of control, when they are in duty.
     if self.Controllable:HasTask() == false then
       if not self:Is( "Started" ) and 
          not self:Is( "Stopped" ) and
+         not self:Is( "Fuel" ) and 
+         not self:Is( "Damaged" ) and 
          not self:Is( "Home" ) then
         if self.IdleCount >= 2 then
           if Damage ~= InitialLife then
@@ -75840,8 +75844,11 @@ function AI_A2A:onafterStatus()
     if RTB == true then
       self:__RTB( 0.5 )
     end
+
+    if not self:Is("Home") then
+      self:__Status( 10 )
+    end
     
-    self:__Status( 10 )
   end
 end
 
@@ -78391,9 +78398,43 @@ do -- AI_A2A_DISPATCHER
     
     self:SetTacticalDisplay( false )
     
+    self.DefenderCAPIndex = 0
+    
     self:__Start( 5 )
     
     return self
+  end
+
+
+  --- @param #AI_A2A_DISPATCHER self
+  function AI_A2A_DISPATCHER:onafterStart( From, Event, To )
+
+    self:GetParent( self ).onafterStart( self, From, Event, To )
+
+    -- Spawn the resources.
+    for SquadronName, DefenderSquadron in pairs( self.DefenderSquadrons ) do
+      DefenderSquadron.Resource = {}
+      for Resource = 1, DefenderSquadron.ResourceCount do
+        self:ParkDefender( DefenderSquadron )
+      end
+    end
+  end
+  
+
+  --- @param #AI_A2A_DISPATCHER self
+  function AI_A2A_DISPATCHER:ParkDefender( DefenderSquadron )
+    local TemplateID = math.random( 1, #DefenderSquadron.Spawn )
+    local Spawn = DefenderSquadron.Spawn[ TemplateID ] -- Core.Spawn#SPAWN
+    Spawn:InitGrouping( 1 )
+    local SpawnGroup
+    if self:IsSquadronVisible( DefenderSquadron.Name ) then
+      SpawnGroup = Spawn:SpawnAtAirbase( DefenderSquadron.Airbase, SPAWN.Takeoff.Cold )
+      local GroupName = SpawnGroup:GetName()
+      DefenderSquadron.Resources = DefenderSquadron.Resources or {}
+      DefenderSquadron.Resources[TemplateID] = DefenderSquadron.Resources[TemplateID] or {}
+      DefenderSquadron.Resources[TemplateID][GroupName] = {}
+      DefenderSquadron.Resources[TemplateID][GroupName] = SpawnGroup
+    end
   end
 
 
@@ -78408,7 +78449,7 @@ do -- AI_A2A_DISPATCHER
     -- Now search for all squadrons located at the airbase, and sanatize them.
     for SquadronName, Squadron in pairs( self.DefenderSquadrons ) do
       if Squadron.AirbaseName == AirbaseName then
-        Squadron.Resources = -999 -- The base has been captured, and the resources are eliminated. No more spawning.
+        Squadron.ResourceCount = -999 -- The base has been captured, and the resources are eliminated. No more spawning.
         Squadron.Captured = true
         self:I( "Squadron " .. SquadronName .. " captured." )
       end
@@ -78437,6 +78478,7 @@ do -- AI_A2A_DISPATCHER
           self:RemoveDefenderFromSquadron( Squadron, Defender )
         end
         DefenderUnit:Destroy()
+        self:ParkDefender( Squadron, Defender )
         return
       end
       if DefenderUnit:GetLife() ~= DefenderUnit:GetLife0() then
@@ -78463,6 +78505,7 @@ do -- AI_A2A_DISPATCHER
           self:RemoveDefenderFromSquadron( Squadron, Defender )
         end
         DefenderUnit:Destroy()
+        self:ParkDefender( Squadron, Defender )
       end
     end 
   end
@@ -78852,7 +78895,7 @@ do -- AI_A2A_DISPATCHER
   -- Just remember that your template (groups late activated) need to start with the prefix you have specified in your code.
   -- If you have only one prefix name for a squadron, you don't need to use the `{ }`, otherwise you need to use the brackets.
   -- 
-  -- @param #number Resources (optional) A number that specifies how many resources are in stock of the squadron. If not specified, the squadron will have infinite resources available.
+  -- @param #number ResourceCount (optional) A number that specifies how many resources are in stock of the squadron. If not specified, the squadron will have infinite resources available.
   -- 
   -- @usage
   --   -- Now Setup the A2A dispatcher, and initialize it using the Detection object.
@@ -78875,13 +78918,13 @@ do -- AI_A2A_DISPATCHER
   --   
   -- @usage
   --   -- This is an example like the previous, but now with infinite resources.
-  --   -- The Resources parameter is not given in the SetSquadron method.
+  --   -- The ResourceCount parameter is not given in the SetSquadron method.
   --   A2ADispatcher:SetSquadron( "104th", "Batumi", "Mig-29" )
   --   A2ADispatcher:SetSquadron( "23th", "Batumi", "Su-27" )
   --   
   --   
   -- @return #AI_A2A_DISPATCHER
-  function AI_A2A_DISPATCHER:SetSquadron( SquadronName, AirbaseName, TemplatePrefixes, Resources )
+  function AI_A2A_DISPATCHER:SetSquadron( SquadronName, AirbaseName, TemplatePrefixes, ResourceCount )
   
   
     self.DefenderSquadrons[SquadronName] = self.DefenderSquadrons[SquadronName] or {} 
@@ -78906,11 +78949,11 @@ do -- AI_A2A_DISPATCHER
         DefenderSquadron.Spawn[#DefenderSquadron.Spawn+1] = self.DefenderSpawns[SpawnTemplate]
       end
     end
-    DefenderSquadron.Resources = Resources
+    DefenderSquadron.ResourceCount = ResourceCount
     DefenderSquadron.TemplatePrefixes = TemplatePrefixes
     DefenderSquadron.Captured = false -- Not captured. This flag will be set to true, when the airbase where the squadron is located, is captured.
 
-    self:F( { Squadron = {SquadronName, AirbaseName, TemplatePrefixes, Resources } } )
+    self:F( { Squadron = {SquadronName, AirbaseName, TemplatePrefixes, ResourceCount } } )
     
     return self
   end
@@ -78929,6 +78972,54 @@ do -- AI_A2A_DISPATCHER
   end
 
   
+  --- Set the Squadron visible before startup of the dispatcher.
+  -- All planes will be spawned as uncontrolled on the parking spot.
+  -- They will lock the parking spot.
+  -- @param #AI_A2A_DISPATCHER self
+  -- @param #string SquadronName The squadron name.
+  -- @return #AI_A2A_DISPATCHER
+  -- @usage
+  -- 
+  --        -- Set the Squadron visible before startup of dispatcher.
+  --        A2ADispatcher:SetSquadronVisible( "Mineralnye" )
+  --        
+  function AI_A2A_DISPATCHER:SetSquadronVisible( SquadronName )
+  
+    self.DefenderSquadrons[SquadronName] = self.DefenderSquadrons[SquadronName] or {} 
+    
+    local DefenderSquadron = self:GetSquadron( SquadronName )
+    
+    DefenderSquadron.Uncontrolled = true
+
+    for SpawnTemplate, DefenderSpawn in pairs( self.DefenderSpawns ) do
+      DefenderSpawn:InitUnControlled()
+    end
+
+  end
+
+  --- Check if the Squadron is visible before startup of the dispatcher.
+  -- @param #AI_A2A_DISPATCHER self
+  -- @param #string SquadronName The squadron name.
+  -- @return #bool true if visible.
+  -- @usage
+  -- 
+  --        -- Set the Squadron visible before startup of dispatcher.
+  --        local IsVisible = A2ADispatcher:IsSquadronVisible( "Mineralnye" )
+  --        
+  function AI_A2A_DISPATCHER:IsSquadronVisible( SquadronName )
+  
+    self.DefenderSquadrons[SquadronName] = self.DefenderSquadrons[SquadronName] or {} 
+    
+    local DefenderSquadron = self:GetSquadron( SquadronName )
+
+    if DefenderSquadron then
+      return DefenderSquadron.Uncontrolled == true
+    end
+    
+    return nil
+    
+  end
+
   --- Set a CAP for a Squadron.
   -- @param #AI_A2A_DISPATCHER self
   -- @param #string SquadronName The squadron name.
@@ -79077,7 +79168,7 @@ do -- AI_A2A_DISPATCHER
 
     if DefenderSquadron.Captured == false then -- We can only spawn new CAP if the base has not been captured.
     
-      if ( not DefenderSquadron.Resources ) or ( DefenderSquadron.Resources and DefenderSquadron.Resources > 0  ) then -- And, if there are sufficient resources.
+      if ( not DefenderSquadron.ResourceCount ) or ( DefenderSquadron.ResourceCount and DefenderSquadron.ResourceCount > 0  ) then -- And, if there are sufficient resources.
   
         local Cap = DefenderSquadron.Cap
         if Cap then
@@ -79110,7 +79201,7 @@ do -- AI_A2A_DISPATCHER
 
     if DefenderSquadron.Captured == false then -- We can only spawn new CAP if the base has not been captured.
     
-      if ( not DefenderSquadron.Resources ) or ( DefenderSquadron.Resources and DefenderSquadron.Resources > 0  ) then -- And, if there are sufficient resources.
+      if ( not DefenderSquadron.ResourceCount ) or ( DefenderSquadron.ResourceCount and DefenderSquadron.ResourceCount > 0  ) then -- And, if there are sufficient resources.
         local Gci = DefenderSquadron.Gci
         if Gci then
           return DefenderSquadron
@@ -79868,21 +79959,21 @@ do -- AI_A2A_DISPATCHER
     self.Defenders = self.Defenders or {}
     local DefenderName = Defender:GetName()
     self.Defenders[ DefenderName ] = Squadron
-    if Squadron.Resources then
-      Squadron.Resources = Squadron.Resources - Size
+    if Squadron.ResourceCount then
+      Squadron.ResourceCount = Squadron.ResourceCount - Size
     end
-    self:F( { DefenderName = DefenderName, SquadronResources = Squadron.Resources } )
+    self:F( { DefenderName = DefenderName, SquadronResourceCount = Squadron.ResourceCount } )
   end
 
   --- @param #AI_A2A_DISPATCHER self
   function AI_A2A_DISPATCHER:RemoveDefenderFromSquadron( Squadron, Defender )
     self.Defenders = self.Defenders or {}
     local DefenderName = Defender:GetName()
-    if Squadron.Resources then
-      Squadron.Resources = Squadron.Resources + Defender:GetSize()
+    if Squadron.ResourceCount then
+      Squadron.ResourceCount = Squadron.ResourceCount + Defender:GetSize()
     end
     self.Defenders[ DefenderName ] = nil
-    self:F( { DefenderName = DefenderName, SquadronResources = Squadron.Resources } )
+    self:F( { DefenderName = DefenderName, SquadronResourceCount = Squadron.ResourceCount } )
   end
   
   function AI_A2A_DISPATCHER:GetSquadronFromDefender( Defender )
@@ -80024,7 +80115,80 @@ do -- AI_A2A_DISPATCHER
     return Friendlies
   end
 
+
+  ---
+  -- @param #AI_A2A_DISPATCHER self
+  function AI_A2A_DISPATCHER:ResourceActivate( DefenderSquadron, DefendersNeeded )
   
+    local SquadronName = DefenderSquadron.Name
+    DefendersNeeded = DefendersNeeded or 4
+    local DefenderGrouping = DefenderSquadron.Grouping or self.DefenderDefault.Grouping
+    DefenderGrouping = ( DefenderGrouping < DefendersNeeded ) and DefenderGrouping or DefendersNeeded
+    
+    if self:IsSquadronVisible( SquadronName ) then
+    
+      -- Here we CAP the new planes.
+      -- The Resources table is filled in advance.
+      local TemplateID = math.random( 1, #DefenderSquadron.Spawn ) -- Choose the template.
+  
+      -- We determine the grouping based on the parameters set.
+      self:F( { DefenderGrouping = DefenderGrouping } )
+      
+      -- New we will form the group to spawn in.
+      -- We search for the first free resource matching the template.
+      local DefenderUnitIndex = 1
+      local DefenderCAPTemplate = nil
+      local DefenderName = nil
+      for GroupName, DefenderGroup in pairs( DefenderSquadron.Resources[TemplateID] or {} ) do
+        self:F( { GroupName = GroupName } )
+        local DefenderTemplate = _DATABASE:GetGroupTemplate( GroupName )
+        if DefenderUnitIndex == 1 then
+          DefenderCAPTemplate = UTILS.DeepCopy( DefenderTemplate )
+          self.DefenderCAPIndex = self.DefenderCAPIndex + 1
+          DefenderCAPTemplate.name = SquadronName .. "#" .. self.DefenderCAPIndex .. "#" .. GroupName
+          DefenderName = DefenderCAPTemplate.name
+        else
+          -- Add the unit in the template to the DefenderCAPTemplate.
+          local DefenderUnitTemplate = DefenderTemplate.units[1]
+          DefenderCAPTemplate.units[DefenderUnitIndex] = DefenderUnitTemplate
+        end
+        DefenderUnitIndex = DefenderUnitIndex + 1
+        DefenderSquadron.Resources[TemplateID][GroupName] = nil
+        if DefenderUnitIndex > DefenderGrouping then
+          break
+        end
+        
+      end 
+      
+      if DefenderCAPTemplate then
+        local TakeoffMethod = self:GetSquadronTakeoff( SquadronName )
+        local SpawnGroup = GROUP:Register( DefenderName )
+        DefenderCAPTemplate.lateActivation = nil
+        DefenderCAPTemplate.uncontrolled = nil
+        local Takeoff = self:GetSquadronTakeoff( SquadronName )
+        DefenderCAPTemplate.route.points[1].type   = GROUPTEMPLATE.Takeoff[Takeoff][1] -- type
+        DefenderCAPTemplate.route.points[1].action = GROUPTEMPLATE.Takeoff[Takeoff][2] -- action
+        local Defender = _DATABASE:Spawn( DefenderCAPTemplate )
+      
+        self:AddDefenderToSquadron( DefenderSquadron, Defender, DefenderGrouping )
+        return Defender, DefenderGrouping
+      end
+    else
+      local Spawn = DefenderSquadron.Spawn[ math.random( 1, #DefenderSquadron.Spawn ) ] -- Core.Spawn#SPAWN
+      if DefenderGrouping then
+        Spawn:InitGrouping( DefenderGrouping )
+      else
+        Spawn:InitGrouping()
+      end
+      
+      local TakeoffMethod = self:GetSquadronTakeoff( SquadronName )
+      local Defender = Spawn:SpawnAtAirbase( DefenderSquadron.Airbase, TakeoffMethod, DefenderSquadron.TakeoffAltitude or self.DefenderDefault.TakeoffAltitude ) -- Wrapper.Group#GROUP
+      self:AddDefenderToSquadron( DefenderSquadron, Defender, DefenderGrouping )
+      return Defender, DefenderGrouping
+    end
+
+    return nil, nil
+  end
   
   ---
   -- @param #AI_A2A_DISPATCHER self
@@ -80041,15 +80205,9 @@ do -- AI_A2A_DISPATCHER
       local Cap = DefenderSquadron.Cap
     
       if Cap then
-    
-        local Spawn = DefenderSquadron.Spawn[ math.random( 1, #DefenderSquadron.Spawn ) ] -- Core.Spawn#SPAWN
-        local DefenderGrouping = DefenderSquadron.Grouping or self.DefenderDefault.Grouping
-        Spawn:InitGrouping( DefenderGrouping )
 
-        local TakeoffMethod = self:GetSquadronTakeoff( SquadronName )
-        local DefenderCAP = Spawn:SpawnAtAirbase( DefenderSquadron.Airbase, TakeoffMethod, DefenderSquadron.TakeoffAltitude or self.DefenderDefault.TakeoffAltitude )
-        self:AddDefenderToSquadron( DefenderSquadron, DefenderCAP, DefenderGrouping )
-  
+        local DefenderCAP, DefenderGrouping = self:ResourceActivate( DefenderSquadron )    
+        
         if DefenderCAP then
   
           local Fsm = AI_A2A_CAP:New( DefenderCAP, Cap.Zone, Cap.FloorAltitude, Cap.CeilingAltitude, Cap.PatrolMinSpeed, Cap.PatrolMaxSpeed, Cap.EngageMinSpeed, Cap.EngageMaxSpeed, Cap.AltType )
@@ -80064,7 +80222,7 @@ do -- AI_A2A_DISPATCHER
           self:SetDefenderTask( SquadronName, DefenderCAP, "CAP", Fsm )
 
           function Fsm:onafterTakeoff( Defender, From, Event, To )
-            self:F({"GCI Birth", Defender:GetName()})
+            self:F({"CAP Birth", Defender:GetName()})
             --self:GetParent(self).onafterBirth( self, Defender, From, Event, To )
             
             local Dispatcher = Fsm:GetDispatcher() -- #AI_A2A_DISPATCHER
@@ -80098,9 +80256,9 @@ do -- AI_A2A_DISPATCHER
             if Dispatcher:GetSquadronLanding( Squadron.Name ) == AI_A2A_DISPATCHER.Landing.NearAirbase then
               Dispatcher:RemoveDefenderFromSquadron( Squadron, Defender )
               Defender:Destroy()
+              self:ParkDefender( Squadron, Defender )
             end
           end
-
         end
       end
     end
@@ -80206,31 +80364,19 @@ do -- AI_A2A_DISPATCHER
               self:F( { Grouping = DefenderGrouping, SquadronGrouping = DefenderSquadron.Grouping, DefaultGrouping = self.DefenderDefault.Grouping } )
               self:F( { DefendersCount = DefenderCount, DefendersNeeded = DefendersNeeded } )
               
-              -- DefenderSquadron.Resources can have the value nil, which expresses unlimited resources.
-              -- DefendersNeeded cannot exceed DefenderSquadron.Resources!
-              if DefenderSquadron.Resources and DefendersNeeded > DefenderSquadron.Resources then
-                DefendersNeeded = DefenderSquadron.Resources
+              -- DefenderSquadron.ResourceCount can have the value nil, which expresses unlimited resources.
+              -- DefendersNeeded cannot exceed DefenderSquadron.ResourceCount!
+              if DefenderSquadron.ResourceCount and DefendersNeeded > DefenderSquadron.ResourceCount then
+                DefendersNeeded = DefenderSquadron.ResourceCount
                 BreakLoop = true
               end
               
               while ( DefendersNeeded > 0 ) do
             
-                local Spawn = DefenderSquadron.Spawn[ math.random( 1, #DefenderSquadron.Spawn ) ] -- Core.Spawn#SPAWN
-                local DefenderGrouping = ( DefenderGrouping < DefendersNeeded ) and DefenderGrouping or DefendersNeeded
-                if DefenderGrouping then
-                  Spawn:InitGrouping( DefenderGrouping )
-                else
-                  Spawn:InitGrouping()
-                end
-                
-                local TakeoffMethod = self:GetSquadronTakeoff( ClosestDefenderSquadronName )
-                local DefenderGCI = Spawn:SpawnAtAirbase( DefenderSquadron.Airbase, TakeoffMethod, DefenderSquadron.TakeoffAltitude or self.DefenderDefault.TakeoffAltitude ) -- Wrapper.Group#GROUP
-                self:F( { GCIDefender = DefenderGCI:GetName() } )
+                local DefenderGCI, DefenderGrouping = self:ResourceActivate( DefenderSquadron, DefendersNeeded )    
   
                 DefendersNeeded = DefendersNeeded - DefenderGrouping
         
-                self:AddDefenderToSquadron( DefenderSquadron, DefenderGCI, DefenderGrouping )
-          
                 if DefenderGCI then
                 
                   DefenderCount = DefenderCount - DefenderGrouping / DefenderOverhead
@@ -80297,6 +80443,7 @@ do -- AI_A2A_DISPATCHER
                     if Dispatcher:GetSquadronLanding( Squadron.Name ) == AI_A2A_DISPATCHER.Landing.NearAirbase then
                       Dispatcher:RemoveDefenderFromSquadron( Squadron, Defender )
                       Defender:Destroy()
+                      self:ParkDefender( Squadron, Defender )
                     end
                   end
                 end  -- if DefenderGCI then
@@ -80878,7 +81025,7 @@ do
   -- For airplanes, 6000 (6km) is recommended, and is also the default value of this parameter.
   -- @param #number EngageRadius The radius in meters wherein detected airplanes will be engaged by airborne defenders without a task.
   -- @param #number GciRadius The radius in meters wherein detected airplanes will GCI.
-  -- @param #number Resources The amount of resources that will be allocated to each squadron.
+  -- @param #number ResourceCount The amount of resources that will be allocated to each squadron.
   -- @return #AI_A2A_GCICAP
   -- @usage
   --   
@@ -80953,7 +81100,7 @@ do
   -- 
   --   A2ADispatcher = AI_A2A_GCICAP:New( { "DF CCCP" }, { "SQ CCCP" }, nil, nil, nil, nil, nil, 30 )  
   --   
-  function AI_A2A_GCICAP:New( EWRPrefixes, TemplatePrefixes, CapPrefixes, CapLimit, GroupingRadius, EngageRadius, GciRadius, Resources )
+  function AI_A2A_GCICAP:New( EWRPrefixes, TemplatePrefixes, CapPrefixes, CapLimit, GroupingRadius, EngageRadius, GciRadius, ResourceCount )
 
     local EWRSetGroup = SET_GROUP:New()
     EWRSetGroup:FilterPrefixes( EWRPrefixes )
@@ -81007,7 +81154,7 @@ do
         end
       end
       if Templates then
-        self:SetSquadron( AirbaseName, AirbaseName, Templates, Resources )
+        self:SetSquadron( AirbaseName, AirbaseName, Templates, ResourceCount )
       end
     end
 
@@ -81084,7 +81231,7 @@ do
   -- For airplanes, 6000 (6km) is recommended, and is also the default value of this parameter.
   -- @param #number EngageRadius The radius in meters wherein detected airplanes will be engaged by airborne defenders without a task.
   -- @param #number GciRadius The radius in meters wherein detected airplanes will GCI.
-  -- @param #number Resources The amount of resources that will be allocated to each squadron.
+  -- @param #number ResourceCount The amount of resources that will be allocated to each squadron.
   -- @return #AI_A2A_GCICAP
   -- @usage
   --   
@@ -81168,9 +81315,9 @@ do
   -- 
   --   A2ADispatcher = AI_A2A_GCICAP:NewWithBorder( { "DF CCCP" }, { "SQ CCCP" }, "Border", nil, nil, nil, nil, nil, 30 )  
   --   
-  function AI_A2A_GCICAP:NewWithBorder( EWRPrefixes, TemplatePrefixes, BorderPrefix, CapPrefixes, CapLimit, GroupingRadius, EngageRadius, GciRadius, Resources )
+  function AI_A2A_GCICAP:NewWithBorder( EWRPrefixes, TemplatePrefixes, BorderPrefix, CapPrefixes, CapLimit, GroupingRadius, EngageRadius, GciRadius, ResourceCount )
 
-    local self = AI_A2A_GCICAP:New( EWRPrefixes, TemplatePrefixes, CapPrefixes, CapLimit, GroupingRadius, EngageRadius, GciRadius, Resources )
+    local self = AI_A2A_GCICAP:New( EWRPrefixes, TemplatePrefixes, CapPrefixes, CapLimit, GroupingRadius, EngageRadius, GciRadius, ResourceCount )
 
     if BorderPrefix then
       self:SetBorderZone( ZONE_POLYGON:New( BorderPrefix, GROUP:FindByName( BorderPrefix ) ) )
