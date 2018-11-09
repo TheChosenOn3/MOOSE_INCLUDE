@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-06T19:15:59.0000000Z-1a9364bc0a5e2df4e562695495e6a2ea190230b9 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-06T19:35:52.0000000Z-9c9442be3f57a738ace882c3d0774ef154ad250e ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -78409,13 +78409,15 @@ do -- AI_A2A_DISPATCHER
   --- @param #AI_A2A_DISPATCHER self
   function AI_A2A_DISPATCHER:onafterStart( From, Event, To )
 
-    self:GetParent( self ).onafterStart( self, From, Event, To )
+    self:GetParent( self, AI_A2A_DISPATCHER ).onafterStart( self, From, Event, To )
 
     -- Spawn the resources.
     for SquadronName, DefenderSquadron in pairs( self.DefenderSquadrons ) do
       DefenderSquadron.Resource = {}
-      for Resource = 1, DefenderSquadron.ResourceCount do
-        self:ParkDefender( DefenderSquadron )
+      if DefenderSquadron.ResourceCount then
+        for Resource = 1, DefenderSquadron.ResourceCount do
+          self:ParkDefender( DefenderSquadron )
+        end
       end
     end
   end
