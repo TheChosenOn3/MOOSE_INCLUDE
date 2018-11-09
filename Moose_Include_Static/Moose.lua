@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-09T05:51:07.0000000Z-5f7fc2f8af45dc61f74f4cb49f1a57f6e2aafeac ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-09T06:19:12.0000000Z-00d1fa9b36e629de72f46294504a04bb7851ea8e ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -48425,7 +48425,7 @@ do -- DESIGNATE
     self.Designating = {}
     self:SetDesignateName()
     
-    self.LaseDuration = 60
+    self:SetLaseDuration() -- Default is 120 seconds.
     
     self:SetFlashStatusMenu( false )
     self:SetFlashDetectionMessages( true )
@@ -48628,6 +48628,14 @@ do -- DESIGNATE
     return self
   end
   
+  --- Set the lase duration for designations.
+  -- @param #DESIGNATE self
+  -- @param #number LaseDuration The time in seconds a lase will continue to hold on target. The default is 120 seconds.
+  -- @return #DESIGNATE
+  function DESIGNATE:SetLaseDuration( LaseDuration )
+    self.LaseDuration = LaseDuration or 120
+    return self
+  end
 
   --- Generate an array of possible laser codes.
   -- Each new lase will select a code from this table.
