@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-09T07:06:45.0000000Z-3cc69a932b17e97e506f5d0ddfbc301bb91b777b ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-12T19:35:55.0000000Z-2f001b78fcc3fb109032e09f37a2bb61356720ff ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -48959,9 +48959,9 @@ do -- DESIGNATE
         if string.find( Designating, "L", 1, true ) == nil then
           MENU_GROUP_COMMAND_DELAYED:New( AttackGroup, "Search other target", DetectedMenu, self.MenuForget, self, DesignateIndex ):SetTime( MenuTime ):SetTag( self.DesignateName )
           for LaserCode, MenuText in pairs( self.MenuLaserCodes ) do
-            MENU_GROUP_COMMAND_DELAYED:New( AttackGroup, string.format( MenuText, LaserCode ), DetectedMenu, self.MenuLaseCode, self, DesignateIndex, 60, LaserCode ):SetTime( MenuTime ):SetTag( self.DesignateName )
+            MENU_GROUP_COMMAND_DELAYED:New( AttackGroup, string.format( MenuText, LaserCode ), DetectedMenu, self.MenuLaseCode, self, DesignateIndex, self.LaseDuration, LaserCode ):SetTime( MenuTime ):SetTag( self.DesignateName )
           end
-          MENU_GROUP_COMMAND_DELAYED:New( AttackGroup, "Lase with random laser code(s)", DetectedMenu, self.MenuLaseOn, self, DesignateIndex, 60 ):SetTime( MenuTime ):SetTag( self.DesignateName )
+          MENU_GROUP_COMMAND_DELAYED:New( AttackGroup, "Lase with random laser code(s)", DetectedMenu, self.MenuLaseOn, self, DesignateIndex, self.LaseDuration ):SetTime( MenuTime ):SetTag( self.DesignateName )
         else
           MENU_GROUP_COMMAND_DELAYED:New( AttackGroup, "Stop lasing", DetectedMenu, self.MenuLaseOff, self, DesignateIndex ):SetTime( MenuTime ):SetTag( self.DesignateName )
         end
@@ -49119,10 +49119,10 @@ do -- DESIGNATE
   
     if string.find( self.Designating[Index], "L", 1, true ) == nil then
       self.Designating[Index] = self.Designating[Index] .. "L"
+      self.LaseStart = timer.getTime()
+      self.LaseDuration = Duration
+      self:Lasing( Index, Duration, LaserCode )
     end
-    self.LaseStart = timer.getTime()
-    self.LaseDuration = Duration
-    self:Lasing( Index, Duration, LaserCode )
   end
   
 
@@ -49281,7 +49281,7 @@ do -- DESIGNATE
       local MarkedLaserCodesText = ReportLaserCodes:Text(', ')
       self.CC:GetPositionable():MessageToSetGroup( "Marking " .. MarkingCount .. " x "  .. MarkedTypesText .. ", code " .. MarkedLaserCodesText .. ".", 5, self.AttackSet, self.DesignateName )
   
-      self:__Lasing( -30, Index, Duration, LaserCodeRequested )
+      self:__Lasing( -self.LaseDuration, Index, Duration, LaserCodeRequested )
       
       self:SetDesignateMenu()
 
