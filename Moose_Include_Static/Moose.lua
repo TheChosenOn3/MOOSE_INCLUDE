@@ -33899,6 +33899,39 @@ function STATIC:ReSpawnAt( Coordinate, Heading )
   
   SpawnStatic:ReSpawnAt( Coordinate, Heading )
 end
+
+
+--- Returns true if the unit is within a @{Zone}.
+-- @param #STATIC self
+-- @param Core.Zone#ZONE_BASE Zone The zone to test.
+-- @return #boolean Returns true if the unit is within the @{Core.Zone#ZONE_BASE}
+function STATIC:IsInZone( Zone )
+  self:F2( { self.StaticName, Zone } )
+
+  if self:IsAlive() then
+    local IsInZone = Zone:IsVec3InZone( self:GetVec3() )
+  
+    return IsInZone 
+  end
+  return false
+end
+
+--- Returns true if the unit is not within a @{Zone}.
+-- @param #STATIC self
+-- @param Core.Zone#ZONE_BASE Zone The zone to test.
+-- @return #boolean Returns true if the unit is not within the @{Core.Zone#ZONE_BASE}
+function STATIC:IsNotInZone( Zone )
+  self:F2( { self.StaticName, Zone } )
+
+  if self:IsAlive() then
+    local IsInZone = not Zone:IsVec3InZone( self:GetVec3() )
+    
+    self:T( { IsInZone } )
+    return IsInZone 
+  else
+    return false
+  end
+end
 --- **Wrapper** -- AIRBASE is a wrapper class to handle the DCS Airbase objects.
 -- 
 -- ===
@@ -58825,6 +58858,10 @@ do -- ZONE_CAPTURE_COALITION
     -- @param #ZONE_CAPTURE_COALITION self
     -- @param #number Delay
 
+    -- We check if a unit within the zone is hit.
+    -- If it is, then we must move the zone to attack state.
+    self:HandleEvent( EVENTS.Hit, self.OnEventHit )
+
     return self
   end
   
@@ -59068,6 +59105,21 @@ do -- ZONE_CAPTURE_COALITION
       self:ScheduleStop( self.ScheduleStatusZone )
     end
   end
+  
+  --- @param #ZONE_CAPTURE_COALITION self
+  -- @param Core.Event#EVENTDATA EventData The event data.
+  function ZONE_CAPTURE_COALITION:OnEventHit( EventData )
+  
+    local UnitHit = EventData.TgtUnit
+    
+    if UnitHit then
+      if UnitHit:IsInZone( self.Zone ) then
+        self:Attack()
+      end
+    end
+  
+  end
+  
   
 end
 
