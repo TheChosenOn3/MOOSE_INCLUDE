@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-13T19:36:20.0000000Z-d104de09b0f07cb449a1d3332a87177232ba35a7 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-13T20:41:40.0000000Z-7c768cb3259b484a4cb9aa6ccfe6f11a21fa1bff ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -12081,9 +12081,9 @@ do -- SET_BASE
     for ObjectID, ObjectData in pairs( self.Set ) do
       if NearestObject == nil then
         NearestObject = ObjectData
-        ClosestDistance = PointVec2:DistanceFromVec2( ObjectData:GetVec2() )
+        ClosestDistance = PointVec2:DistanceFromPointVec2( ObjectData:GetVec2() )
       else
-        local Distance = PointVec2:DistanceFromVec2( ObjectData:GetVec2() )
+        local Distance = PointVec2:DistanceFromPointVec2( ObjectData:GetVec2() )
         if Distance < ClosestDistance then
           NearestObject = ObjectData
           ClosestDistance = Distance
