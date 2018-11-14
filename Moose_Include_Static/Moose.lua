@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-13T20:41:40.0000000Z-7c768cb3259b484a4cb9aa6ccfe6f11a21fa1bff ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2018-11-14T18:03:42.0000000Z-ec53b89c695b999dec7775be5f7f7386368c052c ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
@@ -48237,9 +48237,9 @@ do -- DESIGNATE
   --   * The status report can be automatically flashed by selecting "Status" -> "Flash Status On".
   --   * The automatic flashing of the status report can be deactivated by selecting "Status" -> "Flash Status Off".
   --   * The flashing of the status menu is disabled by default.
-  --   * The method @{#DESIGNATE.FlashStatusMenu}() can be used to enable or disable to flashing of the status menu.
+  --   * The method @{#DESIGNATE.SetFlashStatusMenu}() can be used to enable or disable to flashing of the status menu.
   --   
-  --     Designate:FlashStatusMenu( true )
+  --     Designate:SetFlashStatusMenu( true )
   --     
   -- The example will activate the flashing of the status menu for this Designate object.
   -- 
