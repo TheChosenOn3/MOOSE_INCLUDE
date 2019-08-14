@@ -1,4 +1,4 @@
-env.info( '*** MOOSE GITHUB Commit Hash ID: 2019-08-11T09:06:15.0000000Z-86b6ee4bb0df16755a80af3a385ba83756cd8fd2 ***' )
+env.info( '*** MOOSE GITHUB Commit Hash ID: 2019-08-11T11:05:00.0000000Z-54a2e0729828eeb377de77791d07be8768004e38 ***' )
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
 
 --- Various routines
